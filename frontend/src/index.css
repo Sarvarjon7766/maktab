@@ -1,0 +1,55 @@
+@import "tailwindcss";
+/* Butun ilova faqat och (light) rejim uchun ishlab chiqilgan — hech qayerda
+   dark: variant ishlatilmagan. daisyUI'ning standart xatti-harakati esa
+   qurilma/brauzerning tizim sozlamasi (prefers-color-scheme: dark) qorong'u
+   bo'lsa, o'zi avtomatik qorong'u mavzuga o'tadi — shu payt matn rangi oqqa
+   aylanadi va och fonli elementlar (masalan parol ko'rsatiladigan kod
+   maydonlari) butunlay ko'rinmay qoladi. Mavzuni "light"ga qulflab qo'yamiz. */
+@plugin "daisyui" {
+  themes: light --default;
+}
+
+.input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400;
+}
+
+.input-style {
+  @apply w-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400;
+}
+
+.align-items {
+  @apply mx-auto p-3 max-w-[1400px];
+}
+
+@layer utilities {
+  @keyframes draw {
+    0% {
+      stroke-dashoffset: 500;
+    }
+
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .animate-draw {
+    animation: draw 2s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .marquee {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 30s linear infinite;
+    color: #ef0e0e;
+  }
+}

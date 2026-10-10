@@ -1,0 +1,34 @@
+SYSTEMATIC PROBLEMS IN THE RULE-BASED UZBEK LATIN -> CYRILLIC TRANSLITERATOR
+
+1. Latin-script technical/English words must not be transliterated (biggest issue, ~50% of fixes).
+   Add a "keep Latin" token list/regex applied BEFORE transliteration:
+   - online / offline (auto gave "онлине"/"оффлине"; keep "online"/"offline", "Online"/"Offline")
+   - CSS class strings (bg-*, text-*, ring-*, border-*): whole string must be kept untouched
+   - file/format/unit tokens: .xlsx, .json, .geojson, JPG, JPEG, PNG, WEBP, PDF, KB, px, "100x100px", "{{w}}x{{h}}px" (x between digits must not become "х")
+   - identifiers/fields: employee_id, cameraIp, schoolId, hodimID, username, UserHome, accessToken, statuses, name, code, type, 'entry'/'exit', server_proxy/config.json, maktab_faceid_bot
+   - brand / product names: Hik, Hik-Connect (also with suffix: Hik-Connect'да), API Key, API Secret, Google Maps (Google Maps'да), Telegram (Telegram'да), BotFather, GeoJSON, Polygon, MultiPolygon, Heartbeat, Excel (Excel'дан, Excel'нинг), Export, Preview, Leader/viewer, LIVE, Ctrl, Esc, GUI, PeopleManage, FaceID, check-in/check-out, user, attendance, Delete error, timeout, polling, backend, Stream, Language, HH:MM, lat/lng
+   - bot token example "123456789:AAH..." must stay as is
+   - the single-letter placeholder-like "N" in «N daqiqa kechikdi» must stay Latin
+   Rule: when a token is on the keep-list, copy it verbatim and only transliterate suffixes after an apostrophe or directly attached (Excelga -> Excelга, Telegramda -> Telegramда, userlar -> userлар).
+
+2. Apostrophe + suffix after Latin-kept word: auto produced "Эхкелъдан", "Телеграмъда", "Мапсъда": the apostrophe turned into a hard sign "ъ". After a kept-Latin word the apostrophe must remain "'" and the suffix is Cyrillic.
+
+3. 'ts' / 'tsiya' in loanwords: "generatsiya" -> "генерация" (not "генератсия"). Rule: 'tsiya' -> 'ция', loanword 'ts' -> 'ц' (e.g. stansiya, sirkulyatsiya). Auto output keeps 'тс'.
+
+4. 'g'' mapping: "Bulung'ur" -> "Булунғур" (auto gave "Булунгъур"): g' must map to ғ even when next to vowels in proper names. Only the sequence "n"+"g'" got misparsed as 'нг'+'ъ'. Check the order: treat g' (and o') as a digraph before ng.
+
+5. Filtr -> фильтр: soft sign in 'filtr' (auto "филтр"). Add dictionary: filtr->фильтр (filtrni, filtrlash -> фильтрлаш...). Similarly 'obyekt' -> 'объект' (auto "обект").
+
+6. Initial 'h' in Latin brand/English words became 'ҳ' ("Heartbeat" -> "Ҳеартбеат", "Hik" -> "Ҳик"): keep-list handles it, but generally English h must not be ҳ.
+
+7. English word-internal letters mangled when not on keep-list: "type" -> "тйпе", "entry/exit" -> "энтрй/эхит", "proxy" -> "прохй", "user" -> "усер", "attendance" -> "аттенданке", "accessToken" -> "аккессТокен", "Preview" -> "Превиев", "Selfie" -> "Селфи" (correct), "Leader/viewer" -> "Леадер/виевер". Detect words with letters/sequences not valid in Uzbek (w, ee, ea, "ye" at end, camelCase, underscore, digits inside) and keep them Latin.
+
+8. Abbreviations/units: KB -> "КБ" is acceptable but inconsistent with keeping JPG/PNG; chose Latin "KB". "daq" -> "дақ", "soat" -> "соат", "kun" -> "кун" were correct. F.I.Sh -> Ф.И.Ш was correct.
+
+9. Words that were correct and need NO special handling (verified): ma'lumot -> маълумот, ta'til -> таътил, e'tibor -> эътибор, o'/g'/h/q/x mapping, 'sh/ch', 'yo'->ё ('yomon' -> 'ёмон'), 'yu/ya' -> ю/я, initial e -> э/е ('eski' -> 'эски', 'erkak' -> 'эркак', 'yetarli' -> 'етарли').
+
+10. Lowercase single-letter column/class labels like "A, B, V" -> "А, Б, В" are fine.
+
+11. Placeholders {{...}} were preserved correctly everywhere.
+
+12. Uncertain/left unchanged (editorial decision for the owner): "serial raqami" -> "сериал рақами" (maybe "серия"), "Komentariya" -> "Коментария", "bali" -> "бали" (source typo for "balli/bahosi"?), "Camera" -> "Камера".

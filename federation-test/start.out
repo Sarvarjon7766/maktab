@@ -1,0 +1,24 @@
+node:internal/modules/cjs/loader:1459
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Users\AKTRM\AppData\Local\Temp\claude\e--Maktab\b1d8504c-0ff0-47ce-a097-0105be4026c7\scratchpad\sbx13\faceid\backend\node_modules\mongoose'
+Require stack:
+- C:\Users\AKTRM\AppData\Local\Temp\claude\e--Maktab\b1d8504c-0ff0-47ce-a097-0105be4026c7\scratchpad\sbx13\faceid\federation-test\start.cjs
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\AKTRM\AppData\Local\Temp\claude\e--Maktab\b1d8504c-0ff0-47ce-a097-0105be4026c7\scratchpad\sbx13\faceid\federation-test\start.cjs:9:18)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\AKTRM\\AppData\\Local\\Temp\\claude\\e--Maktab\\b1d8504c-0ff0-47ce-a097-0105be4026c7\\scratchpad\\sbx13\\faceid\\federation-test\\start.cjs'
+  ]
+}
+
+Node.js v24.14.1

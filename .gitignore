@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+**/node_modules/
+backend/private/
+backend/uploads/
+frontend/dist/
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
+Thumbs.db

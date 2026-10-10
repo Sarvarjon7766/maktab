@@ -1,0 +1,18 @@
+# O'rnatish: pip install -r requirements.txt
+#
+# Barcha skriptlar (app.py, poller.py) uchun umumiy:
+requests>=2.31
+urllib3>=2.0
+Pillow>=10.0
+
+# Faqat webhook_server.py (PUSH usuli) uchun kerak:
+fastapi>=0.110
+uvicorn>=0.27
+python-multipart>=0.0.9
+
+# Eslatma: gui_app.py uchun tkinter kerak — bu Python bilan birga keladi
+# (pip orqali o'rnatilmaydi). isup_sdk_adapter.py Hikvision'ning proprietar
+# SDK kutubxonasini (DLL/.so) ctypes orqali yuklaydi — bu ham pip paketi
+# emas, alohida o'rnatiladi; topilmasa avtomatik ISAPI (HTTP) rejimiga
+# o'tiladi (factory.py).
+

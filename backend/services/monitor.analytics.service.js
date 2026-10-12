@@ -496,9 +496,9 @@ class MonitorAnalyticsService {
 		if (scL) sFilter.schoolId = scL
 		if (StudentExcuseService.LABELS[type]) sFilter.type = type
 		const sRows = await studentExcuseModel.find(sFilter).sort({ startDate: -1, createdAt: -1 }).limit(1000)
-			.populate('student', 'fullName isActive').populate('sinf', 'name').populate('createdBy', 'fullName').lean()
+			.populate('student', 'fullName isActive photo').populate('sinf', 'name').populate('createdBy', 'fullName').lean()
 		const studentLeaves = sRows.filter(c => c.student && c.student.isActive !== false).map(c => ({
-			_id: c._id, student: { _id: c.student._id, fullName: c.student.fullName }, sinf: c.sinf?.name || '', schoolId: c.schoolId, schoolName: names.get(String(c.schoolId)) || '',
+			_id: c._id, student: { _id: c.student._id, fullName: c.student.fullName, photo: c.student.photo || '' }, sinf: c.sinf?.name || '', schoolId: c.schoolId, schoolName: names.get(String(c.schoolId)) || '',
 			type: c.type, label: StudentExcuseService.LABELS[c.type] || StudentExcuseService.LABELS.boshqa, comment: c.comment || '', startDate: c.startDate, endDate: c.endDate || null,
 			active: c.startDate <= today && (!c.endDate || c.endDate >= today), createdBy: c.createdBy?.fullName || ''
 		}))
@@ -533,7 +533,8 @@ class MonitorAnalyticsService {
 			if (worked.length >= 2) history.set(String(s._id), Math.round(worked.reduce((a, d) => a + d.studentPercent, 0) / worked.length * 10) / 10)
 		})
 		const alerts = []
-		const push = (severity, type, s, title, evidence, link) => alerts.push({ id: `${type}-${s._id}`, severity, type, schoolId: s._id, schoolName: s.name, title, evidence, link })
+		const seen = new Map() // bir maktabda bir xil turdagi bir nechta ogohlantirish bo'lishi mumkin (masalan vision) — id takrorlanmasin
+		const push = (severity, type, s, title, evidence, link) => { const base = `${type}-${s._id}`; const n = (seen.get(base) || 0) + 1; seen.set(base, n); alerts.push({ id: n === 1 ? base : `${base}-${n}`, severity, type, schoolId: s._id, schoolName: s.name, title, evidence, link }) }
 		// Aqlli kuzatuv hodisalari (bugun): bo'sh qolgan sinf, odamlar keskin oshishi, ortiqcha odam. Sinf nomlari bilan
 		const visionRows = await hikCameraEventModel.aggregate([
 			{ $match: { dateString, kind: { $in: ['vision_empty', 'vision_surge', 'vision_overcrowd', 'vision_restless', 'vision_commotion'] }, ...(schoolCond(only) ? { schoolId: schoolCond(only) } : {}) } },

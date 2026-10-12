@@ -1,3 +1,4 @@
+import { useSchoolPageTitle } from './schoolPageTitle'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi'
@@ -6,6 +7,7 @@ import { useOrg } from '../context/OrgContext'
 
 const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	const navigate = useNavigate()
+	const pageTitle = useSchoolPageTitle('/user')
 	const org = useOrg()
 	const [open, setOpen] = useState(false)
 	const [user, setUser] = useState({})
@@ -45,6 +47,11 @@ const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					>
 						<FiMenu size={22} />
 					</button>
+
+					<div className="hidden lg:flex items-center gap-3 min-w-0">
+						<span className="h-6 w-1 rounded-full bg-cyan-400" />
+						<p className="truncate text-lg font-semibold tracking-tight text-white max-w-[320px]">{pageTitle}</p>
+					</div>
 
 					{/* Maktab nomi faqat sidebar yopiq bo‘lsa ko‘rinadi */}
 					{!sidebarOpen && (

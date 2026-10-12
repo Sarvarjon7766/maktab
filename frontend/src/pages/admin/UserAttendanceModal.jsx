@@ -2,7 +2,7 @@ import axios from 'axios'
 import useSchoolBase from '../../components/useSchoolBase'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowRight, FiCalendar, FiDownload, FiX } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import * as XLSX from 'xlsx-js-style'
 
@@ -33,6 +33,8 @@ const PRESETS = [
 const UserAttendanceModal = ({ userId, onClose }) => {
 	const token = localStorage.getItem('token')
 	const roleBase = useSchoolBase().replace(/^\//, '')
+	const navigate = useNavigate()
+	const fullPage = !!userId && (roleBase === 'user' || roleBase === 'admin')
 	const [loading, setLoading] = useState(true)
 	const [user, setUser] = useState(null)
 	const [history, setHistory] = useState([])
@@ -102,6 +104,11 @@ const UserAttendanceModal = ({ userId, onClose }) => {
 		toast.success('Excel yuklandi')
 	}
 
+	// Maktab admini/o'rinbosari uchun xodimning to'liq sahifasi ("Mening davomatim" bilan bir xil ko'rinish): kalendar, kirish-chiqishlar, statistika
+	// oyna holatini yopib, keyin o'tamiz — aks holda "Orqaga" bosilganda oyna qayta ochilib, yana yo'naltirib yuboradi
+	const jumped = useRef(false) // StrictMode effektni ikki marta ishga tushiradi: ikki marta o'tib, tarixga ikkita yozuv qo'shilmasin
+	useEffect(() => { if (fullPage && !jumped.current) { jumped.current = true; onClose(); navigate(`/${roleBase}/people/staff/${userId}`) } }, [fullPage, userId, roleBase, navigate, onClose])
+	if (fullPage) return null
 	if (!userId) return null
 	const tab = (k, l, n) => <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-sm transition ${filter === k ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>{l} <span className="opacity-60">{n}</span></button>
 	const date = 'rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-black outline-none focus:border-blue-400'

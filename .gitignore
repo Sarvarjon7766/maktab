@@ -5,6 +5,7 @@
 backend/private/
 backend/uploads/
 frontend/dist/
+frontend/public/ezuikit_static/
 __pycache__/
 *.py[cod]
 *.log

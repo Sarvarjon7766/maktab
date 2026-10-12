@@ -1,4 +1,5 @@
 import { tx } from '../../i18n'
+import AutoSelect from '../../components/AutoSelect'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { FiChevronLeft, FiChevronRight, FiDownload, FiSearch } from 'react-icons/fi'
@@ -76,10 +77,10 @@ const MonitorPeopleTab = ({ schoolId, kind, initialStatus = '', initialSinf = ''
 					<input value={q} onChange={e => setQ(e.target.value)} placeholder={isStudent ? 'Ism yoki ID raqami' : 'Ism, ID yoki lavozim'} className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm outline-none focus:border-blue-400" />
 				</div>
 				{isStudent && (
-					<select value={sinfId} onChange={e => { setSinfId(e.target.value); setPage(1) }} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
+					<AutoSelect value={sinfId} onChange={e => { setSinfId(e.target.value); setPage(1) }} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
 						<option value="">Barcha sinflar</option>
 						{(classData?.classes || []).map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-					</select>
+					</AutoSelect>
 				)}
 				<DateField value={date} max={todayStr()} onChange={v => { setDate(v); setPage(1) }} />
 				<button onClick={download} disabled={exporting || !data?.total} title="Excel" className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={14} /> {exporting ? '...' : 'Excel'}</button>

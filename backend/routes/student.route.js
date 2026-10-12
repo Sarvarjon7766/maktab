@@ -29,6 +29,7 @@ const handle = (fn) => async (req, res) => {
 	}
 }
 router.get('/excuse', verifyToken, requireManagement, handle(req => Excuse.forSinf(req.user.school, req.query.sinfId, req.query.date)))
+router.get('/excuse/all', verifyToken, requireManagement, handle(req => Excuse.allForSchool(req.user.school)))
 router.post('/excuse', verifyToken, requireManagement, handle(req => Excuse.create(req.user.school, req.user.userId, req.body || {})))
 router.put('/excuse/:id/close', verifyToken, requireManagement, handle(req => Excuse.close(req.user.school, req.params.id)))
 router.delete('/excuse/:id', verifyToken, requireManagement, handle(req => Excuse.remove(req.user.school, req.params.id)))

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AutoSelect from '../../components/AutoSelect'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, DateField, LoadState, Page, PageHeader, Panel, Progress, KpiLink, Table, Td, Tr, exportXlsx, fmt, pct, todayStr, useMonitorData, matchText, SearchBox } from './monitorKit'
 import { FaChalkboard, FaUserGraduate, FaUserTimes } from 'react-icons/fa'
@@ -36,9 +37,9 @@ const MonitorClasses = () => {
 	return (
 		<Page>
 			<PageHeader title="Sinflar kesimida" subtitle="Tanlangan maktabning sinflari bo'yicha o'quvchilar davomati" onReload={reload} loading={loading}>
-				<select value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[260px]">
+				<AutoSelect value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[260px]">
 					{schools.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-				</select>
+				</AutoSelect>
 				<DateField label="Sana" value={date} max={todayStr()} onChange={setDate} />
 				<button onClick={download} disabled={!classes.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
 			</PageHeader>

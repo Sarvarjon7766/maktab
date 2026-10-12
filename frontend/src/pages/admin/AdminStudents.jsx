@@ -4,6 +4,7 @@ import { FiAlertCircle, FiCamera, FiDownload, FiEdit2, FiPhone, FiPlus, FiSearch
 import { toast } from 'react-toastify'
 import * as XLSX from 'xlsx-js-style'
 import { ListPager, usePaged } from '../../components/ListPager'
+import PersonLink from '../../components/PersonLink'
 import SearchableSelect from '../../components/SearchableSelect'
 import { styleWorkbookSheet } from '../../utils/exportAttendance'
 import { formatUzShortDate } from '../../utils/formatDate'
@@ -197,10 +198,10 @@ const AdminStudents = () => {
 							<ul className="divide-y divide-slate-100">
 								{paged.items.map(s => (
 									<li key={s._id} className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-slate-50 md:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_96px] md:gap-4 md:px-5">
-										<div className="col-span-2 flex min-w-0 items-center gap-3 md:col-span-1">
+										<PersonLink kind="student" id={s._id} className="col-span-2 flex min-w-0 items-center gap-3 md:col-span-1">
 											<Avatar s={s} />
 											<p className="truncate text-sm font-semibold text-slate-900">{s.fullName}</p>
-										</div>
+										</PersonLink>
 										<div className="order-last col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1 pl-14 md:order-none md:col-span-3 md:grid md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1.3fr)] md:gap-4 md:pl-0">
 											<span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${s.sinf ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{s.sinf?.name || 'Sinfsiz'}</span>
 											{s.parentPhone ? (
@@ -211,13 +212,15 @@ const AdminStudents = () => {
 											) : (
 												<button onClick={() => setEditing(s)} className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100"><FiAlertCircle size={13} /> Telefon kiriting</button>
 											)}
-											{(() => { const c = camState(s); return (
-												<div className="flex min-w-0 flex-col items-start gap-1">
-													<span title={c.detail} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${c.cls}`}><FiCamera size={12} />{c.label}</span>
-													{c.key === 'rejected' && <span className="max-w-full truncate text-[11px] text-rose-600" title={c.reason}>{c.reason}</span>}
-													{(c.key === 'rejected' || c.key === 'notsent') && <button disabled={sending} onClick={e => { e.stopPropagation(); resend({ ids: [s._id] }) }} className="text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-50">Qayta yuborish</button>}
-												</div>
-											) })()}
+											{(() => {
+												const c = camState(s); return (
+													<div className="flex min-w-0 flex-col items-start gap-1">
+														<span title={c.detail} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${c.cls}`}><FiCamera size={12} />{c.label}</span>
+														{c.key === 'rejected' && <span className="max-w-full truncate text-[11px] text-rose-600" title={c.reason}>{c.reason}</span>}
+														{(c.key === 'rejected' || c.key === 'notsent') && <button disabled={sending} onClick={e => { e.stopPropagation(); resend({ ids: [s._id] }) }} className="text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-50">Qayta yuborish</button>}
+													</div>
+												)
+											})()}
 										</div>
 										<div className="flex justify-end gap-1 md:opacity-60 md:transition md:group-hover:opacity-100">
 											<button onClick={() => setEditing(s)} title="Tahrirlash" className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"><FiEdit2 size={16} /></button>

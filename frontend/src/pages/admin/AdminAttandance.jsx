@@ -65,7 +65,7 @@ const AdminAttendance = () => {
 	const [q, setQ] = useState('')
 	const [filter, setFilter] = useState('all')
 	const [sort, setSort] = useState('status')
-	const [group, setGroup] = useState(true)
+	const group = false // xodimlar bo'limlarga bo'linmaydi: bitta umumiy ro'yxat
 	const [closed, setClosed] = useState(() => new Set())
 	const [exportOpen, setExportOpen] = useState(false)
 	const [selectedUserId, setSelectedUserId] = useState(null)
@@ -85,7 +85,7 @@ const AdminAttendance = () => {
 				const users = usersRes.data.users
 				const list = deptRes.data.sinfs.map(d => ({ _id: d._id, name: d.name, users: users.filter(u => u.sinf?._id === d._id) }))
 				const rest = users.filter(u => !u.sinf)
-				if (rest.length) list.push({ _id: 'no-department', name: "Bo'limsiz xodimlar", users: rest })
+				if (rest.length) list.push({ _id: 'no-sinf', name: 'Sinfsiz xodimlar', users: rest })
 				setGroups(list)
 				setUpdatedAt(new Date())
 			}
@@ -136,7 +136,7 @@ const AdminAttendance = () => {
 				<Avatar user={u} status={st} />
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-sm font-semibold text-slate-900 group-hover:text-blue-600">{u.fullName}</p>
-					<p className="truncate text-xs text-slate-500">{u.position || "Lavozim ko'rsatilmagan"}{!group && u._group ? ` · ${u._group}` : ''}</p>
+					<p className="truncate text-xs text-slate-500">{u.position || "Lavozim ko'rsatilmagan"}</p>
 					{c && <span className={`mt-1 inline-block max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-medium ${typeColor(c.type)}`}>{typeLabel(c.type)}: {c.comment}</span>}
 				</div>
 				<div className="hidden shrink-0 text-right sm:block">
@@ -164,7 +164,7 @@ const AdminAttendance = () => {
 					</div>
 				</div>
 
-				{exportOpen && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><TabelExportPanel sinfs={groups.filter(d => d._id !== 'no-department')} /></div>}
+				{exportOpen && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><TabelExportPanel sinfs={groups.filter(d => d._id !== 'no-sinf')} /></div>}
 
 				<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
 					<Stat active={filter === 'all'} onClick={() => setFilter('all')} label="Bugun kelganlar" value={`${pct}%`} hint={`${came} / ${counts.all} xodim`} color="bg-blue-500" pct={pct} />
@@ -180,9 +180,6 @@ const AdminAttendance = () => {
 						{q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"><FiX size={14} /></button>}
 					</div>
 					<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" value={sort} onChange={setSort} options={SORTS.map(([value, label]) => ({ value, label }))} />
-					<div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-0.5 text-sm">
-						{[[true, "Bo'limlar"], [false, "Ro'yxat"]].map(([v, l]) => <button key={String(v)} onClick={() => setGroup(v)} className={`rounded-lg px-3 py-1.5 ${group === v ? 'bg-white font-medium text-slate-900 shadow-sm' : 'text-slate-500'}`}>{l}</button>)}
-					</div>
 				</div>
 
 				{loading ? (

@@ -1,17 +1,19 @@
-import { publicId } from '../../utils/ids'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import { FiBarChart2, FiCamera, FiDownload, FiEdit, FiFilter, FiPlus, FiSearch, FiTrash, FiUploadCloud, FiUsers, FiUserCheck, FiLogOut, FiUserX, FiFile, FiFileText } from 'react-icons/fi'
-import { Link, useLocation } from 'react-router-dom'
+import { FiCamera, FiDownload, FiEdit, FiFile, FiFileText, FiFilter, FiLogOut, FiPlus, FiSearch, FiTrash, FiUploadCloud, FiUserCheck, FiUsers, FiUserX } from 'react-icons/fi'
+import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import * as XLSX from "xlsx-js-style"
+import AutoSelect from '../../components/AutoSelect'
+import PersonLink from '../../components/PersonLink'
+import { useOrg } from '../../context/OrgContext'
+import { styleWorkbookSheet } from '../../utils/exportAttendance'
+import { buildAndDownloadDocx, docxTable, exportElementToPdf, toDocxColor } from '../../utils/exportUtils'
+import { formatUzShortDate } from '../../utils/formatDate'
+import { publicId } from '../../utils/ids'
 import AdminUserAdd from './AdminUserAdd'
 import AdminUserImportExcel from './AdminUserImportExcel'
 import AdminUserUpdate from './AdminUserUpdate'
-import { formatUzShortDate } from '../../utils/formatDate'
-import { styleWorkbookSheet } from '../../utils/exportAttendance'
-import { useOrg } from '../../context/OrgContext'
-import { buildAndDownloadDocx, docxTable, exportElementToPdf, toDocxColor } from '../../utils/exportUtils'
 
 // Xodim rasmining kameradagi holati: kamerada | navbatda (hali yuborilmagan) | rad etildi (sabab bilan) | rasm yo'q
 const camState = (u) => {
@@ -442,7 +444,7 @@ const AdminUsers = () => {
 					</div>
 				</div>
 			)}
-			
+
 			<div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
 				<PeopleSummary icon={<FiUsers />} label="Jami xodimlar" value={stats.total} tone="blue" />
 				<PeopleSummary icon={<FiUserCheck />} label="Ishda" value={stats.ishda.count} tone="green" />
@@ -470,7 +472,7 @@ const AdminUsers = () => {
 						{/* Sinf select */}
 						<div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg flex-1 sm:flex-none min-w-0">
 							<FiFilter className="text-gray-500 shrink-0" />
-							<select
+							<AutoSelect
 								className="bg-transparent text-gray-800 border-none focus:outline-none focus:ring-0 text-sm truncate max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
 								value={selectedDepartment}
 								onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -481,7 +483,7 @@ const AdminUsers = () => {
 										{dept.name}
 									</option>
 								))}
-							</select>
+							</AutoSelect>
 						</div>
 
 						{/* Excel export */}
@@ -567,7 +569,7 @@ const AdminUsers = () => {
 						filteredUsers.map((user) => (
 							<div key={user._id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
 								<div className="flex items-center justify-between mb-3">
-									<div className="flex items-center gap-3">
+									<PersonLink kind="staff" id={user._id} className="flex min-w-0 items-center gap-3">
 										{user.photo ? (
 											<img
 												className="h-10 w-10 rounded-full object-cover"
@@ -583,7 +585,7 @@ const AdminUsers = () => {
 											<p className="font-medium text-gray-900 text-sm">{user.fullName}</p>
 											<p className="text-xs text-gray-500">@{user.username}</p>
 										</div>
-									</div>
+									</PersonLink>
 									<span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusClass(user.attendanceStatus)}`}>
 										{getStatusText(user.attendanceStatus)}
 									</span>
@@ -634,7 +636,7 @@ const AdminUsers = () => {
 												{index + 1}
 											</td>
 											<td className="px-4 py-3">
-												<div className="flex items-center">
+												<PersonLink kind="staff" id={user._id} className="flex min-w-0 items-center">
 													<div className="flex-shrink-0 h-10 w-10">
 														{user.photo ? (
 															<img
@@ -652,7 +654,7 @@ const AdminUsers = () => {
 														<div className="text-sm font-medium text-gray-900 line-clamp-1">{user.fullName}</div>
 														<div className="text-xs text-gray-500">{user.username}</div>
 													</div>
-												</div>
+												</PersonLink>
 											</td>
 											<td className="px-4 py-3">
 												<div className="text-sm text-gray-900 line-clamp-1">{user.position}</div>
@@ -705,8 +707,8 @@ const AdminUsers = () => {
 				</div>
 			)}
 
-			{addUser && <AdminUserAdd onClose={handleClose} departments={sinfs} />}
-			{updateUser && <AdminUserUpdate user={selectedUser} onClose={handleClose} departments={sinfs} />}
+			{addUser && <AdminUserAdd onClose={handleClose} sinfs={sinfs} />}
+			{updateUser && <AdminUserUpdate user={selectedUser} onClose={handleClose} sinfs={sinfs} />}
 			{importExcelOpen && (
 				<AdminUserImportExcel
 					onClose={() => setImportExcelOpen(false)}

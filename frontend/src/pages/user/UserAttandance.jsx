@@ -1,4 +1,5 @@
 import axios from 'axios'
+import AutoSelect from '../../components/AutoSelect'
 import { useEffect, useRef, useState } from 'react'
 import { FaClock, FaFilter, FaRegCommentDots, FaUserCheck, FaUserSlash, FaUserTimes, FaUserGraduate } from 'react-icons/fa'
 import { FiRefreshCw, FiSearch, FiX } from 'react-icons/fi'
@@ -6,6 +7,7 @@ import { PulseLoader } from 'react-spinners'
 import { toast } from 'react-toastify'
 import StudentEntryExit from '../admin/StudentEntryExit'
 import KpiCard from '../../components/KpiCard'
+import PersonLink from '../../components/PersonLink'
 import { typeColor, typeLabel } from '../../components/GlobalCommentModal'
 import SearchableSelect from '../../components/SearchableSelect'
 import { getTashkentDateString } from '../../utils/formatDate'
@@ -302,7 +304,7 @@ const UserStaffAttendance = () => {
 					>
 						{/* Card header - User info */}
 						<div className="flex items-center justify-between mb-3">
-							<div className="flex items-center space-x-3">
+							<PersonLink kind="staff" id={user._id} className="flex items-center space-x-3">
 								<div className="flex-shrink-0 h-12 w-12 rounded-full bg-[var(--org-primary)]/10 flex items-center justify-center text-[var(--org-primary)] font-bold">
 									{user.photo ? (
 										<img
@@ -322,7 +324,7 @@ const UserStaffAttendance = () => {
 									<p className="font-medium text-gray-900 text-sm">{user.fullName}</p>
 									<p className="text-xs text-gray-500 line-clamp-2" title={user.position || ''}>{user.position || '-'}</p>
 								</div>
-							</div>
+							</PersonLink>
 							<div className="text-right">
 								<div className="flex items-center justify-end space-x-1">
 									<span className="text-xs text-gray-500">#{index + 1}</span>
@@ -475,7 +477,7 @@ const UserStaffAttendance = () => {
 									</td>
 
 									<td className="px-4 py-4 min-w-[200px] sticky left-[80px] z-10 bg-inherit">
-										<div className="flex items-center">
+										<PersonLink kind="staff" id={user._id} className="flex items-center">
 											<div className="flex-shrink-0 h-16 w-16 rounded-full bg-[var(--org-primary)]/10 flex items-center justify-center text-[var(--org-primary)] font-bold">
 												{user.photo ? (
 													<img
@@ -496,7 +498,7 @@ const UserStaffAttendance = () => {
 													{user.fullName}
 												</p>
 											</div>
-										</div>
+										</PersonLink>
 									</td>
 
 									{/* Qolgan ustunlar */}
@@ -683,7 +685,7 @@ const UserStaffAttendance = () => {
 									<div className="flex-1 sm:flex-none">
 										<div className="flex items-center gap-1 bg-gray-100 px-3 py-2 rounded-lg border h-full min-w-[130px] max-w-[190px] border-gray-200">
 											<FaFilter className="text-gray-500 flex-shrink-0" size={14} />
-											<select
+											<AutoSelect
 												className="bg-transparent text-gray-800 border-none focus:outline-none focus:ring-0 text-sm w-full truncate"
 												value={selectedStatus}
 												onChange={(e) => setSelectedStatus(e.target.value)}
@@ -692,7 +694,7 @@ const UserStaffAttendance = () => {
 												<option value="ishda">Ishda</option>
 												<option value="kelmagan">Kelmagan</option>
 												<option value="tashqarida">Tashqarida</option>
-											</select>
+											</AutoSelect>
 											{selectedStatus !== 'all' && (
 												<button
 													type="button"

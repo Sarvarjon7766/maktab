@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import AutoSelect from '../../components/AutoSelect'
 import { FaExclamationTriangle, FaSchool, FaUserSlash } from 'react-icons/fa'
 import { Empty, KpiLink, Page, PageHeader, PersonLink, RangePicker, SchoolLink, SchoolSelect, exportXlsx, fmt, levelColor, shiftDate, todayStr, useMonitorData, matchText, usePanel, SearchBox, SelectBox, pctFmt } from './monitorKit'
 
@@ -31,9 +32,9 @@ const MonitorRisk = () => {
 		<Page>
 			<PageHeader onReload={reload} loading={loading}>
 				<label className="inline-flex items-center gap-2 text-sm text-gray-600">Ketma-ket
-					<select value={minStreak} onChange={e => setMinStreak(Number(e.target.value))} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
+					<AutoSelect value={minStreak} onChange={e => setMinStreak(Number(e.target.value))} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
 						{[2, 3, 5, 7, 10].map(n => <option key={n} value={n}>{n}+ kun</option>)}
-					</select>
+					</AutoSelect>
 				</label>
 				<SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={setSchoolId} />
 				<button onClick={download} disabled={!rows.length} className="px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
@@ -55,7 +56,7 @@ const MonitorRisk = () => {
 						<tbody>
 							{rows.map(r => (
 								<tr key={r._id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30">
-									<td className="px-4 py-2.5"><PersonLink kind="student" id={r._id} name={r.fullName} sub={r.code} /></td>
+									<td className="px-4 py-2.5"><PersonLink kind="student" id={r._id} name={r.fullName} sub={r.code} photo={r.photo} /></td>
 									<td className="px-4 py-2.5"><SchoolLink id={r.schoolId} name={r.schoolName} className="text-sm" /></td>
 									<td className="px-4 py-2.5 text-gray-600">{r.sinf || '—'}</td>
 									<td className="px-4 py-2.5 min-w-[170px]">

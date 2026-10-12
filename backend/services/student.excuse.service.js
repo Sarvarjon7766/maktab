@@ -40,6 +40,22 @@ class StudentExcuseService {
 		}
 	}
 
+	async allForSchool(schoolId) {
+		const today = todayStr()
+		const rows = await StudentExcuse.find({ schoolId }).sort({ startDate: -1, createdAt: -1 }).limit(1000)
+			.populate('student', 'fullName photo isActive').populate('sinf', 'name').lean()
+		return {
+			success: true,
+			excuses: rows.map((e) => ({
+				...shape(e),
+				student: e.student ? { _id: e.student._id, fullName: e.student.fullName, photo: e.student.photo || '' } : null,
+				studentName: e.student?.fullName || "O'chirilgan o'quvchi",
+				sinfName: e.sinf?.name || '',
+				active: e.startDate <= today && (!e.endDate || e.endDate >= today)
+			}))
+		}
+	}
+
 	async create(schoolId, userId, { studentId, type, comment, startDate, endDate }) {
 		if (!validId(studentId)) return { success: false, message: "O'quvchi tanlanmagan" }
 		const student = await studentModel.findOne({ _id: studentId, schoolId, isActive: { $ne: false } }).select('sinf').lean()

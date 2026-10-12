@@ -81,7 +81,7 @@ const MonitorLists = () => {
 						<tbody>
 							{(data?.people || []).map(p => (
 								<tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30">
-									<td className="px-4 py-2.5"><PersonLink kind={kind} id={p._id} name={p.fullName} sub={p.code} /></td>
+									<td className="px-4 py-2.5"><PersonLink kind={kind} id={p._id} name={p.fullName} sub={p.code} photo={p.photo} /></td>
 									<td className="px-4 py-2.5">{p.schoolName ? <SchoolLink id={p.schoolId} name={p.schoolName} className="text-sm" /> : <span className="text-sm text-gray-400">Maktab topilmadi</span>}</td>
 									<td className="px-4 py-2.5 text-gray-600">{(kind === 'student' ? p.sinf : p.position) || '—'}</td>
 									<td className="px-4 py-2.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATE[p.status][1]}`}>{STATE[p.status][0]}</span>{p.late && <span className="ml-1.5 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">Kech</span>}</td>

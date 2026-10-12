@@ -372,10 +372,10 @@ const AdminUserAdd = ({ onClose, sinfs }) => {
 												icon={false}
 												className="w-full"
 												searchPlaceholder="Sinf qidirish..."
-												placeholder="Sinfni tanlang"
+												placeholder="Sinfsiz (ixtiyoriy)"
 												value={userData.sinf || ''}
 												onChange={v => setUserData({ ...userData, sinf: v })}
-												options={[{ value: '', label: 'Sinfni tanlang' }, ...sinfs.map(sinf => ({ value: sinf._id, label: sinf.name }))]}
+												options={[{ value: '', label: 'Sinfsiz (sinfga biriktirilmagan)' }, ...sinfs.map(sinf => ({ value: sinf._id, label: sinf.name }))]}
 											/>
 										</div>
 									</div>

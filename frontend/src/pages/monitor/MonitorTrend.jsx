@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import AutoSelect from '../../components/AutoSelect'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, LoadState, Page, PageHeader, Panel, RangePicker, KpiLink, Table, Td, Tr, WEEKDAYS, exportXlsx, fmt, shiftDate, todayStr, useMonitorData, usePanel, pctFmt } from './monitorKit'
 import { FaCalendarCheck, FaChartLine, FaTrophy } from 'react-icons/fa'
@@ -31,10 +32,10 @@ const MonitorTrend = () => {
 	return (
 		<Page>
 			<PageHeader title="Kunlik dinamika" subtitle="Tanlangan davr bo'yicha kunma-kun davomat" onReload={reload} loading={loading}>
-				{!scoped && <select value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[240px]">
+				{!scoped && <AutoSelect value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[240px]">
 					<option value="">Barcha maktablar</option>
 					{(overview?.schools || []).map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-				</select>}
+				</AutoSelect>}
 				<button onClick={download} disabled={!days.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
 			</PageHeader>
 			<div className="mb-6"><RangePicker {...range} onChange={setRange} /></div>

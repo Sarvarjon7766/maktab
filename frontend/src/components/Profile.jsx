@@ -1,6 +1,7 @@
 import axios from 'axios'
+import { useOrg } from '../context/OrgContext'
 import { useEffect, useState } from 'react'
-import { FiArrowRight, FiCamera, FiCheck, FiEye, FiEyeOff, FiLock, FiMessageSquare, FiPhone, FiPlus, FiTrash2, FiUser } from 'react-icons/fi'
+import { FiArrowRight, FiCamera, FiCheck, FiEye, FiEyeOff, FiLock, FiMessageSquare, FiPhone, FiPlus, FiTrash2, FiUser, FiHome } from 'react-icons/fi'
 import { FaChalkboardTeacher } from 'react-icons/fa'
 import { LuPencilLine } from 'react-icons/lu'
 import { Link, useNavigate } from 'react-router-dom'
@@ -13,7 +14,7 @@ const ROLE = { viewer: 'Xodim', leader: 'Sinf rahbari', user: 'Maktab admini', a
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 const daysAgo = (n) => { const d = new Date(`${today()}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10) }
 const dateOf = (d) => { if (!d) return '—'; const x = new Date(d); return `${x.getDate()} ${MONTHS_LONG[x.getMonth()]}, ${x.getFullYear()}` }
-const initials = (name) => (name || '?').split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase()
+const initials = (name) => (name || '?').split(/\s+/).map(p => (p.match(/\p{L}/u) || [''])[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?'
 const levelText = (p) => (p >= 85 ? 'text-emerald-600' : p >= 60 ? 'text-amber-600' : 'text-rose-600')
 const input = 'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-black outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
 
@@ -22,6 +23,23 @@ const Row = ({ label, children }) => (
 		<dt className="w-40 shrink-0 text-sm text-slate-500">{label}</dt>
 		<dd className="min-w-0 flex-1 break-words text-sm font-medium text-slate-900">{children}</dd>
 	</div>
+)
+
+// Maktab admini profilida: maktab haqida qisqa ma'lumot (xodimlar uchun "ta'til/safar" izohlari o'rniga)
+const SchoolInfoCard = ({ org, role }) => (
+	<section className="self-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+		<div className="flex items-center gap-2.5 border-b border-slate-100 px-5 py-4">
+			<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><FiHome size={16} /></span>
+			<div><h2 className="font-semibold text-slate-900">Maktab ma'lumotlari</h2><p className="text-xs text-slate-500">Maktab sozlamalarida o'zgartiriladi</p></div>
+		</div>
+		<dl className="divide-y divide-slate-100 px-5 py-2">
+			<Row label="Maktab">{org.orgName || '—'}</Row>
+			<Row label="Hudud">{[org.region, org.district].filter(Boolean).join(', ') || '—'}</Row>
+			<Row label="Telefon">{org.phone ? <a href={`tel:${org.phone}`} className="hover:text-blue-600">{org.phone}</a> : '—'}</Row>
+			<Row label="IT markaz">{org.itCenter || '—'}</Row>
+		</dl>
+		{role === 'user' && <div className="border-t border-slate-100 px-5 py-4"><Link to="/user/settings" className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Sozlamalarga o'tish</Link></div>}
+	</section>
 )
 
 // Kameradagi yuz rasmi holati (xodim rasmi kameraga yuklanganmi)
@@ -71,6 +89,8 @@ const PasswordCard = () => {
 const Profile = () => {
 	const token = localStorage.getItem('token')
 	const role = localStorage.getItem('content-type')
+	const org = useOrg()
+	const isSchoolAdmin = role === 'user' || role === 'admin'
 	const navigate = useNavigate()
 	const [user, setUser] = useState(null)
 	const [loading, setLoading] = useState(true)
@@ -201,7 +221,7 @@ const Profile = () => {
 							<h2 className="mb-1 font-semibold text-slate-900">Ma'lumotlarim</h2>
 							<dl className="divide-y divide-slate-100">
 								<Row label="Lavozim">{user.position || '—'}</Row>
-								<Row label={classes.length ? 'Sinf rahbarligi' : 'Sinf'}>{classes.length ? classes.map(c => c.name).join(', ') : (user.sinf?.name || 'Biriktirilmagan')}</Row>
+								{!isSchoolAdmin && <Row label={classes.length ? 'Sinf rahbarligi' : 'Sinf'}>{classes.length ? classes.map(c => c.name).join(', ') : (user.sinf?.name || 'Biriktirilmagan')}</Row>}
 								<Row label="Telefon">
 									{user.phone_personal || user.phone_work ? (
 										<span className="flex flex-col gap-1">
@@ -230,7 +250,8 @@ const Profile = () => {
 						<PasswordCard />
 					</div>
 
-					{/* Sababli kelmaslik izohlari */}
+					{/* Sababli kelmaslik izohlari (xodimlar) / maktab ma'lumotlari (maktab admini) */}
+					{isSchoolAdmin ? <SchoolInfoCard org={org} role={role} /> : (
 					<section className="self-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 						<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
 							<div className="flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><FiMessageSquare size={16} /></span><div><h2 className="font-semibold text-slate-900">Ta'til, safar va kasallik</h2><p className="text-xs text-slate-400">Kelolmaydigan kunlar uchun izoh qoldiring: shu kunlar «sababli» hisoblanadi</p></div></div>
@@ -257,7 +278,7 @@ const Profile = () => {
 								</ul>
 							)}
 						</div>
-					</section>
+					</section>)}
 				</div>
 			</div>
 

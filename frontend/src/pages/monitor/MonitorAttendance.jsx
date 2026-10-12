@@ -1,4 +1,5 @@
 // O'quvchilar / Xodimlar davomati — bitta komponent, `kind` bo'yicha farqlanadi
+import AutoSelect from '../../components/AutoSelect'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -76,12 +77,12 @@ const MonitorAttendance = ({ kind }) => {
 				<Panel title="Batafsil jadval" action={
 					<div className="flex flex-wrap gap-2">
 						<SearchBox value={query} onChange={setQuery} placeholder="Maktab yoki hudud" />
-						<select value={sortBy} onChange={e => setSortBy(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white">
+						<AutoSelect value={sortBy} onChange={e => setSortBy(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white">
 							<option value="percent-asc">Davomat: past → yuqori</option>
 							<option value="percent-desc">Davomat: yuqori → past</option>
 							<option value="absent-desc">Kelmaganlar ko'p</option>
 							<option value="name">Nomi bo'yicha</option>
-						</select>
+						</AutoSelect>
 					</div>
 				}>
 					<Table head={['Maktab', 'Davomat', { label: 'Jami', right: true }, { label: 'Kelgan', right: true }, { label: 'Ichkarida', right: true }, { label: 'Kelmagan', right: true }, { label: 'Kech qolgan', right: true }]}>

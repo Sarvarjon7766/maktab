@@ -1,4 +1,5 @@
 import axios from 'axios'
+import AutoSelect from '../../components/AutoSelect'
 import { useEffect, useRef, useState } from 'react'
 import {
 	FaClock,
@@ -18,6 +19,7 @@ import {
 import { PulseLoader } from 'react-spinners'
 import { toast } from 'react-toastify'
 import KpiCard from '../../components/KpiCard'
+import PersonLink from '../../components/PersonLink'
 import { getTashkentHourMinute, formatUzTime } from '../../utils/formatDate'
 import { MANUAL_ENTRY_CHECKPOINT_ID } from '../../utils/constants'
 import { ListPager, usePaged } from '../../components/ListPager'
@@ -262,7 +264,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 					className={`bg-white rounded-lg shadow-sm border p-3 ${!['ishda', 'tashqarida'].includes(student.attendanceStatus) ? 'border-red-200' : student.attendanceStatus === 'ishda' ? 'border-green-200' : 'border-blue-200'}`}
 				>
 					<div className="flex items-center justify-between mb-3">
-						<div className="flex items-center space-x-3">
+						<PersonLink kind="student" id={student._id} className="flex items-center space-x-3">
 							<div className="flex-shrink-0 h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold overflow-hidden">
 								{student.photo ? (
 									<img src={`${BASE_URL}/uploads/${student.photo}`} alt={student.fullName} className="h-full w-full object-cover" />
@@ -274,7 +276,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								<p className="font-medium text-gray-900 text-sm">{student.fullName}</p>
 								<p className="text-xs text-gray-500">{student.sinf?.name || "Sinfsiz"}</p>
 							</div>
-						</div>
+						</PersonLink>
 						<div className="text-right">
 							<div className="flex items-center justify-end space-x-1">
 								<span className="text-xs text-gray-500">#{index + 1}</span>
@@ -394,7 +396,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 									</div>
 								</td>
 								<td className="px-4 py-4 min-w-[200px] sticky left-[80px] z-10 bg-inherit">
-									<div className="flex items-center">
+									<PersonLink kind="student" id={student._id} className="flex items-center">
 										<div className="flex-shrink-0 h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold overflow-hidden">
 											{student.photo ? (
 												<img src={`${BASE_URL}/uploads/${student.photo}`} alt={student.fullName} className="h-full w-full object-cover" />
@@ -405,7 +407,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 										<div className="ml-3">
 											<p className="text-sm font-medium text-gray-900">{student.fullName}</p>
 										</div>
-									</div>
+									</PersonLink>
 								</td>
 								<td className="px-4 py-4 text-sm text-gray-900 min-w-[120px]">
 									<span className="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
@@ -516,7 +518,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 							{!fixedSinfId && (
 								<div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg min-w-[150px] max-w-[200px] overflow-hidden">
 									<FaFilter className="text-gray-400 flex-shrink-0" size={13} />
-									<select
+									<AutoSelect
 										className="bg-transparent text-gray-700 border-none focus:outline-none focus:ring-0 text-sm w-full truncate"
 										value={selectedSinf}
 										onChange={(e) => setSelectedSinf(e.target.value)}
@@ -526,13 +528,13 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 											<option key={sinf._id} value={sinf._id}>{sinf.name}</option>
 										))}
 										<option value="no-sinf">Sinfsiz</option>
-									</select>
+									</AutoSelect>
 								</div>
 							)}
 
 							<div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg min-w-[120px] max-w-[160px] overflow-hidden">
 								<FaFilter className="text-gray-400 flex-shrink-0" size={13} />
-								<select
+								<AutoSelect
 									className="bg-transparent text-gray-700 border-none focus:outline-none focus:ring-0 text-sm w-full truncate"
 									value={selectedStatus}
 									onChange={(e) => setSelectedStatus(e.target.value)}
@@ -541,7 +543,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 									<option value="ishda">Ishda</option>
 									<option value="kelmagan">Kelmagan</option>
 									<option value="tashqarida">Tashqarida</option>
-								</select>
+								</AutoSelect>
 							</div>
 
 							<button

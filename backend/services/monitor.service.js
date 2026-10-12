@@ -1,6 +1,6 @@
-						// DIQQAT: "xodim kelmadi" ta'rifi 3 xil: (1) overview.staffAbsent = total - came - SABABLI (sababli ta'tilda/safar/kasal xodimlar chiqariladi);
-						// (2) people/peopleAll (summary.absent) = kelish yozuvi yo'q hamma xodim (sababli ham kiradi, excuse bayrog'i bilan alohida);
-						// (3) region/* (stats.*Absent asosida) = overview bilan bir xil (1). Shuning uchun sababli xodim bor maktabda (1) < (2).
+// DIQQAT: "xodim kelmadi" ta'rifi 3 xil: (1) overview.staffAbsent = total - came - SABABLI (sababli ta'tilda/safar/kasal xodimlar chiqariladi);
+// (2) people/peopleAll (summary.absent) = kelish yozuvi yo'q hamma xodim (sababli ham kiradi, excuse bayrog'i bilan alohida);
+// (3) region/* (stats.*Absent asosida) = overview bilan bir xil (1). Shuning uchun sababli xodim bor maktabda (1) < (2).
 // 'monitor' roli (va superadmin) uchun barcha maktablar bo'yicha FAQAT O'QISH
 // hisobotlari. Hech qanday yozish amali yo'q. "Kelgan" = kunlik davomat
 // yozuvi 'kelmagan' bo'lmagan (ishda yoki tashqarida), "ichkarida" = hozir 'ishda'.
@@ -18,9 +18,13 @@ const attendanceModel = require('../models/attandance.model')
 const studentAttendanceModel = require('../models/student.attandance.model')
 const attendanceLogModel = require('../models/attandance.log.model')
 const studentAttendanceLogModel = require('../models/student.attandance.log.model')
+const studentExcuseModel = require('../models/student.excuse.model')
+const StudentExcuseService = require('./student.excuse.service')
 
 const TZ = 'Asia/Tashkent'
 const STAFF_ROLES = ['viewer', 'leader']
+// shaxsiy sahifa (davomat kalendari) maktab admini/o'rinbosari uchun ham ochiladi — ular ham xodim sifatida kamera orqali qayd etiladi
+const PERSON_VIEW_ROLES = [...STAFF_ROLES, 'user', 'admin']
 const CAME = ['ishda', 'tashqarida']
 const MAX_RANGE_DAYS = 92
 
@@ -160,20 +164,24 @@ class MonitorService {
 			lateCounts(dateString, ids),
 			cameraModel.aggregate([
 				{ $match: { schoolId: { $in: ids } } },
-				{ $group: {
-					_id: '$schoolId', total: { $sum: 1 },
-					online: { $sum: { $cond: [{ $eq: ['$online', true] }, 1, 0] } },
-					offline: { $sum: { $cond: [{ $eq: ['$online', false] }, 1, 0] } },
-					lastSeenAt: { $max: '$lastSeenAt' }
-				} }
+				{
+					$group: {
+						_id: '$schoolId', total: { $sum: 1 },
+						online: { $sum: { $cond: [{ $eq: ['$online', true] }, 1, 0] } },
+						offline: { $sum: { $cond: [{ $eq: ['$online', false] }, 1, 0] } },
+						lastSeenAt: { $max: '$lastSeenAt' }
+					}
+				}
 			]),
 			hikCameraModel.aggregate([
 				{ $match: { schoolId: { $in: ids }, inCloud: true } },
-				{ $group: {
-					_id: '$schoolId', total: { $sum: 1 },
-					online: { $sum: { $cond: [{ $eq: ['$online', true] }, 1, 0] } },
-					offline: { $sum: { $cond: [{ $eq: ['$online', false] }, 1, 0] } }
-				} }
+				{
+					$group: {
+						_id: '$schoolId', total: { $sum: 1 },
+						online: { $sum: { $cond: [{ $eq: ['$online', true] }, 1, 0] } },
+						offline: { $sum: { $cond: [{ $eq: ['$online', false] }, 1, 0] } }
+					}
+				}
 			])
 		])
 		const dayMap = new Map(daily.map(r => [r.schoolId, r]))
@@ -439,21 +447,30 @@ class MonitorService {
 		const P = PERSON[kind]
 		if (!P) return { success: false, status: 400, message: "Tur noto'g'ri" }
 		const person = await P.model.findById(id).populate('sinf', 'name').lean()
-		if (!person || (kind === 'staff' && !STAFF_ROLES.includes(person.role))) return { success: false, message: 'Topilmadi' }
+		if (!person || (kind === 'staff' && !PERSON_VIEW_ROLES.includes(person.role))) return { success: false, message: 'Topilmadi' }
 		const range = resolveRange(from, to)
 		const school = await schoolModel.findById(person.schoolId).select('name region district').lean()
 		const start = await workStart(person.schoolId)
-		const [atts, logs, schoolDays] = await Promise.all([
+		const [atts, logs, schoolDays, excuses] = await Promise.all([
 			P.att.find({ [P.field]: person._id, dateString: { $gte: range.from, $lte: range.to } }).select('dateString status totalTime totalEntries').lean(),
 			P.log.aggregate([
 				{ $match: { [P.field]: person._id, dateString: { $gte: range.from, $lte: range.to } } },
 				{ $group: { _id: '$dateString', firstIn: { $min: '$checkInTime' }, lastOut: { $max: '$checkOutTime' }, entries: { $sum: { $cond: ['$checkin', 1, 0] } } } }
 			]),
-			P.att.distinct('dateString', { schoolId: person.schoolId, dateString: { $gte: range.from, $lte: range.to } })
+			P.att.distinct('dateString', { schoolId: person.schoolId, dateString: { $gte: range.from, $lte: range.to } }),
+			kind === 'student'
+				? studentExcuseModel.find({ schoolId: person.schoolId, student: person._id, startDate: { $lte: range.to }, $or: [{ endDate: null }, { endDate: { $gte: range.from } }] }).select('type comment startDate endDate').sort({ createdAt: -1 }).lean()
+				: Promise.resolve([])
 		])
 		const attMap = new Map(atts.map(a => [a.dateString, a]))
 		const logMap = new Map(logs.map(l => [l._id, l]))
 		const open = new Set(schoolDays)
+		const excuseMap = new Map()
+		for (const excuse of excuses) {
+			const fromDate = excuse.startDate > range.from ? excuse.startDate : range.from
+			const toDate = !excuse.endDate || excuse.endDate > range.to ? range.to : excuse.endDate
+			for (const dateString of eachDate(fromDate, toDate)) if (!excuseMap.has(dateString)) excuseMap.set(dateString, excuse)
+		}
 		const limitMin = minutesOf(start)
 		let present = 0, late = 0, arrivalSum = 0, arrivalN = 0, minutes = 0
 		const days = eachDate(range.from, range.to).map(dateString => {
@@ -464,15 +481,20 @@ class MonitorService {
 			const isSchoolDay = open.has(dateString) && weekday !== 0
 			const firstIn = hhmm(lg?.firstIn)
 			const isLate = came && firstIn && limitMin !== null && minutesOf(firstIn) > limitMin
+			const excuse = !came && isSchoolDay ? excuseMap.get(dateString) : null
 			if (came) {
 				present++
 				if (isLate) late++
 				if (firstIn) { arrivalSum += minutesOf(firstIn); arrivalN++ }
 				const t = /^(\d+):(\d{2})$/.exec(a.totalTime || ''); if (t) minutes += Number(t[1]) * 60 + Number(t[2])
 			}
-			return { dateString, weekday, schoolDay: isSchoolDay, status: came ? 'present' : isSchoolDay ? 'absent' : 'off', late: !!isLate, firstIn, lastOut: hhmm(lg?.lastOut), entries: lg?.entries || 0, totalTime: a?.totalTime || null }
+			return { dateString, weekday, schoolDay: isSchoolDay, status: came ? 'present' : excuse ? 'excused' : isSchoolDay ? 'absent' : 'off', late: !!isLate, firstIn, lastOut: hhmm(lg?.lastOut), entries: lg?.entries || 0, totalTime: a?.totalTime || null, ...(excuse ? { excuse: { type: excuse.type, label: StudentExcuseService.LABELS[excuse.type] || StudentExcuseService.LABELS.boshqa, comment: excuse.comment || '', startDate: excuse.startDate, endDate: excuse.endDate || null } } : {}) }
 		})
 		const days_ = days.filter(d => d.schoolDay || d.status === 'present').length
+		const excusedDays = days.filter(d => d.status === 'excused')
+		const excusedByType = {}
+		excusedDays.forEach(d => { const type = d.excuse.type || 'boshqa'; excusedByType[type] = (excusedByType[type] || 0) + 1 })
+		const eligibleDays = Math.max(0, days_ - excusedDays.length)
 		const avg = arrivalN ? Math.round(arrivalSum / arrivalN) : null
 		return {
 			success: true, ...range, kind, workStartTime: start,
@@ -484,7 +506,9 @@ class MonitorService {
 			},
 			school: school ? { _id: person.schoolId, name: school.name, region: school.region, district: school.district } : null,
 			stats: {
-				schoolDays: days_, present, absent: Math.max(0, days_ - present), late, percent: pct(present, days_),
+				schoolDays: days_, present, absent: Math.max(0, days_ - present - excusedDays.length), late,
+				percent: pct(present, kind === 'student' ? eligibleDays : days_),
+				...(kind === 'student' ? { excused: excusedDays.length, excusedByType, rawPercent: pct(present, days_) } : {}),
 				avgArrival: avg === null ? null : `${String(Math.floor(avg / 60)).padStart(2, '0')}:${String(avg % 60).padStart(2, '0')}`,
 				totalHours: Math.round((minutes / 60) * 10) / 10
 			},
@@ -499,18 +523,22 @@ class MonitorService {
 		if (!P) return { success: false, status: 400, message: "Tur noto'g'ri" }
 		const dateString = isDate(date) ? date : todayString()
 		const person = await P.model.findById(id).select('fullName sinf schoolId role').lean()
-		if (!person || (kind === 'staff' && !STAFF_ROLES.includes(person.role))) return { success: false, message: 'Topilmadi' }
+		if (!person || (kind === 'staff' && !PERSON_VIEW_ROLES.includes(person.role))) return { success: false, message: 'Topilmadi' }
 		const start = await workStart(person.schoolId)
 		const limitMin = minutesOf(start)
-		const [att, logs, faceEvents, openDays] = await Promise.all([
+		const [att, logs, faceEvents, openDays, excuse] = await Promise.all([
 			P.att.findOne({ [P.field]: person._id, dateString }).lean(),
 			P.log.find({ [P.field]: person._id, dateString }).sort({ checkInTime: 1, date: 1 }).lean(),
 			hikFaceEventModel.find({ [kind === 'student' ? 'student' : 'user']: person._id, dateString }).sort({ time: 1 }).populate('camera', 'name').lean(),
-			P.att.countDocuments({ schoolId: person.schoolId, dateString, status: { $in: CAME } })
+			P.att.countDocuments({ schoolId: person.schoolId, dateString }),
+			kind === 'student'
+				? studentExcuseModel.findOne({ schoolId: person.schoolId, student: person._id, startDate: { $lte: dateString }, $or: [{ endDate: null }, { endDate: { $gte: dateString } }] }).sort({ createdAt: -1 }).select('type comment startDate endDate').lean()
+				: Promise.resolve(null)
 		])
 		const weekday = new Date(`${dateString}T00:00:00Z`).getUTCDay()
 		const came = !!att && CAME.includes(att.status)
 		const isSchoolDay = openDays > 0 && weekday !== 0
+		const activeExcuse = kind === 'student' && !came && isSchoolDay ? excuse : null
 
 		const mins = (a, b) => (a && b ? Math.max(0, Math.round((new Date(b) - new Date(a)) / 60000)) : null)
 		const visits = logs.filter(l => l.checkInTime || l.checkOutTime).map((l, i) => ({ _id: l._id, n: i + 1, in: hhmm(l.checkInTime), out: hhmm(l.checkOutTime), inAt: l.checkInTime || null, outAt: l.checkOutTime || null, minutes: mins(l.checkInTime, l.checkOutTime), open: !!l.checkInTime && !l.checkOutTime, comment: l.comment || '' }))
@@ -528,7 +556,14 @@ class MonitorService {
 		const peerFilter = kind === 'student' ? (person.sinf ? { sinf: person.sinf } : null) : { schoolId: person.schoolId, role: { $in: STAFF_ROLES } }
 		let peers = null
 		if (peerFilter) {
-			const peerIds = (await P.model.find({ ...peerFilter, isActive: { $ne: false } }).select('_id').lean()).map(x => x._id)
+			let peerIds = (await P.model.find({ ...peerFilter, isActive: { $ne: false } }).select('_id').lean()).map(x => x._id)
+			if (kind === 'student' && peerIds.length) {
+				const excusedIds = await studentExcuseModel.distinct('student', { schoolId: person.schoolId, student: { $in: peerIds }, startDate: { $lte: dateString }, $or: [{ endDate: null }, { endDate: { $gte: dateString } }] })
+				const cameIds = await studentAttendanceModel.distinct('student', { schoolId: person.schoolId, student: { $in: excusedIds }, dateString, status: { $in: CAME } })
+				const excused = new Set(excusedIds.map(String))
+				const came = new Set(cameIds.map(String))
+				peerIds = peerIds.filter(peerId => !excused.has(String(peerId)) || came.has(String(peerId)))
+			}
 			const [cameCount, firstIns] = await Promise.all([
 				P.att.countDocuments({ [P.field]: { $in: peerIds }, dateString, status: { $in: CAME } }),
 				P.log.aggregate([
@@ -548,7 +583,8 @@ class MonitorService {
 
 		return {
 			success: true, dateString, weekday, workStartTime: start,
-			status: came ? (lateBy > 0 ? 'late' : 'present') : isSchoolDay ? 'absent' : 'off',
+			status: came ? (lateBy > 0 ? 'late' : 'present') : activeExcuse ? 'excused' : isSchoolDay ? 'absent' : 'off',
+			excuse: activeExcuse ? { type: activeExcuse.type, label: StudentExcuseService.LABELS[activeExcuse.type] || StudentExcuseService.LABELS.boshqa, comment: activeExcuse.comment || '', startDate: activeExcuse.startDate, endDate: activeExcuse.endDate || null } : null,
 			summary: { firstIn, lastOut, entries: visits.filter(v => v.in).length, totalTime: att?.totalTime || null, insideMinutes: inside, outsideMinutes: outside, lateBy, insideNow: att?.status === 'ishda' },
 			visits,
 			faceEvents: faceEvents.map(e => ({ _id: e._id, time: hhmm(e.time), direction: e.direction, camera: e.camera?.name || '', similarity: e.similarity, threshold: e.threshold, recorded: e.recorded, note: e.note || '' })),

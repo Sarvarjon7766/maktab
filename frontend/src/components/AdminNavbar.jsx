@@ -1,3 +1,4 @@
+import { useSchoolPageTitle } from './schoolPageTitle'
 import BrandLogo from './BrandLogo'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
@@ -6,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 const AdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	const navigate = useNavigate()
+	const pageTitle = useSchoolPageTitle('/admin')
 	const [open, setOpen] = useState(false)
 	const [user, setUser] = useState({})
 	const token = localStorage.getItem('token')
@@ -37,6 +39,11 @@ const AdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					>
 						<FiMenu size={22} />
 					</button>
+
+					<div className="hidden lg:flex items-center gap-3 min-w-0">
+						<span className="h-6 w-1 rounded-full bg-cyan-400" />
+						<p className="truncate text-lg font-semibold tracking-tight text-white max-w-[320px]">{pageTitle}</p>
+					</div>
 
 					{!sidebarOpen && (
 						<span className="flex items-center gap-2 font-bold">

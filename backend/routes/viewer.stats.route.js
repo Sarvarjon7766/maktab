@@ -59,7 +59,16 @@ router.get('/dashboard', handle(async (req, c) => {
 	return { success: true, user, today: today.success ? today : null, stats: stats.success ? stats.stats : null, recent: stats.success ? (stats.days || []).slice(-14) : [], workStartTime: stats.workStartTime || null, statsRange: { from: stats.from, to: stats.to }, classes }
 }))
 router.get('/me', handle(async (req, c) => ({ success: true, userId: c.userId, classes: c.classes })))
+// sinf rahbari paneli bitta maktabga bog'langan: umumiy sahifalar maktab ro'yxatini so'raganda bo'sh ro'yxat qaytadi
+router.get('/overview', handle(async () => ({ success: true, schools: [] })))
 
+// sinf rahbari: faqat o'z sinfi o'quvchilarining sababli kelmagan kunlari (xodim sabablari ko'rsatilmaydi)
+router.get('/leaves', handle(async (req, c) => {
+	const r = await Analytics.leaves({ from: q(req).from, to: q(req).to, schoolId: c.school })
+	const names = new Set(c.classes.map(x => x.name))
+	const studentLeaves = (r.studentLeaves || []).filter(x => names.has(x.sinf))
+	return { ...r, leaves: [], total: 0, active: 0, byType: {}, studentLeaves }
+}))
 router.get('/grades', handle(async (req, c) => (c.sinfIds.length ? Analytics.gradesReport({ from: q(req).from, to: q(req).to, grade: q(req).grade, schoolId: c.school, sinfIds: c.sinfIds }) : empty)))
 router.get('/grade-class', handle((req, c) => Analytics.gradeClassDetail({ sinfId: q(req).sinfId, from: q(req).from, to: q(req).to, schoolId: c.school, sinfIds: c.sinfIds })))
 router.get('/late-people', handle(async (req, c) => (c.sinfIds.length ? Analytics.latePeople({ kind: 'student', from: q(req).from, to: q(req).to, schoolId: c.school, limit: q(req).limit, sinfIds: c.sinfIds }) : empty)))

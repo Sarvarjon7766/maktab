@@ -1,4 +1,5 @@
 import { tx } from '../../i18n'
+import AutoSelect from '../../components/AutoSelect'
 import { useEffect, useMemo, useState } from 'react'
 import { FaChalkboardTeacher, FaClock, FaSchool, FaUserGraduate, FaVideo } from 'react-icons/fa'
 import { FiAlertTriangle, FiArrowLeft, FiChevronLeft, FiChevronRight, FiSearch } from 'react-icons/fi'
@@ -52,7 +53,7 @@ const PeopleTab = ({ kind, district, date }) => {
 		<div>
 			<div className="mb-4 flex flex-wrap items-center gap-2">
 				<div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-0.5 text-sm">{STATUS_FILTERS.map(([k, l]) => <button key={k} onClick={() => setStatus(k)} className={`rounded-lg px-3 py-1.5 ${status === k ? 'bg-white font-medium text-slate-900 shadow-sm' : 'text-slate-500'}`}>{l}{s && k === '' ? ` ${fmt(s.total)}` : s && k === 'came' ? ` ${fmt(s.came)}` : s && k === 'absent' ? ` ${fmt(s.absent)}` : s && k === 'late' ? ` ${fmt(s.late)}` : ''}</button>)}</div>
-				<select value={school} onChange={e => setSchool(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-black outline-none"><option value="">Barcha maktablar</option>{(data?.bySchool || []).map(b => <option key={b.schoolId} value={b.schoolId}>{b.schoolName} ({b.n})</option>)}</select>
+				<AutoSelect value={school} onChange={e => setSchool(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-black outline-none"><option value="">Barcha maktablar</option>{(data?.bySchool || []).map(b => <option key={b.schoolId} value={b.schoolId}>{b.schoolName} ({b.n})</option>)}</AutoSelect>
 				<div className="relative ml-auto"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} /><input value={q} onChange={e => setQ(e.target.value)} placeholder={kind === 'staff' ? 'Xodim ismi yoki lavozimi' : "O'quvchi ismi"} className="w-60 rounded-xl border border-slate-200 bg-white py-2 pl-8 pr-3 text-sm text-black outline-none focus:border-blue-400" /></div>
 			</div>
 			<LoadState loading={loading && !data} error={error}>

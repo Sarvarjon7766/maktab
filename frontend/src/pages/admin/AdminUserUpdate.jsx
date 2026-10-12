@@ -225,8 +225,8 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 				// Hodim ID ni o'zgartirmaslik uchun serverga yubormaymiz
 				if (key === 'hodimID') return
 
-				// sinf bo'sh bo'lsa yubormaymiz — bo'sh satr ObjectId'ga aylantirilganda backendda xatolikka olib keladi
-				if (key === 'sinf' && !userData[key]) return
+				// rol va o'zgartirish ruxsati bu oynada boshqarilmaydi (xodim har doim oddiy xodim)
+				if (key === 'role' || key === 'isEdit') return
 
 				if (userData[key] !== null && userData[key] !== undefined) {
 					formData.append(key, userData[key])
@@ -466,34 +466,10 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 											<SearchableSelect
 												value={userData.sinf || ""}
 												onChange={(val) => handleInputChange({ target: { name: 'sinf', value: val } })}
-												placeholder="Sinfni tanlang"
+												placeholder="Sinfsiz (ixtiyoriy)"
 												searchPlaceholder="Sinf qidirish..."
-												options={sinfs.map(dept => ({ value: dept._id, label: dept.name }))}
+												options={[{ value: '', label: "Sinfsiz (sinfga biriktirilmagan)" }, ...sinfs.map(dept => ({ value: dept._id, label: dept.name }))]}
 											/>
-											<select
-												name="role"
-												value={userData.role || "viewer"}
-												onChange={handleInputChange}
-												required
-												className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-											>
-												<option value="viewer">Xodim</option>
-												<option value="leader">Rahbar</option>
-											</select>
-											<label className="flex items-center cursor-pointer p-3 bg-white rounded-lg border border-gray-200">
-												<span className="text-sm font-medium text-gray-700 mr-3">O'zgartirish ruxsati</span>
-												<div className="relative">
-													<input
-														type="checkbox"
-														name="isEdit"
-														checked={userData.isEdit}
-														onChange={handleInputChange}
-														className="sr-only"
-													/>
-													<div className={`block w-12 h-6 rounded-full ${userData.isEdit ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-													<div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${userData.isEdit ? "transform translate-x-6" : ""}`}></div>
-												</div>
-											</label>
 										</div>
 									</div>
 								</div>

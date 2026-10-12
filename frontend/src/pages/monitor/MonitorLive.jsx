@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AutoSelect from '../../components/AutoSelect'
 import { FiArrowDown, FiArrowUp, FiMinus, FiRefreshCw } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -70,9 +71,9 @@ const MonitorLive = () => {
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<Segmented value={kind} onChange={setKind} options={[{ key: 'student', label: "O'quvchilar" }, { key: 'staff', label: 'Xodimlar' }]} />
-					<select value={sort} onChange={e => setSort(e.target.value)} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
+					<AutoSelect value={sort} onChange={e => setSort(e.target.value)} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
 						{SORTS.map(s => <option key={s.key} value={s.key}>Saralash: {s.label}</option>)}
-					</select>
+					</AutoSelect>
 					<button onClick={reload} title="Yangilash" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} /></button>
 				</div>
 			</div>

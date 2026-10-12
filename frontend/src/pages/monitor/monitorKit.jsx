@@ -1,5 +1,7 @@
 import { tx } from '../../i18n'
 // Monitor sahifalari uchun umumiy yordamchilar: API, hook, kichik UI bo'laklari, Excel eksport
+import AutoSelect from '../../components/AutoSelect'
+import PhotoLightbox from '../../components/PhotoLightbox'
 import SearchableSelect from '../../components/SearchableSelect'
 import { PanelContext, usePanel } from './panelContext'
 import { useDistrict } from './districtScope'
@@ -293,24 +295,26 @@ export const SchoolLink = ({ id, name, tab, className = '' }) => {
 
 // Shaxs (xodim/o'quvchi) kartochkasi: rasm + ism + izoh
 export const PersonLink = ({ kind, id, name, sub, photo }) => {
+	const { base } = usePanel()
 	const src = photo ? `${import.meta.env.VITE_BASE_URL}/uploads/${photo}` : null
+	const nameEl = <p className="truncate text-sm font-medium text-gray-900">{name}</p>
 	return (
 		<div className="flex min-w-0 items-center gap-3" data-kind={kind} data-id={id}>
 			<div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-400">
-				{src ? <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" /> : <FiUser size={16} />}
+				<PhotoLightbox src={src} alt={name} className="h-full w-full object-cover" fallback={<FiUser size={16} />} />
 			</div>
-			<div className="min-w-0"><p className="truncate text-sm font-medium text-gray-900">{name}</p>{sub && <p className="truncate text-xs text-gray-500">{sub}</p>}</div>
+			<div className="min-w-0">{id && base ? <Link to={`${base}/people/${kind}/${id}`} className="block hover:text-blue-600">{nameEl}</Link> : nameEl}{sub && <p className="truncate text-xs text-gray-500">{sub}</p>}</div>
 		</div>
 	)
 }
 
 // Maktab tanlash (ro'yxat); bo'sh qiymat = "Maktabni tanlang"
 export const SchoolSelect = ({ schools = [], value, onChange, placeholder = 'Maktabni tanlang' }) => (
-	<select value={value || ''} onChange={e => onChange(e.target.value)}
+	<AutoSelect value={value || ''} onChange={e => onChange(e.target.value)}
 		className="h-10 min-w-[220px] rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none focus:border-blue-400">
 		<option value="">{placeholder}</option>
 		{schools.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-	</select>
+	</AutoSelect>
 )
 
 // Ko'rsatkich kartasi (to berilsa havola)

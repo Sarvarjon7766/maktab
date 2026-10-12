@@ -1,4 +1,5 @@
 import { publicId } from '../../utils/ids'
+import AutoSelect from '../../components/AutoSelect'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -748,7 +749,7 @@ const AdminUserEntryExit = () => {
 								{/* Holat filteri */}
 								<div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg min-w-[120px] max-w-[160px] overflow-hidden">
 									<FaFilter className="text-gray-400 flex-shrink-0" size={13} />
-									<select
+									<AutoSelect
 										className="bg-transparent text-gray-800 border-none focus:outline-none focus:ring-0 text-sm w-full truncate"
 										value={selectedStatus}
 										onChange={(e) => setSelectedStatus(e.target.value)}
@@ -757,7 +758,7 @@ const AdminUserEntryExit = () => {
 										<option value="ishda">Ishda</option>
 										<option value="kelmagan">Kelmagan</option>
 										<option value="tashqarida">Tashqarida</option>
-									</select>
+									</AutoSelect>
 								</div>
 
 								{/* Yangilash tugmasi */}

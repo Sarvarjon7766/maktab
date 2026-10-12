@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { FiArrowLeft, FiDownload, FiPhone } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { LoadState, Page, RangePicker, WEEKDAYS, exportXlsx, levelText, shiftDate, todayStr, useMonitorData, usePanel, ExcuseChip, pctFmt } from './monitorKit'
+import PhotoLightbox from '../../components/PhotoLightbox'
+import { ExcuseChip, LoadState, Page, RangePicker, WEEKDAYS, exportXlsx, levelText, pctFmt, shiftDate, todayStr, useMonitorData, usePanel } from './monitorKit'
 
 const initials = (name) => (name || '?').split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase()
 const toMin = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? Number(m[1]) * 60 + Number(m[2]) : null }
@@ -155,7 +156,7 @@ const MonitorPerson = () => {
 				{p && <>
 					<section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-wrap items-center gap-5 mb-6">
 						<div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-white text-2xl font-bold flex items-center justify-center overflow-hidden shrink-0">
-							{p.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${p.photo}`} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} /> : initials(p.fullName)}
+							<PhotoLightbox src={p.photo ? `${import.meta.env.VITE_BASE_URL}/uploads/${p.photo}` : ''} alt={p.fullName} className="w-full h-full object-cover" fallback={initials(p.fullName)} />
 						</div>
 						<div className="min-w-0 flex-1">
 							<h1 className="text-2xl font-semibold text-gray-900">{p.fullName}</h1>
@@ -204,7 +205,7 @@ const MonitorPerson = () => {
 								})}
 							</div>
 							<div className="flex flex-wrap gap-4 mt-4 text-xs text-gray-500">
-								{[['bg-green-500', 'Kelgan'], ['bg-orange-400', 'Kech qolgan'], ['bg-red-400', 'Kelmagan'], ...(!isStudent ? [['bg-sky-400', 'Sababli']] : []), ['bg-gray-200', 'Dam olish']].map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><span className={`w-3 h-3 rounded ${c}`} />{l}</span>)}
+								{[['bg-green-500', 'Kelgan'], ['bg-orange-400', 'Kech qolgan'], ['bg-red-400', 'Kelmagan'], ...(isStudent ? (st.excused > 0 ? [['bg-sky-400', 'Sababli kelmagan']] : []) : [['bg-sky-400', 'Sababli']]), ['bg-gray-200', 'Dam olish']].map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><span className={`w-3 h-3 rounded ${c}`} />{l}</span>)}
 							</div>
 						</section>
 						<section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

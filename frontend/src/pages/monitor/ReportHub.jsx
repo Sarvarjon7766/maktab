@@ -97,15 +97,15 @@ const ReportHub = ({ region }) => {
 			<div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
 				<div className="flex flex-wrap items-end gap-x-8 gap-y-4">
 					<div>
-						<p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400"><FiCalendar size={13} /> Kunlik hisobotlar uchun sana</p>
+						<p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400"><FiCalendar size={13} /> {tx("Kunlik hisobotlar uchun sana")}</p>
 						<div className="flex flex-wrap items-center gap-2">
 							<DateField value={day} max={todayStr()} onChange={setDay} />
-							<button onClick={() => setDay(todayStr())} className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">Bugun</button>
-							<button onClick={() => setDay(shiftDate(todayStr(), -1))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">Kecha</button>
+							<button onClick={() => setDay(todayStr())} className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">{tx("Bugun")}</button>
+							<button onClick={() => setDay(shiftDate(todayStr(), -1))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">{tx("Kecha")}</button>
 						</div>
 					</div>
 					<div>
-						<p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400"><FiClock size={13} /> Davr bo'yicha hisobotlar uchun</p>
+						<p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400"><FiClock size={13} /> {tx("Davr bo'yicha hisobotlar uchun")}</p>
 						<div className="flex flex-wrap items-center gap-2">
 							<RangePicker {...range} onChange={setRange} />
 							{RANGES.map(([l, f]) => <button key={l} onClick={() => setRange(f())} className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">{l}</button>)}
@@ -115,16 +115,16 @@ const ReportHub = ({ region }) => {
 			</div>
 
 			{/* Tayyor paketlar: bir fayl ichida ko'p varaq */}
-			<div className="mb-2 flex items-center gap-2"><FiLayers className="text-blue-600" /><h2 className="text-sm font-semibold text-slate-700">Tayyor paketlar <span className="font-normal text-slate-400">· bir faylda ko'p varaq va mundarija</span></h2></div>
+			<div className="mb-2 flex items-center gap-2"><FiLayers className="text-blue-600" /><h2 className="text-sm font-semibold text-slate-700">{tx("Tayyor paketlar")} <span className="font-normal text-slate-400">{tx("· bir faylda ko'p varaq va mundarija")}</span></h2></div>
 			<div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{bundles.map(b => (
 					<div key={b.key} className={`flex flex-col rounded-2xl bg-gradient-to-br ${b.tone} p-5 text-white shadow-sm`}>
 						<p className="text-xs uppercase tracking-widest text-white/70">{tx("{{n}} ta varaq", { n: b.keys.length })}</p>
 						<h3 className="mt-1 text-lg font-semibold">{b.title}</h3>
 						<p className="mt-2 flex-1 text-sm leading-relaxed text-white/80">{b.text}</p>
-						<p className="mt-3 text-xs text-white/60">{needs(b.keys) || 'Hozirgi holat'}</p>
+						<p className="mt-3 text-xs text-white/60">{needs(b.keys) || tx("Hozirgi holat")}</p>
 						<button onClick={() => pack(b)} disabled={!!busy} className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 disabled:opacity-60">
-							<FaFileExcel className="text-green-600" /> {busy === b.key && progress ? tx('Tayyorlanmoqda {{done}}/{{total}}', { done: progress.done, total: progress.total }) : 'Paketni yuklab olish'}
+							<FaFileExcel className="text-green-600" /> {busy === b.key && progress ? tx('Tayyorlanmoqda {{done}}/{{total}}', { done: progress.done, total: progress.total }) : tx("Paketni yuklab olish")}
 						</button>
 					</div>
 				))}
@@ -132,11 +132,11 @@ const ReportHub = ({ region }) => {
 
 			{/* Alohida hisobotlar */}
 			<div className="mb-4 flex flex-wrap items-center gap-2">
-				<h2 className="mr-2 text-sm font-semibold text-slate-700">Alohida hisobotlar <span className="font-normal text-slate-400">· {tx("{{n}} ta", { n: reports.length })}</span></h2>
-				<div className="relative ml-auto"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Hisobot qidirish" className="w-60 rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400" />{q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><FiX size={14} /></button>}</div>
+				<h2 className="mr-2 text-sm font-semibold text-slate-700">{tx("Alohida hisobotlar")} <span className="font-normal text-slate-400">· {tx("{{n}} ta", { n: reports.length })}</span></h2>
+				<div className="relative ml-auto"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} /><input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Hisobot qidirish")} className="w-60 rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400" />{q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><FiX size={14} /></button>}</div>
 			</div>
 			<div className="mb-5 flex flex-wrap gap-2">
-				<Chip active={!group} onClick={() => setGroup('')} count={reports.length}>Hammasi</Chip>
+				<Chip active={!group} onClick={() => setGroup('')} count={reports.length}>{tx("Hammasi")}</Chip>
 				{groups.map(g => { const I = ICONS[g.key]; return <Chip key={g.key} active={group === g.key} onClick={() => setGroup(g.key)} count={reports.filter(r => r.group === g.key).length}><I size={14} /> {g.label}</Chip> })}
 			</div>
 
@@ -152,20 +152,20 @@ const ReportHub = ({ region }) => {
 										<h3 className="font-semibold leading-snug text-slate-900">{r.title}</h3>
 										<div className="mt-1 flex flex-wrap items-center gap-1.5"><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${t.chip}`}>{g.label}</span><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${SCOPE[r.scope][1]}`}>{SCOPE[r.scope][0]} · {dateLabel(r.scope)}</span></div>
 									</div>
-									<button onClick={() => toggle(r.key)} title={on ? 'Tanlovdan olib tashlash' : 'Bitta faylga qo\'shish'} aria-pressed={on} className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition ${on ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white text-transparent hover:border-blue-400'}`}><FiCheck size={14} /></button>
+									<button onClick={() => toggle(r.key)} title={on ? tx("Tanlovdan olib tashlash") : tx("Bitta faylga qo'shish")} aria-pressed={on} className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition ${on ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white text-transparent hover:border-blue-400'}`}><FiCheck size={14} /></button>
 								</div>
 								<p className="mt-3 flex-1 text-sm leading-relaxed text-slate-500">{r.text}</p>
-								<button onClick={() => one(r)} disabled={!!busy} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> {busy === r.key ? 'Tayyorlanmoqda...' : 'Excel yuklab olish'}</button>
+								<button onClick={() => one(r)} disabled={!!busy} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> {busy === r.key ? tx("Tayyorlanmoqda...") : tx("Excel yuklab olish")}</button>
 							</div>
 						)
 					})}
 				</div>
-			) : <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center text-sm text-slate-500">Hisobot topilmadi</div>}
+			) : <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center text-sm text-slate-500">{tx("Hisobot topilmadi")}</div>}
 
 			{/* So'nggi yuklanganlar (shu sessiyada) */}
 			{history.length > 0 && (
 				<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-					<h2 className="mb-3 text-sm font-semibold text-slate-700">So'nggi yuklanganlar</h2>
+					<h2 className="mb-3 text-sm font-semibold text-slate-700">{tx("So'nggi yuklanganlar")}</h2>
 					<ul className="divide-y divide-slate-100">
 						{history.map(h => (
 							<li key={h.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
@@ -183,8 +183,8 @@ const ReportHub = ({ region }) => {
 					<span className="text-sm font-medium text-slate-800">{tx("{{n}} ta hisobot tanlandi", { n: picked.length })}</span>
 					<span className="hidden text-xs text-slate-400 md:inline">{needs(picked)}</span>
 					<div className="ml-auto flex items-center gap-2">
-						<button onClick={() => setPicked([])} disabled={!!busy} className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">Tozalash</button>
-						<button onClick={custom} disabled={!!busy} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"><FaFileExcel /> {busy === 'custom' && progress ? tx('Tayyorlanmoqda {{done}}/{{total}}', { done: progress.done, total: progress.total }) : 'Bitta faylga yuklash'}</button>
+						<button onClick={() => setPicked([])} disabled={!!busy} className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">{tx("Tozalash")}</button>
+						<button onClick={custom} disabled={!!busy} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"><FaFileExcel /> {busy === 'custom' && progress ? tx('Tayyorlanmoqda {{done}}/{{total}}', { done: progress.done, total: progress.total }) : tx("Bitta faylga yuklash")}</button>
 					</div>
 				</div>
 			)}

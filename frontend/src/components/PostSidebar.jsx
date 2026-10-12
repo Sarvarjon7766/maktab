@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fa'
 import { FiLogOut, FiX } from 'react-icons/fi'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { tx } from '../i18n'
 
 const PostSidebar = ({ collapsed = false, onClose }) => {
   const navigate = useNavigate()
@@ -26,7 +27,7 @@ const PostSidebar = ({ collapsed = false, onClose }) => {
       {onClose && (
         <div className="lg:hidden p-4 border-b border-slate-700 flex justify-between">
           <span className="font-bold">
-            FACE<span className="text-cyan-300">ID</span>
+            {tx("FACE")}<span className="text-cyan-300">{tx("ID")}</span>
           </span>
           <button onClick={onClose}><FiX /></button>
         </div>
@@ -36,14 +37,14 @@ const PostSidebar = ({ collapsed = false, onClose }) => {
       {!collapsed && !onClose && (
         <div className="hidden lg:flex p-6 border-b border-slate-700">
           <h1 className="font-bold text-xl">
-            FACE<span className="text-cyan-300">ID</span>
+            {tx("FACE")}<span className="text-cyan-300">{tx("ID")}</span>
           </h1>
         </div>
       )}
 
       {collapsed && !onClose && (
         <div className="hidden lg:flex h-20 items-center justify-center border-b border-slate-700">
-          <span className="font-bold">ID</span>
+          <span className="font-bold">{tx("ID")}</span>
         </div>
       )}
 
@@ -73,7 +74,7 @@ const PostSidebar = ({ collapsed = false, onClose }) => {
           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800"
         >
           <FiLogOut />
-          {!collapsed && <span>Chiqish</span>}
+          {!collapsed && <span>{tx("Chiqish")}</span>}
         </button>
       </div>
     </aside>

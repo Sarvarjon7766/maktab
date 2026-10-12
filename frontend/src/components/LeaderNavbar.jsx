@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { tx } from '../i18n'
 
 const TITLES = [['/leader/analytics', 'Tahlil'], ['/leader/reports', 'Hisobotlar'], ['/leader/sinf', 'Sinflar'], ['/leader/attandance', 'Nazorat'], ['/leader/entry-exit', 'Kirish-Chiqish'], ['/leader/comments', 'Kommentlar'], ['/leader/users', 'Xodimlar']]
 
@@ -48,7 +49,7 @@ const LeaderNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					</div>
 					{!sidebarOpen && (
 						<span className="flex items-center gap-2 font-bold">
-							<BrandLogo className="w-7 h-7 shrink-0" /> School Supervision
+							<BrandLogo className="w-7 h-7 shrink-0" /> {tx("School Supervision")}
 						</span>
 					)}
 				</div>
@@ -78,7 +79,7 @@ const LeaderNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 								}}
 								className="w-full text-left px-4 py-3 hover:bg-gray-100"
 							>
-								Profil
+								{tx("Profil")}
 							</button>
 
 							<button
@@ -86,7 +87,7 @@ const LeaderNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 								className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
 							>
 								<FiLogOut className="inline mr-2" />
-								Chiqish
+								{tx("Chiqish")}
 							</button>
 						</div>
 					)}

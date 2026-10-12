@@ -1,0 +1,1302 @@
+{
+ "components/ClassBreakdown.jsx": [
+  {
+   "kind": "mixed",
+   "line": 18,
+   "text": "Kutilgan tarkib · ro'yxatda "
+  },
+  {
+   "kind": "mixed",
+   "line": 18,
+   "text": " o'quvchi"
+  }
+ ],
+ "components/ClassroomDetail.jsx": [
+  {
+   "kind": "mixed",
+   "line": 96,
+   "text": " o'quvchi kelgan"
+  },
+  {
+   "kind": "mixed",
+   "line": 349,
+   "text": " kun"
+  },
+  {
+   "kind": "mixed",
+   "line": 371,
+   "text": " daqiqa"
+  },
+  {
+   "kind": "mixed",
+   "line": 385,
+   "text": " kun"
+  }
+ ],
+ "components/ClassVisionPanel.jsx": [
+  {
+   "kind": "mixed",
+   "line": 64,
+   "text": "Hozir sinfda (kamera bo'yicha) "
+  },
+  {
+   "kind": "mixed",
+   "line": 73,
+   "text": "Oxirgi urinish muvaffaqiyatsiz"
+  }
+ ],
+ "components/DistrictSchematic.jsx": [
+  {
+   "kind": "mixed",
+   "line": 202,
+   "text": " maktab · o'quvchi davomati "
+  },
+  {
+   "kind": "mixed",
+   "line": 202,
+   "text": " tasi joylashuvsiz"
+  },
+  {
+   "kind": "mixed",
+   "line": 301,
+   "text": " o'quvchi"
+  },
+  {
+   "kind": "mixed",
+   "line": 302,
+   "text": " online"
+  },
+  {
+   "kind": "mixed",
+   "line": 309,
+   "text": " ta maktab chizmada yo'q (joylashuvi belgilanmagan): "
+  }
+ ],
+ "components/EvidenceViewer.jsx": [
+  {
+   "kind": "mixed",
+   "line": 141,
+   "text": " sinf sahifasiga o'tish →"
+  },
+  {
+   "kind": "mixed",
+   "line": 167,
+   "text": "Lahza rasmlari ("
+  },
+  {
+   "kind": "mixed",
+   "line": 167,
+   "text": "): hodisadan oldin, hodisa lahzasi va keyin"
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": " odam"
+  }
+ ],
+ "components/HikCameraList.jsx": [
+  {
+   "kind": "mixed",
+   "line": 103,
+   "text": " ta FaceControl kamerasi alohida sahifada"
+  }
+ ],
+ "components/HikLivePlayer.jsx": [
+  {
+   "kind": "mixed",
+   "line": 137,
+   "text": "Bir vaqtda juda ko'p oqim ochiq ("
+  },
+  {
+   "kind": "mixed",
+   "line": 137,
+   "text": " ta). Brauzer sekinlashmasligi uchun bu kamera kutmoqda"
+  }
+ ],
+ "components/ListPager.jsx": [
+  {
+   "kind": "mixed",
+   "line": 26,
+   "text": " ta"
+  }
+ ],
+ "components/MonitorSearch.jsx": [
+  {
+   "kind": "mixed",
+   "line": 84,
+   "text": "\" bo'yicha hech narsa topilmadi. Ism, ID, maktab yoki sinf (\"5-A\") yozib ko'ring."
+  }
+ ],
+ "components/Profile.jsx": [
+  {
+   "kind": "mixed",
+   "line": 194,
+   "text": " Sinf rahbari: "
+  },
+  {
+   "kind": "mixed",
+   "line": 196,
+   "text": "Hozir: "
+  }
+ ],
+ "components/SchoolLocationCard.jsx": [
+  {
+   "kind": "mixed",
+   "line": 81,
+   "text": "Google Maps havolasini qo'ying yoki xaritada maktab turgan joyni bosing. Shu asosida maktabingiz "
+  },
+  {
+   "kind": "mixed",
+   "line": 81,
+   "text": "xaritasida davomat statistikasi bilan ko'rinadi."
+  },
+  {
+   "kind": "mixed",
+   "line": 100,
+   "text": "Belgilangan nuqta "
+  },
+  {
+   "kind": "mixed",
+   "line": 100,
+   "text": " tumani chegarasidan tashqarida ko'rinyapti. Saqlandi, lekin to'g'riligini tekshiring."
+  }
+ ],
+ "components/SchoolsMapPanel.jsx": [
+  {
+   "kind": "mixed",
+   "line": 59,
+   "text": " maktab · "
+  },
+  {
+   "kind": "mixed",
+   "line": 59,
+   "text": " (o'rtacha)"
+  },
+  {
+   "kind": "mixed",
+   "line": 79,
+   "text": " maktab · "
+  },
+  {
+   "kind": "mixed",
+   "line": 79,
+   "text": " (o'rtacha)"
+  },
+  {
+   "kind": "mixed",
+   "line": 82,
+   "text": " chegarasi yuklanmagan: xarita maktablar atrofiga ochildi."
+  }
+ ],
+ "components/SetupChecklist.jsx": [
+  {
+   "kind": "mixed",
+   "line": 20,
+   "text": " ta xodim/o'quvchining"
+  },
+  {
+   "kind": "mixed",
+   "line": 30,
+   "text": "Tizimni sozlash: "
+  },
+  {
+   "kind": "mixed",
+   "line": 30,
+   "text": " bosqich tayyor"
+  },
+  {
+   "kind": "mixed",
+   "line": 31,
+   "text": "Ma'lumotlar to'liq bo'lgach davomat, aqlli kuzatuv va sinf tahlillari aniq ishlaydi"
+  }
+ ],
+ "pages/admin/AdminAIEvidence.jsx": [
+  {
+   "kind": "mixed",
+   "line": 49,
+   "text": " ta lahza"
+  },
+  {
+   "kind": "mixed",
+   "line": 50,
+   "text": " ta muhim hodisa"
+  },
+  {
+   "kind": "mixed",
+   "line": 52,
+   "text": "Oxirgisi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 81,
+   "text": ": kuzatuv lahzalari"
+  },
+  {
+   "kind": "mixed",
+   "line": 81,
+   "text": " · kadrni bossangiz oldin/hodisa/keyin rasmlari va lavha ochiladi"
+  },
+  {
+   "kind": "mixed",
+   "line": 92,
+   "text": " · jami "
+  },
+  {
+   "kind": "mixed",
+   "line": 162,
+   "text": "Barchasini ko'rish ("
+  }
+ ],
+ "pages/admin/AdminAnalytics.jsx": [
+  {
+   "kind": "mixed",
+   "line": 82,
+   "text": " xodim)"
+  },
+  {
+   "kind": "mixed",
+   "line": 93,
+   "text": " kishi-kun)"
+  },
+  {
+   "kind": "mixed",
+   "line": 336,
+   "text": "So'nggi "
+  },
+  {
+   "kind": "mixed",
+   "line": 336,
+   "text": " kunda kelgan/kelmagan xodimlar soni"
+  },
+  {
+   "kind": "mixed",
+   "line": 424,
+   "text": " Davr bo'yicha eng ko'p kechikkan "
+  },
+  {
+   "kind": "mixed",
+   "line": 425,
+   "text": " nafar "
+  },
+  {
+   "kind": "mixed",
+   "line": 441,
+   "text": " marta "
+  },
+  {
+   "kind": "mixed",
+   "line": 460,
+   "text": " O'z vaqtida kelish foizi eng yuqori "
+  },
+  {
+   "kind": "mixed",
+   "line": 461,
+   "text": " nafar "
+  },
+  {
+   "kind": "mixed",
+   "line": 635,
+   "text": " Tanlangan davr ("
+  },
+  {
+   "kind": "mixed",
+   "line": 636,
+   "text": ") uchun to'liq tahlil hisobotini yuklab oling. "
+  }
+ ],
+ "pages/admin/AdminAttandance.jsx": [
+  {
+   "kind": "mixed",
+   "line": 162,
+   "text": "Yangilandi "
+  },
+  {
+   "kind": "mixed",
+   "line": 210,
+   "text": " kelgan "
+  }
+ ],
+ "pages/admin/AdminClassrooms.jsx": [
+  {
+   "kind": "mixed",
+   "line": 298,
+   "text": "Kamerasi bo'lmagan sinflar tahlil qilinmaydi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 298,
+   "text": " ta"
+  }
+ ],
+ "pages/admin/AdminEmployeeAnalytics.jsx": [
+  {
+   "kind": "mixed",
+   "line": 288,
+   "text": "ID: "
+  }
+ ],
+ "pages/admin/AdminEntryExit.jsx": [
+  {
+   "kind": "mixed",
+   "line": 596,
+   "text": " daqiqa "
+  },
+  {
+   "kind": "mixed",
+   "line": 845,
+   "text": " Jami: "
+  },
+  {
+   "kind": "mixed",
+   "line": 846,
+   "text": " ta xodim "
+  },
+  {
+   "kind": "mixed",
+   "line": 1118,
+   "text": " uchun izoh "
+  },
+  {
+   "kind": "mixed",
+   "line": 1162,
+   "text": " uchun"
+  },
+  {
+   "kind": "mixed",
+   "line": 1173,
+   "text": " Ushbu amalni tasdiqlashni xohlaysizmi? "
+  },
+  {
+   "kind": "mixed",
+   "line": 1176,
+   "text": " vaqti qayd etiladi. "
+  },
+  {
+   "kind": "mixed",
+   "line": 1207,
+   "text": " dalili "
+  }
+ ],
+ "pages/admin/AdminFaceControl.jsx": [
+  {
+   "kind": "mixed",
+   "line": 113,
+   "text": "Oxirgi aniqlash: "
+  },
+  {
+   "kind": "mixed",
+   "line": 126,
+   "text": " ta"
+  },
+  {
+   "kind": "mixed",
+   "line": 142,
+   "text": "Hik-Connect hodisalarini olishda xatolik: "
+  },
+  {
+   "kind": "mixed",
+   "line": 179,
+   "text": "ID: "
+  },
+  {
+   "kind": "mixed",
+   "line": 179,
+   "text": " — bazada topilmadi"
+  }
+ ],
+ "pages/admin/AdminHome.jsx": [
+  {
+   "kind": "mixed",
+   "line": 58,
+   "text": " xodim)"
+  },
+  {
+   "kind": "mixed",
+   "line": 173,
+   "text": " Hozir ishda: "
+  }
+ ],
+ "pages/admin/AdminLiveView.jsx": [
+  {
+   "kind": "mixed",
+   "line": 116,
+   "text": " online"
+  },
+  {
+   "kind": "mixed",
+   "line": 125,
+   "text": " kamera · "
+  },
+  {
+   "kind": "mixed",
+   "line": 125,
+   "text": " online · bir vaqtda"
+  },
+  {
+   "kind": "mixed",
+   "line": 132,
+   "text": " kamera · "
+  },
+  {
+   "kind": "mixed",
+   "line": 132,
+   "text": " online"
+  }
+ ],
+ "pages/admin/AdminReports.jsx": [
+  {
+   "kind": "mixed",
+   "line": 220,
+   "text": "Oxirgi "
+  },
+  {
+   "kind": "mixed",
+   "line": 220,
+   "text": " kun bo‘yicha kelgan va kelmagan xodimlar"
+  }
+ ],
+ "pages/admin/AdminSettings.jsx": [
+  {
+   "kind": "mixed",
+   "line": 91,
+   "text": "Misol: "
+  },
+  {
+   "kind": "mixed",
+   "line": 91,
+   "text": " da kirgan odam "
+  },
+  {
+   "kind": "mixed",
+   "line": 91,
+   "text": " qolgan hisoblanadi; "
+  },
+  {
+   "kind": "mixed",
+   "line": 91,
+   "text": " yoki undan oldin kirgan — vaqtida."
+  },
+  {
+   "kind": "mixed",
+   "line": 99,
+   "text": " soniya · "
+  }
+ ],
+ "pages/admin/AdminStudentImportExcel.jsx": [
+  {
+   "kind": "mixed",
+   "line": 170,
+   "text": "-qator — "
+  }
+ ],
+ "pages/admin/AdminStudents.jsx": [
+  {
+   "kind": "mixed",
+   "line": 143,
+   "text": " Excel"
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": " ta o'quvchining"
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": " ta o'quvchi"
+  }
+ ],
+ "pages/admin/AdminUserAdd.jsx": [
+  {
+   "kind": "mixed",
+   "line": 270,
+   "text": " Hajmi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 271,
+   "text": " KB "
+  },
+  {
+   "kind": "mixed",
+   "line": 273,
+   "text": " Format: "
+  },
+  {
+   "kind": "mixed",
+   "line": 276,
+   "text": " Nomi: "
+  }
+ ],
+ "pages/admin/AdminUserCameras.jsx": [
+  {
+   "kind": "mixed",
+   "line": 87,
+   "text": "\" so'rovi bo'yicha qurilma topilmadi "
+  },
+  {
+   "kind": "mixed",
+   "line": 149,
+   "text": " Post: "
+  }
+ ],
+ "pages/admin/AdminUserEntryExit.jsx": [
+  {
+   "kind": "mixed",
+   "line": 437,
+   "text": " daqiqa "
+  },
+  {
+   "kind": "mixed",
+   "line": 606,
+   "text": " Jami: "
+  },
+  {
+   "kind": "mixed",
+   "line": 607,
+   "text": " ta xodim "
+  }
+ ],
+ "pages/admin/AdminUserImportExcel.jsx": [
+  {
+   "kind": "mixed",
+   "line": 173,
+   "text": "-qator — "
+  }
+ ],
+ "pages/admin/AdminUsers.jsx": [
+  {
+   "kind": "mixed",
+   "line": 596,
+   "text": "ID: "
+  }
+ ],
+ "pages/admin/AdminUserUpdate.jsx": [
+  {
+   "kind": "mixed",
+   "line": 346,
+   "text": " Nomi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 349,
+   "text": " Hajmi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 350,
+   "text": " KB "
+  }
+ ],
+ "pages/admin/parents/MessagesTab.jsx": [
+  {
+   "kind": "mixed",
+   "line": 99,
+   "text": "Bloklangan: "
+  },
+  {
+   "kind": "mixed",
+   "line": 99,
+   "text": "O'tkazib yuborildi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 99,
+   "text": "Xato: "
+  }
+ ],
+ "pages/admin/parents/ParentsTab.jsx": [
+  {
+   "kind": "mixed",
+   "line": 85,
+   "text": " · oxirgi xabar: "
+  }
+ ],
+ "pages/admin/parents/ShareTab.jsx": [
+  {
+   "kind": "mixed",
+   "line": 38,
+   "text": "Bot: @"
+  },
+  {
+   "kind": "mixed",
+   "line": 38,
+   "text": " · shu havola orqali hozirgacha "
+  },
+  {
+   "kind": "mixed",
+   "line": 38,
+   "text": " ta ota-ona ro'yxatdan o'tgan"
+  },
+  {
+   "kind": "mixed",
+   "line": 63,
+   "text": " ta o'quvchining"
+  },
+  {
+   "kind": "mixed",
+   "line": 72,
+   "text": " Telefonsiz o'quvchilar ("
+  }
+ ],
+ "pages/admin/parents/StudentsTab.jsx": [
+  {
+   "kind": "mixed",
+   "line": 28,
+   "text": "Telefon: "
+  },
+  {
+   "kind": "mixed",
+   "line": 33,
+   "text": "Ulangan ota-onalar "
+  },
+  {
+   "kind": "mixed",
+   "line": 56,
+   "text": "Oxirgi xabar: "
+  },
+  {
+   "kind": "mixed",
+   "line": 69,
+   "text": "Havola faqat "
+  },
+  {
+   "kind": "mixed",
+   "line": 69,
+   "text": " ga bog'lanadi: ota-ona bossa, telefon raqami so'ralmasdan darrov ulanadi. 7 kun amal qiladi, 3 tagacha ota-ona (ota, on"
+  },
+  {
+   "kind": "mixed",
+   "line": 117,
+   "text": " ta ulangan"
+  }
+ ],
+ "pages/admin/parents/ui.jsx": [
+  {
+   "kind": "mixed",
+   "line": 49,
+   "text": " · jami "
+  }
+ ],
+ "pages/admin/SchoolDashboard.jsx": [
+  {
+   "kind": "mixed",
+   "line": 79,
+   "text": "Hammasi ("
+  },
+  {
+   "kind": "mixed",
+   "line": 88,
+   "text": "Hammasi ("
+  },
+  {
+   "kind": "mixed",
+   "line": 122,
+   "text": " kun"
+  }
+ ],
+ "pages/admin/StudentEntryExit.jsx": [
+  {
+   "kind": "mixed",
+   "line": 343,
+   "text": " daqiqa"
+  },
+  {
+   "kind": "mixed",
+   "line": 479,
+   "text": "Jami: "
+  },
+  {
+   "kind": "mixed",
+   "line": 479,
+   "text": " ta o'quvchi"
+  },
+  {
+   "kind": "mixed",
+   "line": 591,
+   "text": " uchun izoh"
+  },
+  {
+   "kind": "mixed",
+   "line": 618,
+   "text": " uchun "
+  },
+  {
+   "kind": "mixed",
+   "line": 621,
+   "text": " Ushbu amalni tasdiqlashni xohlaysizmi? "
+  },
+  {
+   "kind": "mixed",
+   "line": 624,
+   "text": " vaqti qayd etiladi. "
+  }
+ ],
+ "pages/monitor/MonitorAI.jsx": [
+  {
+   "kind": "mixed",
+   "line": 43,
+   "text": "sun'iy intellekt aniqlagan muhim hodisalar va kameradan avtomatik olingan kadrlar, qisqa lavhalar"
+  },
+  {
+   "kind": "mixed",
+   "line": 62,
+   "text": " maktab · "
+  },
+  {
+   "kind": "mixed",
+   "line": 62,
+   "text": " tasida AI yoqilgan"
+  },
+  {
+   "kind": "mixed",
+   "line": 63,
+   "text": " ta lahza"
+  },
+  {
+   "kind": "mixed",
+   "line": 63,
+   "text": " kamera online"
+  },
+  {
+   "kind": "mixed",
+   "line": 104,
+   "text": " ta hodisa · "
+  },
+  {
+   "kind": "mixed",
+   "line": 104,
+   "text": "-sahifa"
+  }
+ ],
+ "pages/monitor/MonitorArrival.jsx": [
+  {
+   "kind": "mixed",
+   "line": 37,
+   "text": "Eng gavjum: "
+  }
+ ],
+ "pages/monitor/MonitorCameraEvents.jsx": [
+  {
+   "kind": "mixed",
+   "line": 62,
+   "text": "zichlik "
+  }
+ ],
+ "pages/monitor/MonitorCameraHealth.jsx": [
+  {
+   "kind": "mixed",
+   "line": 108,
+   "text": "Oxirgi aloqa: "
+  },
+  {
+   "kind": "mixed",
+   "line": 151,
+   "text": "Jami "
+  },
+  {
+   "kind": "mixed",
+   "line": 151,
+   "text": "Online "
+  },
+  {
+   "kind": "mixed",
+   "line": 151,
+   "text": "Offline "
+  },
+  {
+   "kind": "mixed",
+   "line": 171,
+   "text": " online"
+  },
+  {
+   "kind": "mixed",
+   "line": 171,
+   "text": " offline"
+  },
+  {
+   "kind": "mixed",
+   "line": 171,
+   "text": " noma'lum"
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": "FaceControl: "
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": " online"
+  }
+ ],
+ "pages/monitor/MonitorCameras.jsx": [
+  {
+   "kind": "mixed",
+   "line": 109,
+   "text": " online"
+  }
+ ],
+ "pages/monitor/MonitorDashboard.jsx": [
+  {
+   "kind": "mixed",
+   "line": 29,
+   "text": " maktab"
+  }
+ ],
+ "pages/monitor/MonitorGradeClass.jsx": [
+  {
+   "kind": "mixed",
+   "line": 51,
+   "text": "Ish boshlanishi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 54,
+   "text": " kelgan"
+  }
+ ],
+ "pages/monitor/MonitorGradeDetail.jsx": [
+  {
+   "kind": "mixed",
+   "line": 23,
+   "text": "-sinflar →"
+  },
+  {
+   "kind": "mixed",
+   "line": 83,
+   "text": " Davomat"
+  }
+ ],
+ "pages/monitor/MonitorGradeKit.jsx": [
+  {
+   "kind": "mixed",
+   "line": 20,
+   "text": " = kelgan kunlar ÷ mumkin bo'lgan kunlar = "
+  }
+ ],
+ "pages/monitor/MonitorGrades.jsx": [
+  {
+   "kind": "mixed",
+   "line": 31,
+   "text": " kun · "
+  },
+  {
+   "kind": "mixed",
+   "line": 31,
+   "text": " sinf · qanday hisoblangani →"
+  },
+  {
+   "kind": "mixed",
+   "line": 33,
+   "text": "-sinflar"
+  },
+  {
+   "kind": "mixed",
+   "line": 33,
+   "text": " · sinflarini ko'rish →"
+  },
+  {
+   "kind": "mixed",
+   "line": 51,
+   "text": "-sinflar"
+  },
+  {
+   "kind": "mixed",
+   "line": 56,
+   "text": " kun · kech qolish "
+  }
+ ],
+ "pages/monitor/monitorKit.jsx": [
+  {
+   "kind": "mixed",
+   "line": 206,
+   "text": " kun"
+  }
+ ],
+ "pages/monitor/MonitorLeaves.jsx": [
+  {
+   "kind": "mixed",
+   "line": 72,
+   "text": " Sabab qo'shish yoki yopish uchun «Sabab qo'shish» tugmasi orqali "
+  },
+  {
+   "kind": "mixed",
+   "line": 72,
+   "text": " bo'limiga o'ting."
+  },
+  {
+   "kind": "mixed",
+   "line": 77,
+   "text": "hozir faol: "
+  },
+  {
+   "kind": "mixed",
+   "line": 89,
+   "text": " ro'yxati ("
+  },
+  {
+   "kind": "mixed",
+   "line": 108,
+   "text": "qo'shgan: "
+  }
+ ],
+ "pages/monitor/MonitorLive.jsx": [
+  {
+   "kind": "mixed",
+   "line": 75,
+   "text": "Saralash: "
+  },
+  {
+   "kind": "mixed",
+   "line": 103,
+   "text": " o'rtachadan"
+  },
+  {
+   "kind": "mixed",
+   "line": 109,
+   "text": " edi)"
+  }
+ ],
+ "pages/monitor/MonitorMap.jsx": [
+  {
+   "kind": "mixed",
+   "line": 43,
+   "text": "Bugungi holat"
+  },
+  {
+   "kind": "mixed",
+   "line": 78,
+   "text": " ta maktab xaritada yo'q: maktab admini «Sozlamalar» bo'limida joylashuvni belgilashi kerak."
+  }
+ ],
+ "pages/monitor/MonitorPeopleTab.jsx": [
+  {
+   "kind": "mixed",
+   "line": 131,
+   "text": " ta · "
+  },
+  {
+   "kind": "mixed",
+   "line": 131,
+   "text": "-sahifa"
+  }
+ ],
+ "pages/monitor/MonitorPerson.jsx": [
+  {
+   "kind": "mixed",
+   "line": 49,
+   "text": "Ish boshlanishi: "
+  },
+  {
+   "kind": "mixed",
+   "line": 61,
+   "text": "Bu kuni kirish qayd etilmagan."
+  },
+  {
+   "kind": "mixed",
+   "line": 87,
+   "text": "Kirish va chiqishlar ("
+  },
+  {
+   "kind": "mixed",
+   "line": 105,
+   "text": "Shu kuni: "
+  },
+  {
+   "kind": "mixed",
+   "line": 106,
+   "text": " kelgan ("
+  },
+  {
+   "kind": "mixed",
+   "line": 107,
+   "text": "O'rtacha kelish: "
+  },
+  {
+   "kind": "mixed",
+   "line": 107,
+   "text": " daqiqa "
+  },
+  {
+   "kind": "mixed",
+   "line": 107,
+   "text": " kelgan"
+  },
+  {
+   "kind": "mixed",
+   "line": 111,
+   "text": "Kamera aniqlashlari ("
+  },
+  {
+   "kind": "mixed",
+   "line": 167,
+   "text": "ID: "
+  },
+  {
+   "kind": "mixed",
+   "line": 194,
+   "text": " kun"
+  },
+  {
+   "kind": "mixed",
+   "line": 194,
+   "text": "· davomat foizi shu kunlarsiz hisoblangan"
+  }
+ ],
+ "pages/monitor/MonitorRanking.jsx": [
+  {
+   "kind": "mixed",
+   "line": 94,
+   "text": "Ma'lumot kelmagan maktablar: "
+  },
+  {
+   "kind": "mixed",
+   "line": 101,
+   "text": "O'rin: "
+  },
+  {
+   "kind": "mixed",
+   "line": 104,
+   "text": " kelgan kishi-kun ÷ ("
+  },
+  {
+   "kind": "mixed",
+   "line": 104,
+   "text": " o'quv kuni = "
+  },
+  {
+   "kind": "mixed",
+   "line": 110,
+   "text": "Eng yomon kun kelmaganlari ("
+  }
+ ],
+ "pages/monitor/MonitorRegions.jsx": [
+  {
+   "kind": "mixed",
+   "line": 60,
+   "text": " online"
+  }
+ ],
+ "pages/monitor/MonitorRisk.jsx": [
+  {
+   "kind": "mixed",
+   "line": 36,
+   "text": "+ kun"
+  },
+  {
+   "kind": "mixed",
+   "line": 66,
+   "text": " kun"
+  }
+ ],
+ "pages/monitor/MonitorSchools.jsx": [
+  {
+   "kind": "mixed",
+   "line": 30,
+   "text": " o'rtachadan"
+  },
+  {
+   "kind": "mixed",
+   "line": 96,
+   "text": " tuman sahifasi →"
+  },
+  {
+   "kind": "mixed",
+   "line": 159,
+   "text": " o'quvchi · "
+  },
+  {
+   "kind": "mixed",
+   "line": 159,
+   "text": " xodim · "
+  },
+  {
+   "kind": "mixed",
+   "line": 159,
+   "text": " sinf"
+  }
+ ],
+ "pages/monitor/RegionPages.jsx": [
+  {
+   "kind": "mixed",
+   "line": 51,
+   "text": " maktab"
+  },
+  {
+   "kind": "mixed",
+   "line": 131,
+   "text": " ta tumanda "
+  },
+  {
+   "kind": "mixed",
+   "line": 131,
+   "text": ", grafikda ko'rsatilmagan"
+  },
+  {
+   "kind": "mixed",
+   "line": 136,
+   "text": " ta"
+  },
+  {
+   "kind": "mixed",
+   "line": 139,
+   "text": " ta tumanda"
+  },
+  {
+   "kind": "mixed",
+   "line": 145,
+   "text": " ta"
+  },
+  {
+   "kind": "mixed",
+   "line": 262,
+   "text": "Davomat foizi kunma-kun · "
+  },
+  {
+   "kind": "mixed",
+   "line": 309,
+   "text": "Sinf darajalari bo'yicha davomat · "
+  },
+  {
+   "kind": "mixed",
+   "line": 327,
+   "text": "-sinf"
+  }
+ ],
+ "pages/platform/HikAssignment.jsx": [
+  {
+   "kind": "mixed",
+   "line": 275,
+   "text": "»ga "
+  },
+  {
+   "kind": "mixed",
+   "line": 275,
+   "text": " ta "
+  },
+  {
+   "kind": "mixed",
+   "line": 275,
+   "text": " kamera biriktirilgan"
+  }
+ ],
+ "pages/platform/PlatformFederation.jsx": [
+  {
+   "kind": "mixed",
+   "line": 151,
+   "text": "fk_"
+  },
+  {
+   "kind": "mixed",
+   "line": 174,
+   "text": " ms · "
+  }
+ ],
+ "pages/platform/PlatformHikAccounts.jsx": [
+  {
+   "kind": "mixed",
+   "line": 136,
+   "text": "API Key (AK)"
+  },
+  {
+   "kind": "mixed",
+   "line": 137,
+   "text": "API Secret (SK)"
+  }
+ ],
+ "pages/platform/PlatformSchoolControl.jsx": [
+  {
+   "kind": "mixed",
+   "line": 95,
+   "text": "Token "
+  },
+  {
+   "kind": "mixed",
+   "line": 95,
+   "text": " · yangilangan "
+  }
+ ],
+ "pages/platform/PlatformSchools.jsx": [
+  {
+   "kind": "mixed",
+   "line": 644,
+   "text": " FaceControl: "
+  }
+ ],
+ "pages/platform/PlatformTelegram.jsx": [
+  {
+   "kind": "mixed",
+   "line": 85,
+   "text": "Token: ••••"
+  },
+  {
+   "kind": "mixed",
+   "line": 85,
+   "text": " · manba: "
+  },
+  {
+   "kind": "mixed",
+   "line": 128,
+   "text": "Qayta ishga tushirishlar: "
+  },
+  {
+   "kind": "mixed",
+   "line": 128,
+   "text": " · Navbatdagi xabarlar: "
+  },
+  {
+   "kind": "mixed",
+   "line": 128,
+   "text": " · Tashlab yuborilgan: "
+  },
+  {
+   "kind": "mixed",
+   "line": 128,
+   "text": " · Qayta urinishlar: "
+  }
+ ],
+ "pages/user/UserAttandance.jsx": [
+  {
+   "kind": "mixed",
+   "line": 388,
+   "text": " daqiqa "
+  },
+  {
+   "kind": "mixed",
+   "line": 569,
+   "text": " Jami: "
+  },
+  {
+   "kind": "mixed",
+   "line": 570,
+   "text": " ta xodim "
+  }
+ ],
+ "pages/user/UserComments.jsx": [
+  {
+   "kind": "mixed",
+   "line": 414,
+   "text": " o'chirishni xohlaysizmi?"
+  }
+ ],
+ "pages/user/UserSinf.jsx": [
+  {
+   "kind": "mixed",
+   "line": 156,
+   "text": " ta "
+  },
+  {
+   "kind": "mixed",
+   "line": 218,
+   "text": " xodim "
+  }
+ ],
+ "pages/user/UserUsers.jsx": [
+  {
+   "kind": "mixed",
+   "line": 82,
+   "text": " ta xodim"
+  }
+ ]
+}

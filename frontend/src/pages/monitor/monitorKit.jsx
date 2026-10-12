@@ -10,7 +10,8 @@ import axios from 'axios'
 import { useCallback, useEffect, useState, useRef } from 'react'
 import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiX, FiUser } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
+import { uploadUrl } from '../../utils/uploadUrl'
 
 // Xodimning sababli kelmagan kuni: ta'til, safar, kasallik, boshqa sabab
 export const EXCUSE = {
@@ -129,21 +130,21 @@ export function exportXlsx(fileName, sheets) {
 	XLSX.writeFile(wb, `${fileName}.xlsx`)
 }
 
-export const PageHeader = ({ title, subtitle, children, onReload, loading }) => (
-	<div className="flex flex-wrap items-start justify-between gap-3 mb-6">
-		<div>
-			<h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-			{subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+// Sahifa sarlavhasi (title/subtitle) endi chizilmaydi: sahifa nomi yuqoridagi navbarda (menyudagi nom) ko'rinadi.
+// Faqat boshqaruv elementlari (sana, filtr, yangilash) qoladi; ular bo'lmasa hech narsa chiqmaydi.
+export const PageHeader = ({ children, onReload, loading }) => (
+	(children || onReload) ? (
+		<div className="flex flex-wrap items-center justify-end gap-3 mb-6">
+			<div className="flex flex-wrap items-center gap-2">
+				{children}
+				{onReload && (
+					<button onClick={onReload} disabled={loading} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+						<FiRefreshCw className={loading ? 'animate-spin' : ''} /> {tx("Yangilash")}
+					</button>
+				)}
+			</div>
 		</div>
-		<div className="flex flex-wrap items-center gap-2">
-			{children}
-			{onReload && (
-				<button onClick={onReload} disabled={loading} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-					<FiRefreshCw className={loading ? 'animate-spin' : ''} /> Yangilash
-				</button>
-			)}
-		</div>
-	</div>
+	) : null
 )
 
 export const Page = ({ children }) => <div className="p-4 md:p-6 w-full">{children}</div>
@@ -202,17 +203,17 @@ export const RangePicker = ({ from, to, onChange }) => (
 	<div className="flex flex-wrap items-center gap-2">
 		{[7, 14, 30, 60].map(n => (
 			<button key={n} onClick={() => onChange({ from: shiftDate(todayStr(), -(n - 1)), to: todayStr() })}
-				className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{n} kun</button>
+				className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("{{n}} kun", { n })}</button>
 		))}
-		<DateField label="Dan" value={from} max={to} onChange={v => onChange({ from: v, to })} />
-		<DateField label="Gacha" value={to} max={todayStr()} onChange={v => onChange({ from, to: v })} />
+		<DateField label={tx("Dan")} value={from} max={to} onChange={v => onChange({ from: v, to })} />
+		<DateField label={tx("Gacha")} value={to} max={todayStr()} onChange={v => onChange({ from, to: v })} />
 	</div>
 )
 
 export const LoadState = ({ loading, error, empty, children }) => {
-	if (loading && !children) return <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">Yuklanmoqda...</div>
-	if (error) return <div className="rounded-xl bg-red-50 p-5 text-sm text-red-700 mb-4">Ma'lumotni yuklab bo'lmadi. Qayta urinib ko'ring.</div>
-	if (empty) return <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">Ma'lumot topilmadi</div>
+	if (loading && !children) return <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">{tx("Yuklanmoqda...")}</div>
+	if (error) return <div className="rounded-xl bg-red-50 p-5 text-sm text-red-700 mb-4">{tx("Ma'lumotni yuklab bo'lmadi. Qayta urinib ko'ring.")}</div>
+	if (empty) return <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">{tx("Ma'lumot topilmadi")}</div>
 	return children
 }
 
@@ -266,10 +267,10 @@ export const Segmented = ({ value, onChange, options = [] }) => (
 	</div>
 )
 
-export const Empty = ({ icon, title, hint }) => (
+export const Empty = ({ icon, title, text, hint }) => (
 	<div className="flex flex-col items-center justify-center px-6 py-12 text-center">
 		{icon && <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">{icon}</div>}
-		{title && <p className="text-sm font-semibold text-gray-700">{title}</p>}
+		{(title || text) && <p className="text-sm font-semibold text-gray-700">{title || text}</p>}
 		{hint && <p className="mt-1 max-w-md text-xs text-gray-500">{hint}</p>}
 	</div>
 )
@@ -296,7 +297,7 @@ export const SchoolLink = ({ id, name, tab, className = '' }) => {
 // Shaxs (xodim/o'quvchi) kartochkasi: rasm + ism + izoh
 export const PersonLink = ({ kind, id, name, sub, photo }) => {
 	const { base } = usePanel()
-	const src = photo ? `${import.meta.env.VITE_BASE_URL}/uploads/${photo}` : null
+	const src = photo ? `${uploadUrl(photo)}` : null
 	const nameEl = <p className="truncate text-sm font-medium text-gray-900">{name}</p>
 	return (
 		<div className="flex min-w-0 items-center gap-3" data-kind={kind} data-id={id}>

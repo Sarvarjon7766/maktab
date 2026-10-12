@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, DateField, LoadState, Page, PageHeader, Panel, Progress, Table, Td, Tr, exportXlsx, fmt, todayStr, useMonitorData } from './monitorKit'
+import { tx } from '../../i18n'
 
 const MonitorRegions = () => {
 	const [date, setDate] = useState(todayStr())
@@ -28,18 +29,18 @@ const MonitorRegions = () => {
 
 	return (
 		<Page>
-			<PageHeader title="Hududlar kesimi" subtitle={`Sana: ${data?.dateString || date} · maktablar hudud bo'yicha guruhlangan`} onReload={reload} loading={loading}>
+			<PageHeader title={tx("Hududlar kesimi")} subtitle={`Sana: ${data?.dateString || date} · maktablar hudud bo'yicha guruhlangan`} onReload={reload} loading={loading}>
 				<div className="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden text-sm">
 					{[['district', 'Tuman'], ['region', 'Viloyat']].map(([k, label]) => (
 						<button key={k} onClick={() => setBy(k)} className={`px-4 py-2 ${by === k ? 'bg-slate-900 text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{label}</button>
 					))}
 				</div>
-				<DateField label="Sana" value={date} max={todayStr()} onChange={setDate} />
-				<button onClick={download} disabled={!groups.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<DateField label={tx("Sana")} value={date} max={todayStr()} onChange={setDate} />
+				<button onClick={download} disabled={!groups.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
 
 			<LoadState loading={loading && !data} error={error} empty={data && groups.length === 0}>
-				<Panel title="Hududlar bo'yicha kelganlar" className="mb-6">
+				<Panel title={tx("Hududlar bo'yicha kelganlar")} className="mb-6">
 					<ChartBox height={320}><ResponsiveContainer width="100%" height="100%">
 						<BarChart data={chart} margin={{ left: -8, right: 12 }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -50,14 +51,14 @@ const MonitorRegions = () => {
 						</BarChart>
 					</ResponsiveContainer></ChartBox>
 				</Panel>
-				<Panel title="Hududlar jadvali">
+				<Panel title={tx("Hududlar jadvali")}>
 					<Table head={['Hudud', { label: 'Maktablar', right: true }, "O'quvchilar", 'Xodimlar', { label: 'Kameralar', right: true }]}>
 						{groups.map(g => (
 							<Tr key={g.name}>
 								<Td className="font-medium text-gray-900">{g.name}</Td><Td right>{fmt(g.schools)}</Td>
 								<Td><Progress present={g.studentCame} total={g.studentTotal} /></Td>
 								<Td><Progress present={g.staffCame} total={g.staffTotal} /></Td>
-								<Td right className="whitespace-nowrap">{g.cameraOnline}/{g.cameraTotal} online</Td>
+								<Td right className="whitespace-nowrap">{tx("{{a}}/{{b}} online", { a: g.cameraOnline, b: g.cameraTotal })}</Td>
 							</Tr>
 						))}
 					</Table>

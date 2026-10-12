@@ -32,6 +32,9 @@ import { MANUAL_ENTRY_CHECKPOINT_ID } from '../../utils/constants'
 import StudentEntryExit from './StudentEntryExit'
 import UserAttendanceModal from './UserAttendanceModal'
 import SearchableSelect from '../../components/SearchableSelect'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
+import { useSearchParams } from 'react-router-dom'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 // AdminAnalytics.jsx'ning jonli oqimidan (4s) sekinroq — bu sahifa har
@@ -43,9 +46,12 @@ const AUTO_REFRESH_MS = 15000
 const STALE_SESSION_HOURS = 12
 
 const AdminEntryExit = () => {
+	// Ogohlantirishlardan keladigan havola: ?view=student&status=kelmagan
+	const [urlParams] = useSearchParams()
 	const token = localStorage.getItem('token')
 	const headers = { Authorization: `Bearer ${token}` }
 	const workStartTimeRef = useRef('09:00')
+	const [, setCurrentUserId] = useState(null)
 	// Qo'lda "Yangilash" ustma-ust bosilsa (yoki avtomatik va qo'lda
 	// yangilash bir vaqtga to'g'ri kelsa), oldingi (sekinroq) so'rov javobi
 	// keyingi (tezroq tugagan) so'rovdan KEYIN kelib, yangi ma'lumotni
@@ -59,7 +65,7 @@ const AdminEntryExit = () => {
 	const [refreshing, setRefreshing] = useState(false)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [selectedDepartment, setSelectedDepartment] = useState('all')
-	const [selectedStatus, setSelectedStatus] = useState('all')
+	const [selectedStatus, setSelectedStatus] = useState(['ishda', 'kelmagan', 'tashqarida'].includes(urlParams.get('status')) ? urlParams.get('status') : 'all')
 	const [selectedStat, setSelectedStat] = useState(null)
 	const [commentModalOpen, setCommentModalOpen] = useState(false)
 	const [timeModalOpen, setTimeModalOpen] = useState(false)
@@ -70,9 +76,8 @@ const AdminEntryExit = () => {
 	const [selectedUser, setSelectedUser] = useState(null)
 	const [commentText, setCommentText] = useState('')
 	const [commentMap, setCommentMap] = useState({})
-	const [currentUserId, setCurrentUserId] = useState(null)
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-	const [viewMode, setViewMode] = useState('staff')
+	const [viewMode, setViewMode] = useState(urlParams.get('view') === 'student' ? 'student' : 'staff')
 	// Xodim bo'yicha to'liq tarix — mavjud UserAttendanceModal'ni ulash
 	// (AdminAttandance.jsx'dagi bilan bir xil naqsh)
 	const [historyUserId, setHistoryUserId] = useState(null)
@@ -237,7 +242,7 @@ const AdminEntryExit = () => {
 				setDepartments(deptRes.data.sinfs)
 				setLastUpdated(new Date())
 			}
-		} catch (error) {
+		} catch {
 			if (seq !== requestSeqRef.current) return
 			toast.error("Ma'lumotlarni yuklashda xato")
 		} finally {
@@ -257,7 +262,7 @@ const AdminEntryExit = () => {
 			if (res.data.success) {
 				setCurrentUserId(res.data.userId)
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Foydalanuvchi ID sini olishda xato")
 		}
 	}
@@ -452,12 +457,12 @@ const AdminEntryExit = () => {
 							<button
 								onClick={() => setHistoryUserId(user._id)}
 								className="flex items-center space-x-3 text-left hover:opacity-75 transition-opacity"
-								title="To'liq tarixni ko'rish"
+								title={tx("To'liq tarixni ko'rish")}
 							>
 								<div className="flex-shrink-0 h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
 									{user.photo ? (
 										<img
-											src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+											src={`${uploadUrl(user.photo)}`}
 											alt={user.fullName}
 											className="h-full w-full rounded-full object-cover"
 											onError={(e) => {
@@ -483,12 +488,12 @@ const AdminEntryExit = () => {
 										</span>
 									)}
 									{user.isStaleOpen && (
-										<span className="text-red-500" title="Diqqat: chiqish qayd etilmagan">
+										<span className="text-red-500" title={tx("Diqqat: chiqish qayd etilmagan")}>
 											<FiAlertTriangle size={12} />
 										</span>
 									)}
 									{recentChangeIds.has(user._id) && (
-										<span className="relative flex h-2 w-2" title="Yangi holat o'zgarishi">
+										<span className="relative flex h-2 w-2" title={tx("Yangi holat o'zgarishi")}>
 											<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
 											<span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
 										</span>
@@ -513,15 +518,15 @@ const AdminEntryExit = () => {
 						<div className="grid grid-cols-2 gap-3 text-xs">
 							{/* Sinf */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Sinf:</span>
+								<span className="text-gray-500">{tx("Sinf:")}</span>
 								<p className="font-medium text-black mt-1">
-									{user.sinf?.name || "Sinfsiz"}
+									{user.sinf?.name || tx("Sinfsiz")}
 								</p>
 							</div>
 
 							{/* Telefon */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Telefon:</span>
+								<span className="text-gray-500">{tx("Telefon:")}</span>
 								<p className="font-medium mt-1">
 									{user.phone_personal || user.phone_work
 										? `${user.phone_personal || ''}${user.phone_personal && user.phone_work ? ' / ' : ''}${user.phone_work || ''}`
@@ -531,20 +536,20 @@ const AdminEntryExit = () => {
 
 							{/* Dastlabki kirish vaqti */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Dastlabki kirish:</span>
+								<span className="text-gray-500">{tx("Dastlabki kirish:")}</span>
 								<p className="font-medium text-black mt-1">{user.firstEntryTime}</p>
 							</div>
 
 							{/* Kirish vaqti */}
 							<div>
-								<span className="text-gray-500">Kirish vaqti:</span>
+								<span className="text-gray-500">{tx("Kirish vaqti:")}</span>
 								<div className="flex items-center gap-1 mt-1">
 									<span className="font-medium text-black">{user.entryTime}</span>
 									{user.lastCheckInLocation && (
 										<button
 											onClick={() => openEvidenceModal(user, 'entry')}
 											className="p-1 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors flex-shrink-0"
-											title="Mobil check-in dalili"
+											title={tx("Mobil check-in dalili")}
 										>
 											<FaMobileAlt size={10} />
 										</button>
@@ -553,7 +558,7 @@ const AdminEntryExit = () => {
 										<button
 											onClick={() => openTimeModal(user, 'entry')}
 											className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors flex-shrink-0"
-											title="Kirish vaqtini qo'shish/tahrirlash"
+											title={tx("Kirish vaqtini qo'shish/tahrirlash")}
 										>
 											<FaEdit size={10} />
 										</button>
@@ -563,14 +568,14 @@ const AdminEntryExit = () => {
 
 							{/* Chiqish vaqti */}
 							<div>
-								<span className="text-gray-500">Chiqish vaqti:</span>
+								<span className="text-gray-500">{tx("Chiqish vaqti:")}</span>
 								<div className="flex items-center gap-1 mt-1">
 									<span className="font-medium text-black">{user.exitTime}</span>
 									{user.lastCheckOutLocation && (
 										<button
 											onClick={() => openEvidenceModal(user, 'exit')}
 											className="p-1 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors flex-shrink-0"
-											title="Mobil check-out dalili"
+											title={tx("Mobil check-out dalili")}
 										>
 											<FaMobileAlt size={10} />
 										</button>
@@ -579,7 +584,7 @@ const AdminEntryExit = () => {
 										<button
 											onClick={() => openTimeModal(user, 'exit')}
 											className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors flex-shrink-0"
-											title="Chiqish vaqtini qo'shish"
+											title={tx("Chiqish vaqtini qo'shish")}
 										>
 											<FaEdit size={10} />
 										</button>
@@ -590,16 +595,16 @@ const AdminEntryExit = () => {
 							{/* Kechikish (agar mavjud bo'lsa) */}
 							{user.isLate && (
 								<div className="col-span-2">
-									<span className="text-gray-500">Kechikish:</span>
+									<span className="text-gray-500">{tx("Kechikish:")}</span>
 									<p className="font-medium text-black mt-1">
-										{user.lateMinutes} daqiqa
+										{tx("{{n}} daqiqa", { n: user.lateMinutes })}
 									</p>
 								</div>
 							)}
 
 							{/* Izoh */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Izoh:</span>
+								<span className="text-gray-500">{tx("Izoh:")}</span>
 								{commentMap[user._id] && user.attendanceStatus === 'kelmagan' ? (
 									<p className="mt-1">
 										<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${typeColor(commentMap[user._id].type)}`}>
@@ -615,7 +620,7 @@ const AdminEntryExit = () => {
 										<button
 											onClick={() => openCommentModal(user)}
 											className="ml-2 text-gray-400 hover:text-blue-500 flex-shrink-0 mt-1"
-											title="Komentariya qo'shish"
+											title={tx("Komentariya qo'shish")}
 										>
 											<FaRegCommentDots size={14} />
 										</button>
@@ -644,29 +649,29 @@ const AdminEntryExit = () => {
 									№
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px] sticky left-[80px] bg-gray-50 z-20">
-									Xodim
+									{tx("Xodim")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[150px]">
-									Lavozim
+									{tx("Lavozim")}
 								</th>
 
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[150px]">
-									Telefon
+									{tx("Telefon")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">
-									Dastlabki
+									{tx("Dastlabki")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">
-									Kirish
+									{tx("Kirish")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">
-									Chiqish
+									{tx("Chiqish")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px]">
-									Izoh
+									{tx("Izoh")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">
-									Holat
+									{tx("Holat")}
 								</th>
 							</tr>
 						</thead>
@@ -693,12 +698,12 @@ const AdminEntryExit = () => {
 												</span>
 											)}
 											{user.isStaleOpen && (
-												<span className="ml-2 text-red-500" title="Diqqat: chiqish qayd etilmagan">
+												<span className="ml-2 text-red-500" title={tx("Diqqat: chiqish qayd etilmagan")}>
 													<FiAlertTriangle className="inline" size={12} />
 												</span>
 											)}
 											{recentChangeIds.has(user._id) && (
-												<span className="ml-2 relative flex h-2 w-2" title="Yangi holat o'zgarishi">
+												<span className="ml-2 relative flex h-2 w-2" title={tx("Yangi holat o'zgarishi")}>
 													<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
 													<span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
 												</span>
@@ -710,12 +715,12 @@ const AdminEntryExit = () => {
 										<button
 											onClick={() => setHistoryUserId(user._id)}
 											className="flex items-center text-left hover:opacity-75 transition-opacity"
-											title="To'liq tarixni ko'rish"
+											title={tx("To'liq tarixni ko'rish")}
 										>
 											<div className="flex-shrink-0 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
 												{user.photo ? (
 													<img
-														src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+														src={`${uploadUrl(user.photo)}`}
 														alt={user.fullName}
 														className="h-full w-full rounded-full object-cover"
 														onError={(e) => {
@@ -756,7 +761,7 @@ const AdminEntryExit = () => {
 												<button
 													onClick={() => openEvidenceModal(user, 'entry')}
 													className="p-1 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
-													title="Mobil check-in dalili"
+													title={tx("Mobil check-in dalili")}
 												>
 													<FaMobileAlt size={12} />
 												</button>
@@ -765,7 +770,7 @@ const AdminEntryExit = () => {
 												<button
 													onClick={() => openTimeModal(user, 'entry')}
 													className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors opacity-0 group-hover:opacity-100"
-													title="Kirish vaqtini qo'shish/tahrirlash"
+													title={tx("Kirish vaqtini qo'shish/tahrirlash")}
 												>
 													<FaEdit size={12} />
 												</button>
@@ -779,7 +784,7 @@ const AdminEntryExit = () => {
 												<button
 													onClick={() => openEvidenceModal(user, 'exit')}
 													className="p-1 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
-													title="Mobil check-out dalili"
+													title={tx("Mobil check-out dalili")}
 												>
 													<FaMobileAlt size={12} />
 												</button>
@@ -788,7 +793,7 @@ const AdminEntryExit = () => {
 												<button
 													onClick={() => openTimeModal(user, 'exit')}
 													className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors opacity-0 group-hover:opacity-100"
-													title="Chiqish vaqtini qo'shish"
+													title={tx("Chiqish vaqtini qo'shish")}
 												>
 													<FaEdit size={12} />
 												</button>
@@ -808,7 +813,7 @@ const AdminEntryExit = () => {
 														<button
 															onClick={() => openCommentModal(user)}
 															className="ml-2 text-gray-400 hover:text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-															title="Komentariya qo'shish"
+															title={tx("Komentariya qo'shish")}
 														>
 															<FaRegCommentDots size={14} />
 														</button>
@@ -842,7 +847,7 @@ const AdminEntryExit = () => {
 				{/* Table footer */}
 				<div className="flex-shrink-0 bg-gray-50 px-6 py-3 border-t">
 					<p className="text-sm text-gray-600">
-						Jami: {filteredUsers.length} ta xodim
+						{tx("Jami: {{n}} ta xodim", { n: filteredUsers.length })}
 					</p>
 				</div>
 			</div>
@@ -856,7 +861,7 @@ const AdminEntryExit = () => {
 				<KpiCard
 					compact
 					icon={<FaUserCheck size={14} />}
-					label="Ishda"
+					label={tx("Ishda")}
 					value={stats.ishda.count}
 					total={stats.total}
 					tone="good"
@@ -866,7 +871,7 @@ const AdminEntryExit = () => {
 				<KpiCard
 					compact
 					icon={<FaUserSlash size={14} />}
-					label="Tashqarida"
+					label={tx("Tashqarida")}
 					value={stats.tashqarida.count}
 					total={stats.total}
 					tone="blue"
@@ -876,7 +881,7 @@ const AdminEntryExit = () => {
 				<KpiCard
 					compact
 					icon={<FaClock size={14} />}
-					label="Kechikkan"
+					label={tx("Kechikkan")}
 					value={stats.kechikkan.count}
 					total={stats.total}
 					tone="warning"
@@ -886,7 +891,7 @@ const AdminEntryExit = () => {
 				<KpiCard
 					compact
 					icon={<FaUserTimes size={14} />}
-					label="Kelmagan"
+					label={tx("Kelmagan")}
 					value={stats.kelmagan.count}
 					total={stats.total}
 					tone="critical"
@@ -896,7 +901,7 @@ const AdminEntryExit = () => {
 				<KpiCard
 					compact
 					icon={<FaRegCommentDots size={14} />}
-					label="Sababli"
+					label={tx("Sababli")}
 					value={stats.sababli.count}
 					total={stats.total}
 					tone="blue"
@@ -945,21 +950,21 @@ const AdminEntryExit = () => {
 				className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${viewMode === 'staff' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
 			>
 				<FaUsers size={14} />
-				Xodimlar
+				{tx("Xodimlar")}
 			</button>
 			<button
 				onClick={() => setViewMode('student')}
 				className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${viewMode === 'student' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
 			>
 				<FaUserGraduate size={14} />
-				O'quvchilar
+				{tx("O'quvchilar")}
 			</button>
 		</div>
 	)
 
 	if (viewMode === 'student') {
 		return (
-			<div className="h-screen flex flex-col w-full max-w-full overflow-hidden bg-gray-50">
+			<div className="h-full flex flex-col w-full max-w-full overflow-hidden bg-gray-50">
 				{renderModeToggle()}
 				<div className="flex-1 min-h-0 flex flex-col">
 					<StudentEntryExit />
@@ -969,7 +974,7 @@ const AdminEntryExit = () => {
 	}
 
 	return (
-		<div className="h-screen flex flex-col w-full max-w-full overflow-hidden bg-gray-50">
+		<div className="h-full flex flex-col w-full max-w-full overflow-hidden bg-gray-50">
 			{renderModeToggle()}
 
 			{/* Statistics section */}
@@ -988,7 +993,7 @@ const AdminEntryExit = () => {
 								</div>
 								<input
 									type="text"
-									placeholder="Xodimlarni qidirish..."
+									placeholder={tx("Xodimlarni qidirish...")}
 									className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-black bg-gray-50"
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
@@ -1012,7 +1017,7 @@ const AdminEntryExit = () => {
 							</div>
 
 							{/* Sinf filteri */}
-							<SearchableSelect className="min-w-[150px] max-w-[200px]" searchPlaceholder="Sinf qidirish..." value={selectedDepartment} onChange={setSelectedDepartment} options={[{ value: 'all', label: 'Barcha sinflar' }, ...sinfs.map(dept => ({ value: dept._id, label: dept.name })), { value: 'no-dept', label: 'Sinfsiz' }]} />
+							<SearchableSelect className="min-w-[150px] max-w-[200px]" searchPlaceholder={tx("Sinf qidirish...")} value={selectedDepartment} onChange={setSelectedDepartment} options={[{ value: 'all', label: 'Barcha sinflar' }, ...sinfs.map(dept => ({ value: dept._id, label: dept.name })), { value: 'no-dept', label: 'Sinfsiz' }]} />
 
 							{/* Holat filteri */}
 							<SearchableSelect className="min-w-[120px] max-w-[160px]" value={selectedStatus} onChange={setSelectedStatus} options={[{ value: 'all', label: 'Barcha holat' }, { value: 'ishda', label: 'Ishda' }, { value: 'kelmagan', label: 'Kelmagan' }, { value: 'tashqarida', label: 'Tashqarida' }]} />
@@ -1022,9 +1027,9 @@ const AdminEntryExit = () => {
 									(jonli poll qilishning ma'nosi yo'q) */}
 								<div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
 									{!isViewingToday ? (
-										<span className="flex items-center gap-1.5 text-xs font-medium text-gray-500" title="O'tgan kun uchun avto-yangilanish ishlamaydi">
+										<span className="flex items-center gap-1.5 text-xs font-medium text-gray-500" title={tx("O'tgan kun uchun avto-yangilanish ishlamaydi")}>
 											<FiClock size={13} />
-											<span className="whitespace-nowrap">Tarixiy ma'lumot</span>
+											<span className="whitespace-nowrap">{tx("Tarixiy ma'lumot")}</span>
 										</span>
 									) : (
 										<button
@@ -1032,7 +1037,7 @@ const AdminEntryExit = () => {
 											className={`flex items-center gap-1.5 text-xs font-medium transition-colors duration-200 ${
 												autoRefreshEnabled ? 'text-blue-600' : 'text-gray-400'
 											}`}
-											title={autoRefreshEnabled ? "Avto-yangilanishni to'xtatish" : "Avto-yangilanishni yoqish"}
+											title={autoRefreshEnabled ? tx("Avto-yangilanishni to'xtatish") : tx("Avto-yangilanishni yoqish")}
 										>
 											{autoRefreshEnabled ? <FiPause size={13} /> : <FiPlay size={13} />}
 											{autoRefreshEnabled && (
@@ -1043,8 +1048,8 @@ const AdminEntryExit = () => {
 											)}
 											<span className="hidden sm:inline whitespace-nowrap">
 												{autoRefreshEnabled
-													? (lastUpdated ? `Jonli (${formatUzTime(lastUpdated)})` : 'Jonli')
-													: "To'xtatilgan"}
+													? (lastUpdated ? `Jonli (${formatUzTime(lastUpdated)})` : tx("Jonli"))
+													: tx("To'xtatilgan")}
 											</span>
 										</button>
 									)}
@@ -1058,14 +1063,14 @@ const AdminEntryExit = () => {
 									}}
 									disabled={refreshing}
 									className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors duration-200 font-medium min-w-[120px] max-w-[150px]"
-									title="Yangilash"
+									title={tx("Yangilash")}
 								>
 									{refreshing ? (
 										<PulseLoader size={6} color="white" />
 									) : (
 										<>
 											<FiRefreshCw size={16} />
-											<span className="truncate">Yangilash</span>
+											<span className="truncate">{tx("Yangilash")}</span>
 										</>
 									)}
 								</button>
@@ -1086,9 +1091,9 @@ const AdminEntryExit = () => {
 								<div className="mx-auto h-24 w-24 text-gray-400 mb-4">
 									<FaUserTimes className="w-full h-full" />
 								</div>
-								<h3 className="text-lg font-medium text-gray-900">Xodimlar topilmadi</h3>
+								<h3 className="text-lg font-medium text-gray-900">{tx("Xodimlar topilmadi")}</h3>
 								<p className="text-base text-gray-500 mt-2">
-									{searchTerm ? "Qidiruv bo'yicha xodim topilmadi" : "Tizimda xodimlar mavjud emas"}
+									{searchTerm ? tx("Qidiruv bo'yicha xodim topilmadi") : tx("Tizimda xodimlar mavjud emas")}
 								</p>
 							</div>
 						</div>
@@ -1114,7 +1119,7 @@ const AdminEntryExit = () => {
 						<div className="p-6">
 							<div className="flex justify-between items-center mb-4">
 								<h3 className="text-lg font-bold text-gray-800">
-									{selectedUser?.fullName} uchun izoh
+									{tx("{{name}} uchun izoh", { name: selectedUser?.fullName })}
 								</h3>
 								<button
 									onClick={() => setCommentModalOpen(false)}
@@ -1128,21 +1133,21 @@ const AdminEntryExit = () => {
 								rows={4}
 								value={commentText}
 								onChange={(e) => setCommentText(e.target.value)}
-								placeholder="Komentariya yozing..."
+								placeholder={tx("Komentariya yozing...")}
 							/>
 							<div className="flex justify-end gap-3">
 								<button
 									className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors duration-200"
 									onClick={() => setCommentModalOpen(false)}
 								>
-									Bekor qilish
+									{tx("Bekor qilish")}
 								</button>
 								<button
 									className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
 									onClick={handleCommentSubmit}
 									disabled={submitting}
 								>
-									{submitting ? "Saqlanmoqda..." : "Saqlash"}
+									{submitting ? tx("Saqlanmoqda...") : tx("Saqlash")}
 								</button>
 							</div>
 						</div>
@@ -1158,8 +1163,7 @@ const AdminEntryExit = () => {
 						<div className="p-6">
 							<div className="flex justify-between items-center mb-4">
 								<h3 className="text-lg font-bold text-gray-800">
-									{selectedUser?.fullName} uchun{" "}
-									{modalType === "entry" ? "Kirish" : "Chiqish"}
+									{tx("{{name}} uchun {{type}}", { name: selectedUser?.fullName, type: modalType === "entry" ? tx("Kirish") : tx("Chiqish") })}
 								</h3>
 								<button
 									onClick={() => setTimeModalOpen(false)}
@@ -1170,9 +1174,9 @@ const AdminEntryExit = () => {
 							</div>
 
 							<div className="mb-6 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg">
-								Ushbu amalni tasdiqlashni xohlaysizmi?
+								{tx("Ushbu amalni tasdiqlashni xohlaysizmi?")}
 								<br />
-								<strong>{selectedUser?.fullName}</strong> - {modalType === "entry" ? "kirish" : "chiqish"} vaqti qayd etiladi.
+								<strong>{selectedUser?.fullName}</strong> - {tx("{{type}} vaqti qayd etiladi.", { type: modalType === "entry" ? tx("kirish") : tx("chiqish") })}
 							</div>
 
 							<div className="flex justify-end gap-3">
@@ -1180,14 +1184,14 @@ const AdminEntryExit = () => {
 									className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors duration-200"
 									onClick={() => setTimeModalOpen(false)}
 								>
-									Bekor qilish
+									{tx("Bekor qilish")}
 								</button>
 								<button
 									className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
 									onClick={handleTimeSubmit}
 									disabled={submitting}
 								>
-									{submitting ? "Saqlanmoqda..." : (modalType === "entry" ? "Xodimni kiritish" : "Xodimni chiqarish")}
+									{submitting ? tx("Saqlanmoqda...") : (modalType === "entry" ? tx("Xodimni kiritish") : tx("Xodimni chiqarish"))}
 								</button>
 							</div>
 						</div>
@@ -1203,7 +1207,7 @@ const AdminEntryExit = () => {
 						<div className="p-6">
 							<div className="flex justify-between items-center mb-4">
 								<h3 className="text-lg font-bold text-gray-800">
-									{evidenceData.user?.fullName} — {evidenceData.type === 'entry' ? 'Kirish' : 'Chiqish'} dalili
+									{tx("{{name}} — {{type}} dalili", { name: evidenceData.user?.fullName, type: evidenceData.type === 'entry' ? tx("Kirish") : tx("Chiqish") })}
 								</h3>
 								<button
 									onClick={() => setEvidenceModalOpen(false)}
@@ -1215,25 +1219,25 @@ const AdminEntryExit = () => {
 
 							{evidenceData.photo ? (
 								<img
-									src={`${import.meta.env.VITE_BASE_URL}/uploads/${evidenceData.photo}`}
-									alt="Selfie"
+									src={`${uploadUrl(evidenceData.photo)}`}
+									alt={tx("Selfie")}
 									className="w-full h-56 object-cover rounded-lg mb-4 bg-gray-100"
 								/>
 							) : (
 								<div className="w-full h-56 flex items-center justify-center rounded-lg mb-4 bg-gray-100 text-gray-400 text-sm">
-									Surat mavjud emas
+									{tx("Surat mavjud emas")}
 								</div>
 							)}
 
 							<div className="space-y-2 text-sm">
 								<div className="flex justify-between">
-									<span className="text-gray-500">Ishonch darajasi:</span>
+									<span className="text-gray-500">{tx("Ishonch darajasi:")}</span>
 									<span className="font-medium text-black">
 										{evidenceData.confidence != null ? `${Math.round(evidenceData.confidence)}%` : '-'}
 									</span>
 								</div>
 								<div className="flex justify-between items-center">
-									<span className="text-gray-500">Joylashuv:</span>
+									<span className="text-gray-500">{tx("Joylashuv:")}</span>
 									{evidenceData.location?.lat != null && evidenceData.location?.lng != null ? (
 										<a
 											href={`https://www.google.com/maps?q=${evidenceData.location.lat},${evidenceData.location.lng}`}
@@ -1241,7 +1245,7 @@ const AdminEntryExit = () => {
 											rel="noopener noreferrer"
 											className="font-medium text-blue-600 hover:underline"
 										>
-											Xaritada ko'rish
+											{tx("Xaritada ko'rish")}
 										</a>
 									) : (
 										<span className="font-medium text-black">-</span>
@@ -1254,7 +1258,7 @@ const AdminEntryExit = () => {
 									className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors duration-200"
 									onClick={() => setEvidenceModalOpen(false)}
 								>
-									Yopish
+									{tx("Yopish")}
 								</button>
 							</div>
 						</div>

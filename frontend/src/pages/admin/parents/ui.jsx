@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCopy, FiExternalLink, FiLink, FiSearch, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
+import { tx } from '../../../i18n'
 
 export const BASE = import.meta.env.VITE_BASE_URL
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` })
@@ -46,7 +47,7 @@ export const Empty = ({ icon, title, hint, children }) => (
 export const Pager = ({ page, pages, total, set }) => (pages > 1 ? (
 	<div className="flex items-center justify-center gap-3 pt-4">
 		<button disabled={page <= 1} onClick={() => set(page - 1)} className="p-2 rounded-lg border border-gray-200 bg-white disabled:opacity-40"><FiChevronLeft /></button>
-		<span className="text-sm text-gray-600">{page} / {pages} · jami {total}</span>
+		<span className="text-sm text-gray-600">{tx("{{page}} / {{pages}} · jami {{total}}", { page, pages, total })}</span>
 		<button disabled={page >= pages} onClick={() => set(page + 1)} className="p-2 rounded-lg border border-gray-200 bg-white disabled:opacity-40"><FiChevronRight /></button>
 	</div>
 ) : null)
@@ -73,7 +74,7 @@ export const Drawer = ({ title, subtitle, onClose, children }) => {
 			<aside className="absolute right-0 top-0 h-full w-full sm:w-[460px] bg-white shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
 				<div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-gray-100">
 					<div className="min-w-0"><h3 className="font-semibold text-gray-900 truncate">{title}</h3>{subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}</div>
-					<button onClick={onClose} title="Yopish (Esc)" className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 shrink-0"><FiX /></button>
+					<button onClick={onClose} title={tx("Yopish (Esc)")} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 shrink-0"><FiX /></button>
 				</div>
 				<div className="flex-1 overflow-y-auto p-5 space-y-5">{children}</div>
 			</aside>
@@ -84,12 +85,12 @@ export const Drawer = ({ title, subtitle, onClose, children }) => {
 // Havola + QR + tugmalar (nusxalash, Telegramda ochish)
 export const LinkBox = ({ invite, hint, compact }) => (
 	<div className={`flex ${compact ? 'flex-col' : 'flex-col sm:flex-row'} gap-4 items-start`}>
-		{invite.qr && <img src={invite.qr} alt="QR kod" className={`${compact ? 'w-32 h-32' : 'w-40 h-40'} rounded-xl border border-gray-100 bg-white shrink-0`} />}
+		{invite.qr && <img src={invite.qr} alt={tx("QR kod")} className={`${compact ? 'w-32 h-32' : 'w-40 h-40'} rounded-xl border border-gray-100 bg-white shrink-0`} />}
 		<div className="min-w-0 flex-1 space-y-2 w-full">
 			<div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2"><FiLink className="text-gray-400 shrink-0" /><span className="text-sm text-gray-800 break-all">{invite.url}</span></div>
 			<div className="flex flex-wrap gap-2">
-				<button onClick={() => copyText(invite.url, 'Havola nusxalandi')} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800"><FiCopy size={14} /> Havolani nusxalash</button>
-				<a href={invite.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"><FiExternalLink size={14} /> Telegramda ochish</a>
+				<button onClick={() => copyText(invite.url, 'Havola nusxalandi')} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800"><FiCopy size={14} /> {tx("Havolani nusxalash")}</button>
+				<a href={invite.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"><FiExternalLink size={14} /> {tx("Telegramda ochish")}</a>
 			</div>
 			{hint && <p className="text-xs text-gray-500">{hint}</p>}
 		</div>
@@ -123,7 +124,7 @@ export const StudentPicker = ({ selected, onToggle, exclude = [], placeholder = 
 					))}
 				</ul>
 			)}
-			{q.trim().length >= 2 && !busy && rows.length === 0 && <p className="text-xs text-gray-500">O'quvchi topilmadi</p>}
+			{q.trim().length >= 2 && !busy && rows.length === 0 && <p className="text-xs text-gray-500">{tx("O'quvchi topilmadi")}</p>}
 		</div>
 	)
 }

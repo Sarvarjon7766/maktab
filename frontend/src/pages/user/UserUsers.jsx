@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { FiSearch, FiUsers } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import { useSearchParams } from 'react-router-dom'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const UserUsers = () => {
 	const token = localStorage.getItem('token')
@@ -51,7 +53,7 @@ const UserUsers = () => {
 	}
 
 	return (
-		<div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+		<div className="p-4 md:p-6 bg-gray-50 min-h-full">
 			{/* Filter Section */}
 			<div className="bg-white rounded-lg shadow-sm p-4 md:p-5 mb-6 border border-gray-200">
 				<div className="relative flex-1">
@@ -60,7 +62,7 @@ const UserUsers = () => {
 					</div>
 					<input
 						type="text"
-						placeholder="Ism, familiya yoki lavozim boʻyicha qidirish..."
+						placeholder={tx("Ism, familiya yoki lavozim boʻyicha qidirish...")}
 						className="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-700 transition-all duration-200"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
@@ -72,13 +74,12 @@ const UserUsers = () => {
 			{isLoading ? (
 				<div className="flex justify-center items-center p-12">
 					<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-					<span className="ml-3 text-gray-600 font-medium">Ma'lumotlar yuklanmoqda...</span>
+					<span className="ml-3 text-gray-600 font-medium">{tx("Ma'lumotlar yuklanmoqda...")}</span>
 				</div>
 			) : (
 				<div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
 					<div className="p-4 md:p-5 border-b border-gray-200 bg-gray-50">
-						<h2 className="text-lg md:text-xl font-semibold text-gray-800">Xodimlar</h2>
-						<p className="text-gray-600 mt-1 text-sm">{filteredUsers.length} ta xodim</p>
+						<p className="text-gray-700 text-sm font-medium">{tx("{{n}} ta xodim", { n: filteredUsers.length })}</p>
 					</div>
 
 					<div className="overflow-x-auto">
@@ -86,9 +87,9 @@ const UserUsers = () => {
 							<thead className="bg-gray-50">
 								<tr>
 									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">№</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rasm</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Xodim</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lavozim</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Rasm")}</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Xodim")}</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Lavozim")}</th>
 								</tr>
 							</thead>
 							<tbody className="bg-white divide-y divide-gray-200">
@@ -103,7 +104,7 @@ const UserUsers = () => {
 													{user.photo ? (
 														<img
 															className="h-14 w-14 rounded-full object-cover border border-gray-200"
-															src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+															src={`${uploadUrl(user.photo)}`}
 															alt={user.fullName}
 														/>
 													) : (
@@ -128,9 +129,9 @@ const UserUsers = () => {
 										<td colSpan="4" className="px-6 py-12 text-center">
 											<div className="flex flex-col items-center justify-center">
 												<FiUsers className="h-16 w-16 text-gray-300 mb-4" />
-												<h3 className="text-lg font-medium text-gray-700">Xodimlar topilmadi</h3>
+												<h3 className="text-lg font-medium text-gray-700">{tx("Xodimlar topilmadi")}</h3>
 												<p className="text-gray-500 mt-2 max-w-md text-sm">
-													Qidiruv boʻyicha hech narsa topilmadi
+													{tx("Qidiruv boʻyicha hech narsa topilmadi")}
 												</p>
 											</div>
 										</td>

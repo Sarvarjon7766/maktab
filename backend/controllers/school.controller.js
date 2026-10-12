@@ -45,6 +45,17 @@ class SchoolController {
 		}
 	}
 
+	async getPlatformStats(req, res) {
+		try {
+			const result = await SchoolService.getPlatformStats()
+			if (result.success) return res.status(200).json(result)
+			return res.status(500).json(result)
+		} catch (error) {
+			console.log(error)
+			return res.status(500).json({ success: false, message: "Statistikani yuklashda xatolik" })
+		}
+	}
+
 	async getMonitorOverview(req, res) {
 		try {
 			const result = await SchoolService.getMonitorOverview()

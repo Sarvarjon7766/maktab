@@ -25,7 +25,7 @@ const SecretRevealModal = ({ title, fields, onClose }) => {
 			<div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
 				<h2 className="text-xl font-bold text-gray-800 mb-1">{title}</h2>
 				<p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3 mb-4">
-					Bu qiymat FAQAT HOZIR ko'rsatiladi — darhol xavfsiz joyga yozib qo'ying, keyin qayta ko'rsatilmaydi.
+					{tx("Bu qiymat FAQAT HOZIR ko'rsatiladi — darhol xavfsiz joyga yozib qo'ying, keyin qayta ko'rsatilmaydi.")}
 				</p>
 				<div className="space-y-3">
 					{fields.map(f => (
@@ -36,7 +36,7 @@ const SecretRevealModal = ({ title, fields, onClose }) => {
 								<button
 									onClick={() => copy(f.key, f.value)}
 									className="shrink-0 p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
-									title="Nusxalash"
+									title={tx("Nusxalash")}
 								>
 									{copied === f.key ? <FiCheck className="text-green-600" /> : <FiCopy />}
 								</button>
@@ -48,7 +48,7 @@ const SecretRevealModal = ({ title, fields, onClose }) => {
 					onClick={onClose}
 					className="mt-6 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
 				>
-					Yopish
+					{tx("Yopish")}
 				</button>
 			</div>
 		</div>
@@ -89,18 +89,18 @@ const CreateSchoolModal = ({ onClose, onCreated }) => {
 		<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 			<div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
 				<div className="flex justify-between items-center mb-4">
-					<h2 className="text-xl font-bold text-gray-800">Yangi maktab qo'shish</h2>
+					<h2 className="text-xl font-bold text-gray-800">{tx("Yangi maktab qo'shish")}</h2>
 					<button onClick={onClose} className="text-gray-500 hover:text-gray-700"><FiX size={22} /></button>
 				</div>
 				<form onSubmit={handleSubmit} className="space-y-3">
 					<input
-						type="text" placeholder="Maktab nomi*" value={form.name}
+						type="text" placeholder={tx("Maktab nomi*")} value={form.name}
 						onChange={e => setForm({ ...form, name: e.target.value })}
 						className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
 					/>
 					<input
-						type="text" placeholder="Kod* (masalan: maktab-12)" value={form.code}
+						type="text" placeholder={tx("Kod* (masalan: maktab-12)")} value={form.code}
 						onChange={e => setForm({ ...form, code: e.target.value })}
 						className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
@@ -111,30 +111,30 @@ const CreateSchoolModal = ({ onClose, onCreated }) => {
 								variant="outline"
 								icon={false}
 								className="w-full"
-								searchPlaceholder="Tuman qidirish..."
-								placeholder="Tumanni tanlang"
+								searchPlaceholder={tx("Tuman qidirish...")}
+								placeholder={tx("Tumanni tanlang")}
 								value={form.districtId}
 								onChange={v => setForm({ ...form, districtId: v })}
 								options={[{ value: '', label: tx('Tumanni tanlang') }, ...districts.map(d => ({ value: d._id, label: [d.region, d.name].filter(Boolean).join(' · ') }))]}
 							/>
-							<p className="mt-1 text-[11px] text-gray-400">Tuman ro'yxatda yo'q bo'lsa, avval «Tumanlar» bo'limida qo'shing.</p>
+							<p className="mt-1 text-[11px] text-gray-400">{tx("Tuman ro'yxatda yo'q bo'lsa, avval «Tumanlar» bo'limida qo'shing.")}</p>
 						</div>
 					) : (
 						<div className="grid grid-cols-2 gap-3">
 							<input
-								type="text" placeholder="Viloyat" value={form.region}
+								type="text" placeholder={tx("Viloyat")} value={form.region}
 								onChange={e => setForm({ ...form, region: e.target.value })}
 								className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 							/>
 							<input
-								type="text" placeholder="Tuman" value={form.district}
+								type="text" placeholder={tx("Tuman")} value={form.district}
 								onChange={e => setForm({ ...form, district: e.target.value })}
 								className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 							/>
 						</div>
 					)}
 					<input
-						type="text" placeholder="Telefon" value={form.phone}
+						type="text" placeholder={tx("Telefon")} value={form.phone}
 						onChange={e => setForm({ ...form, phone: e.target.value })}
 						className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
@@ -142,12 +142,12 @@ const CreateSchoolModal = ({ onClose, onCreated }) => {
 					{/* Maktab admini — bo'sh qoldirilsa login kod asosida, parol avtomatik yaratiladi */}
 					<div className="grid grid-cols-2 gap-3">
 						<input
-							type="text" placeholder="Admin logini (ixtiyoriy)" autoComplete="off" value={adminForm.adminUsername}
+							type="text" placeholder={tx("Admin logini (ixtiyoriy)")} autoComplete="off" value={adminForm.adminUsername}
 							onChange={e => setAdminForm({ ...adminForm, adminUsername: e.target.value })}
 							className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 						<input
-							type="text" placeholder="Admin paroli (ixtiyoriy)" autoComplete="off" value={adminForm.adminPassword}
+							type="text" placeholder={tx("Admin paroli (ixtiyoriy)")} autoComplete="off" value={adminForm.adminPassword}
 							onChange={e => setAdminForm({ ...adminForm, adminPassword: e.target.value })}
 							className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
@@ -156,29 +156,29 @@ const CreateSchoolModal = ({ onClose, onCreated }) => {
 					{/* Hik-Connect for Teams: maktabning o'z akkaunti kalitlari (ixtiyoriy) */}
 					<div className="rounded-xl border border-gray-200 overflow-hidden">
 						<button type="button" onClick={() => setHikOpen(o => !o)} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left">
-							<span className="flex items-center gap-2 text-sm font-semibold text-gray-800"><FiVideo /> Hik-Connect kalitlari <span className="font-normal text-gray-500">(ixtiyoriy)</span></span>
-							<span className="text-xs text-gray-500">{hikOpen ? 'Yopish' : 'Kiritish'}</span>
+							<span className="flex items-center gap-2 text-sm font-semibold text-gray-800"><FiVideo /> {tx("Hik-Connect kalitlari")} <span className="font-normal text-gray-500">{tx("(ixtiyoriy)")}</span></span>
+							<span className="text-xs text-gray-500">{hikOpen ? tx("Yopish") : tx("Kiritish")}</span>
 						</button>
 						{hikOpen && (
 							<div className="p-4 space-y-3">
-								<p className="text-xs text-gray-500">Maktabning Hik-Connect for Teams akkaunti. Saqlangach kameralar avtomatik olinadi, keyin kerakli kameralarni tanlab biriktirasiz.</p>
-								<input type="text" placeholder="Server" value={hik.server} onChange={e => setHik({ ...hik, server: e.target.value })}
+								<p className="text-xs text-gray-500">{tx("Maktabning Hik-Connect for Teams akkaunti. Saqlangach kameralar avtomatik olinadi, keyin kerakli kameralarni tanlab biriktirasiz.")}</p>
+								<input type="text" placeholder={tx("Server")} value={hik.server} onChange={e => setHik({ ...hik, server: e.target.value })}
 									className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-								<input type="text" placeholder="API Key (AK)" autoComplete="off" value={hik.appKey} onChange={e => setHik({ ...hik, appKey: e.target.value })}
+								<input type="text" placeholder={tx("API Key (AK)")} autoComplete="off" value={hik.appKey} onChange={e => setHik({ ...hik, appKey: e.target.value })}
 									className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-								<input type="password" placeholder="API Secret (SK)" autoComplete="new-password" value={hik.secretKey} onChange={e => setHik({ ...hik, secretKey: e.target.value })}
+								<input type="password" placeholder={tx("API Secret (SK)")} autoComplete="new-password" value={hik.secretKey} onChange={e => setHik({ ...hik, secretKey: e.target.value })}
 									className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-								<input type="password" placeholder="Video shifrlash kodi (ixtiyoriy)" autoComplete="new-password" value={hik.encryptionCode} onChange={e => setHik({ ...hik, encryptionCode: e.target.value })}
+								<input type="password" placeholder={tx("Video shifrlash kodi (ixtiyoriy)")} autoComplete="new-password" value={hik.encryptionCode} onChange={e => setHik({ ...hik, encryptionCode: e.target.value })}
 									className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 							</div>
 						)}
 					</div>
 					<div className="flex justify-end gap-3 pt-3">
 						<button type="button" onClick={onClose} className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
-							Bekor qilish
+							{tx("Bekor qilish")}
 						</button>
 						<button type="submit" disabled={loading} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-60">
-							{loading ? "Yaratilmoqda..." : "Yaratish"}
+							{loading ? tx("Yaratilmoqda...") : tx("Yaratish")}
 						</button>
 					</div>
 				</form>
@@ -226,12 +226,12 @@ const BootstrapAdminModal = ({ school, onClose, onDone }) => {
 				</div>
 				<form onSubmit={handleSubmit} className="space-y-3">
 					<input
-						type="text" placeholder="F.I.Sh" value={fullName}
+						type="text" placeholder={tx("F.I.Sh")} value={fullName}
 						onChange={e => setFullName(e.target.value)}
 						className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 					<input
-						type="text" placeholder="Login*" value={username}
+						type="text" placeholder={tx("Login*")} value={username}
 						onChange={e => setUsername(e.target.value)}
 						className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
@@ -244,25 +244,25 @@ const BootstrapAdminModal = ({ school, onClose, onDone }) => {
 							onChange={e => { setCustomPassword(e.target.checked); setPassword('') }}
 							className="rounded border-gray-300"
 						/>
-						Parolni o'zim kiritaman
+						{tx("Parolni o'zim kiritaman")}
 					</label>
 
 					{customPassword ? (
 						<input
-							type="text" placeholder="Yangi parol (kamida 6 belgi)" value={password}
+							type="text" placeholder={tx("Yangi parol (kamida 6 belgi)")} value={password}
 							onChange={e => setPassword(e.target.value)}
 							className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					) : (
-						<p className="text-xs text-gray-500">Parol avtomatik yaratiladi va bir marta ko'rsatiladi.</p>
+						<p className="text-xs text-gray-500">{tx("Parol avtomatik yaratiladi va bir marta ko'rsatiladi.")}</p>
 					)}
 
 					<div className="flex justify-end gap-3 pt-2">
 						<button type="button" onClick={onClose} className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
-							Bekor qilish
+							{tx("Bekor qilish")}
 						</button>
 						<button type="submit" disabled={loading} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-60">
-							{loading ? "Yaratilmoqda..." : "Admin yaratish"}
+							{loading ? tx("Yaratilmoqda...") : tx("Admin yaratish")}
 						</button>
 					</div>
 				</form>
@@ -290,7 +290,7 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 		try {
 			const res = await api.get(`/api/schools/${school._id}/admins`, authHeaders())
 			if (res.data.success) setAdmins(res.data.admins)
-		} catch (error) {
+		} catch {
 			toast.error("Adminlarni yuklashda xatolik")
 		} finally {
 			setIsLoading(false)
@@ -330,7 +330,7 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 				toast.success(res.data.admin.isActive ? "Admin faollashtirildi" : "Admin to'xtatildi")
 				fetchAdmins()
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Xatolik yuz berdi")
 		} finally {
 			setBusyId(null)
@@ -362,13 +362,13 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 					<h2 className="text-xl font-bold text-gray-800">{tx('"{{name}}" adminlari', { name: school.name })}</h2>
 					<button onClick={onClose} className="text-gray-500 hover:text-gray-700"><FiX size={22} /></button>
 				</div>
-				<p className="text-sm text-gray-500 mb-4">Maktabning eng yuqori darajadagi admin hisoblari</p>
+				<p className="text-sm text-gray-500 mb-4">{tx("Maktabning eng yuqori darajadagi admin hisoblari")}</p>
 
 				<div className="border border-gray-200 rounded-xl overflow-hidden">
 					{isLoading ? (
-						<div className="px-6 py-8 text-center text-sm text-gray-400">Yuklanmoqda...</div>
+						<div className="px-6 py-8 text-center text-sm text-gray-400">{tx("Yuklanmoqda...")}</div>
 					) : admins.length === 0 ? (
-						<div className="px-6 py-8 text-center text-sm text-gray-500">Bu maktabda admin hisobi yo'q</div>
+						<div className="px-6 py-8 text-center text-sm text-gray-500">{tx("Bu maktabda admin hisobi yo'q")}</div>
 					) : (
 						<div className="divide-y divide-gray-200">
 							{admins.map(admin => (
@@ -380,13 +380,13 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 										</div>
 										<div className="flex items-center gap-2 flex-shrink-0">
 											<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${admin.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-												{admin.isActive ? 'Faol' : "To'xtatilgan"}
+												{admin.isActive ? tx("Faol") : tx("To'xtatilgan")}
 											</span>
 											<button
 												onClick={() => { setConfirming({ adminId: admin._id, action: 'reset' }); setCustomPassword('') }}
 												disabled={busyId === admin._id}
 												className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-50"
-												title="Parolni tiklash"
+												title={tx("Parolni tiklash")}
 											>
 												<FiLock size={15} />
 											</button>
@@ -394,7 +394,7 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 												onClick={() => handleToggleActive(admin)}
 												disabled={busyId === admin._id}
 												className={`p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 ${admin.isActive ? 'text-red-600' : 'text-green-600'}`}
-												title={admin.isActive ? "To'xtatish" : "Faollashtirish"}
+												title={admin.isActive ? tx("To'xtatish") : tx("Faollashtirish")}
 											>
 												<FiPower size={15} />
 											</button>
@@ -402,7 +402,7 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 												onClick={() => setConfirming({ adminId: admin._id, action: 'delete' })}
 												disabled={busyId === admin._id}
 												className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-												title="O'chirish"
+												title={tx("O'chirish")}
 											>
 												<FiTrash2 size={15} />
 											</button>
@@ -413,13 +413,13 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 										<div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 space-y-2">
 											<p className="text-xs text-amber-800">
 												{confirming.action === 'reset'
-													? "Eski parol shu zahoti ishlamay qoladi. Bo'sh qoldirsangiz avtomatik parol generatsiya qilinadi, yoki o'zingiz kiriting:"
-													: "Bu admin hisobi bazadan BUTUNLAY o'chiriladi va qayta tiklab bo'lmaydi (login bo'shaydi). Davom etasizmi?"}
+													? tx("Eski parol shu zahoti ishlamay qoladi. Bo'sh qoldirsangiz avtomatik parol generatsiya qilinadi, yoki o'zingiz kiriting:")
+													: tx("Bu admin hisobi bazadan BUTUNLAY o'chiriladi va qayta tiklab bo'lmaydi (login bo'shaydi). Davom etasizmi?")}
 											</p>
 											{confirming.action === 'reset' && (
 												<input
 													type="text"
-													placeholder="Yangi parol (ixtiyoriy, kamida 6 belgi)"
+													placeholder={tx("Yangi parol (ixtiyoriy, kamida 6 belgi)")}
 													value={customPassword}
 													onChange={e => setCustomPassword(e.target.value)}
 													className="w-full px-3 py-1.5 text-sm border border-amber-300 rounded-lg text-black font-mono focus:outline-none focus:ring-2 focus:ring-amber-400"
@@ -430,13 +430,13 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 													onClick={() => { setConfirming(null); setCustomPassword('') }}
 													className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white hover:bg-gray-50"
 												>
-													Yo'q
+													{tx("Yo'q")}
 												</button>
 												<button
 													onClick={() => confirming.action === 'reset' ? handleResetPassword(admin) : handleDelete(admin)}
 													className="px-3 py-1.5 text-xs rounded-lg bg-amber-600 text-white hover:bg-amber-700"
 												>
-													Ha
+													{tx("Ha")}
 												</button>
 											</div>
 										</div>
@@ -451,7 +451,7 @@ const SchoolAdminsModal = ({ school, onClose, onPasswordReset, onCreateNew }) =>
 					onClick={() => onCreateNew(school)}
 					className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 hover:border-gray-400 font-medium text-sm"
 				>
-					<FiUserPlus size={15} /> Yangi admin qo'shish
+					<FiUserPlus size={15} /> {tx("Yangi admin qo'shish")}
 				</button>
 			</div>
 		</div>
@@ -474,7 +474,7 @@ const PlatformSchools = () => {
 		try {
 			const res = await api.get('/api/schools/getAll', authHeaders())
 			if (res.data.success) setSchools(res.data.schools)
-		} catch (error) {
+		} catch {
 			toast.error("Maktablarni yuklashda xatolik")
 		} finally {
 			setIsLoading(false)
@@ -534,7 +534,7 @@ const PlatformSchools = () => {
 				toast.success(res.data.school.isActive ? "Maktab faollashtirildi" : "Maktab to'xtatildi")
 				fetchSchools()
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Xatolik yuz berdi")
 		} finally {
 			setBusyId(null)
@@ -560,7 +560,7 @@ const PlatformSchools = () => {
 					fields: [{ key: 'token', label: "server_proxy/config.json → backend.token", value: res.data.apiToken }]
 				})
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Xatolik yuz berdi")
 		} finally {
 			setBusyId(null)
@@ -568,22 +568,22 @@ const PlatformSchools = () => {
 	}
 
 	return (
-		<div className="md:p-6 bg-gray-50 min-h-screen">
+		<div className="md:p-6 bg-gray-50 min-h-full">
 			<div className="flex justify-end gap-2 mb-6 px-4 md:px-0">
 				<button
 					onClick={() => setCreateOpen(true)}
 					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 justify-center font-medium"
 				>
-					<FiPlus size={18} /> Yangi maktab
+					<FiPlus size={18} /> {tx("Yangi maktab")}
 				</button>
 			</div>
 
 			<div className="flex flex-wrap items-center gap-2 mb-4 mx-4 md:mx-0">
 				<div className="relative min-w-[220px] flex-1 max-w-md">
 					<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-					<input value={q} onChange={e => setQ(e.target.value)} placeholder="Maktab nomi, kodi yoki hudud bo'yicha qidirish" className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+					<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Maktab nomi, kodi yoki hudud bo'yicha qidirish")} className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
 				</div>
-				<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" searchPlaceholder="Hudud qidirish..." value={districtFilter} onChange={setDistrictFilter} options={districtOptions} />
+				<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" searchPlaceholder={tx("Hudud qidirish...")} value={districtFilter} onChange={setDistrictFilter} options={districtOptions} />
 				<SearchableSelect variant="outline" icon={false} className="min-w-[140px] max-w-[200px]" value={statusFilter} onChange={setStatusFilter} options={[{ value: 'all', label: tx('Barcha holatlar') }, { value: 'active', label: tx('Faol') }, { value: 'inactive', label: tx("To'xtatilgan") }]} />
 				<span className="text-xs text-gray-500">{tx('{{a}} / {{b}} ta maktab', { a: visibleSchools.length, b: schools.length })}</span>
 			</div>
@@ -593,24 +593,24 @@ const PlatformSchools = () => {
 					<table className="min-w-full divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Maktab</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hudud</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hik kameralar</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Holati</th>
-								<th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amallar</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Maktab")}</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Hudud")}</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Hik kameralar")}</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Token")}</th>
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Holati")}</th>
+								<th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Amallar")}</th>
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
 							{isLoading ? (
-								<tr><td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-400">Yuklanmoqda...</td></tr>
+								<tr><td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-400">{tx("Yuklanmoqda...")}</td></tr>
 							) : visibleSchools.length > 0 ? (
 								visibleSchools.map(school => (
 									<tr
 										key={school._id}
 										onClick={() => enterSchool(school)}
 										className={`hover:bg-gray-50 ${school.isActive ? 'cursor-pointer' : ''}`}
-										title={school.isActive ? "Maktab ichiga kirish" : undefined}
+										title={school.isActive ? tx("Maktab ichiga kirish") : undefined}
 									>
 										<td className="px-4 py-3.5">
 											<div className="text-sm font-medium text-gray-900">{school.name}</div>
@@ -618,12 +618,12 @@ const PlatformSchools = () => {
 										</td>
 										<td className="px-4 py-3.5 text-sm text-gray-600">
 											{districtList.length > 0 ? (
-												<div onClick={e => e.stopPropagation()} title="Maktab tumanini o'zgartirish">
+												<div onClick={e => e.stopPropagation()} title={tx("Maktab tumanini o'zgartirish")}>
 													<SearchableSelect
 														variant="outline"
 														icon={false}
 														className="min-w-[160px] max-w-[260px]"
-														searchPlaceholder="Tuman qidirish..."
+														searchPlaceholder={tx("Tuman qidirish...")}
 														value={districtList.find(d => d.name.toLowerCase() === (school.district || '').trim().toLowerCase() && (d.region || '').toLowerCase() === (school.region || '').trim().toLowerCase())?._id || ''}
 														onChange={v => changeDistrict(school, v)}
 														options={[{ value: '', label: school.district ? tx("{{name}} (ro'yxatda yo'q)", { name: school.district }) : tx('Tuman belgilanmagan') }, ...districtList.map(d => ({ value: d._id, label: [d.region, d.name].filter(Boolean).join(' · ') }))]}
@@ -637,11 +637,11 @@ const PlatformSchools = () => {
 												const fc = h.in.total + h.out.total
 												return (
 													<div className="flex flex-col items-start gap-1.5">
-														<button onClick={() => navigate(`/platform/hik-cameras?school=${school._id}`)} title="Oddiy kameralarni bog'lash" className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${h.monitor.total ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+														<button onClick={() => navigate(`/platform/hik-cameras?school=${school._id}`)} title={tx("Oddiy kameralarni bog'lash")} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${h.monitor.total ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
 															<FiVideo size={12} /> {tx('Oddiy:')} {h.monitor.total}{h.monitor.total > 0 && <span className="opacity-70"> {tx('({{n}} online)', { n: h.monitor.online })}</span>}
 														</button>
-														<button onClick={() => navigate(`/platform/hik-facecontrol?school=${school._id}`)} title="FaceControl kameralarni bog'lash" className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${fc ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
-															<FiUserCheck size={12} /> FaceControl: {fc}{fc > 0 && <span className="opacity-70"> {tx('(kirish {{a}} · chiqish {{b}})', { a: h.in.total, b: h.out.total })}</span>}
+														<button onClick={() => navigate(`/platform/hik-facecontrol?school=${school._id}`)} title={tx("FaceControl kameralarni bog'lash")} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${fc ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+															<FiUserCheck size={12} /> {tx("FaceControl:")} {fc}{fc > 0 && <span className="opacity-70"> {tx('(kirish {{a}} · chiqish {{b}})', { a: h.in.total, b: h.out.total })}</span>}
 														</button>
 													</div>
 												)
@@ -652,7 +652,7 @@ const PlatformSchools = () => {
 										</td>
 										<td className="px-4 py-3.5">
 											<span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${school.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-												{school.isActive ? 'Faol' : "To'xtatilgan"}
+												{school.isActive ? tx("Faol") : tx("To'xtatilgan")}
 											</span>
 										</td>
 										<td className="px-4 py-3.5 text-right" onClick={e => e.stopPropagation()}>
@@ -661,38 +661,38 @@ const PlatformSchools = () => {
 													onClick={() => enterSchool(school)}
 													disabled={!school.isActive}
 													className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 disabled:opacity-40"
-													title={school.isActive ? "Maktab ichiga kirish" : "To'xtatilgan maktabga kirib bo'lmaydi"}
+													title={school.isActive ? tx("Maktab ichiga kirish") : tx("To'xtatilgan maktabga kirib bo'lmaydi")}
 												>
 													<FiEye size={16} />
 												</button>
 												<button
 													onClick={() => navigate(`/platform/hik-cameras?school=${school._id}`)}
-													className="p-2 rounded-lg text-blue-600 hover:bg-blue-50" title="Oddiy kameralarni bog'lash"
+													className="p-2 rounded-lg text-blue-600 hover:bg-blue-50" title={tx("Oddiy kameralarni bog'lash")}
 												>
 													<FiVideo size={16} />
 												</button>
 												<button
 													onClick={() => navigate(`/platform/hik-facecontrol?school=${school._id}`)}
-													className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-50" title="FaceControl kameralarni bog'lash"
+													className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-50" title={tx("FaceControl kameralarni bog'lash")}
 												>
 													<FiUserCheck size={16} />
 												</button>
 												<button
 													onClick={() => setBootstrapFor(school)}
-													className="p-2 rounded-lg text-blue-600 hover:bg-blue-50" title="Admin yaratish"
+													className="p-2 rounded-lg text-blue-600 hover:bg-blue-50" title={tx("Admin yaratish")}
 												>
 													<FiUserPlus size={16} />
 												</button>
 												<button
 													onClick={() => setAdminsFor(school)}
-													className="p-2 rounded-lg text-purple-600 hover:bg-purple-50" title="Adminlar"
+													className="p-2 rounded-lg text-purple-600 hover:bg-purple-50" title={tx("Adminlar")}
 												>
 													<FiUsers size={16} />
 												</button>
 												<button
 													onClick={() => handleRotateToken(school)}
 													disabled={busyId === school._id}
-													className="p-2 rounded-lg text-amber-600 hover:bg-amber-50 disabled:opacity-50" title="Tokenni yangilash"
+													className="p-2 rounded-lg text-amber-600 hover:bg-amber-50 disabled:opacity-50" title={tx("Tokenni yangilash")}
 												>
 													<FiKey size={16} />
 												</button>
@@ -700,7 +700,7 @@ const PlatformSchools = () => {
 													onClick={() => handleToggleActive(school)}
 													disabled={busyId === school._id}
 													className={`p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 ${school.isActive ? 'text-red-600' : 'text-green-600'}`}
-													title={school.isActive ? "To'xtatish" : "Faollashtirish"}
+													title={school.isActive ? tx("To'xtatish") : tx("Faollashtirish")}
 												>
 													<FiPower size={16} />
 												</button>
@@ -709,7 +709,7 @@ const PlatformSchools = () => {
 									</tr>
 								))
 							) : (
-								<tr><td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-500">{schools.length ? 'Qidiruv bo\u2018yicha maktab topilmadi' : "Hali birorta maktab qo'shilmagan"}</td></tr>
+								<tr><td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-500">{schools.length ? tx("Qidiruv bo‘yicha maktab topilmadi") : tx("Hali birorta maktab qo'shilmagan")}</td></tr>
 							)}
 						</tbody>
 					</table>

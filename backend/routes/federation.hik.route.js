@@ -33,6 +33,7 @@ router.get('/classroom-detail', handle((req) => { const s = school(req); return 
 router.get('/vision/live', handle((req) => { const s = school(req); return s ? Vision.live(s) : noSchool }))
 router.get('/vision/day', handle((req) => { const s = school(req); return s ? Vision.day(s, day(req.query.date), req.query.sinfId || null) : noSchool }))
 router.get('/vision/evidence', handle((req) => { const s = school(req); return s ? Vision.evidence(s, { date: req.query.date, sinfId: req.query.sinfId || null, group: req.query.group, page: req.query.page }) : noSchool }))
+router.get('/vision/overview', handle((req) => { const s = school(req); return s ? Vision.overview(s, req.query.date) : noSchool }))
 router.get('/vision/summary', handle((req) => { const s = school(req); return s ? Vision.summary(s, req.query.date) : noSchool }))
 router.get('/vision/recent', handle((req) => { const s = school(req); return s ? Vision.evidenceRecent(s, { date: req.query.date, per: req.query.per }) : noSchool }))
 router.get('/vision/retention', handle(() => require('../services/retention.service').info()))

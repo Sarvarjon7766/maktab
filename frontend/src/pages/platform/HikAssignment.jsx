@@ -142,7 +142,7 @@ const HikAssignment = ({ kind }) => {
 				)}
 				<span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot(c)}`} title={statusText(c)} />
 				<div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-900">{c.name || c.cameraId}</p><p className="truncate text-xs text-slate-500">{c.serial || '—'} · {c.accountName} · {statusText(c)}</p></div>
-				{!disabled && !c.schoolId && !selected && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Biriktirilmagan</span>}
+				{!disabled && !c.schoolId && !selected && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">{tx("Biriktirilmagan")}</span>}
 				{!disabled && faceControl && selected && (
 					<span onClick={e => e.stopPropagation()} className="inline-flex shrink-0 overflow-hidden rounded-lg border border-slate-200 text-xs">
 						{[['in', tx('Kirish')], ['out', tx('Chiqish')]].map(([v, l]) => <button key={v} onClick={() => setRoles(prev => ({ ...prev, [c._id]: v }))} className={`px-3 py-1.5 font-medium ${roleOf(c._id, roles) === v ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>{l}</button>)}
@@ -150,7 +150,7 @@ const HikAssignment = ({ kind }) => {
 				)}
 				{disabled && <span className="shrink-0 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">{c.schoolName} · {ROLE_LABEL[c.role || 'monitor']}</span>}
 				<button disabled={c.online !== true || !c.serial} onClick={e => { e.stopPropagation(); setLive({ id: c._id, name: c.name, areaName: c.areaName, schoolName: c.schoolName }) }}
-					className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"><FiPlay size={11} /> Jonli</button>
+					className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"><FiPlay size={11} /> {tx("Jonli")}</button>
 			</li>
 		)
 	}
@@ -187,12 +187,12 @@ const HikAssignment = ({ kind }) => {
 								<li key={s._id}>
 									<button onClick={() => pickSchool(s._id)} className={`flex w-full items-center gap-3 px-4 py-2.5 text-left ${on ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
 										<span className="min-w-0 flex-1"><span className={`block truncate text-sm ${on ? 'font-semibold text-blue-700' : 'font-medium text-slate-900'}`}>{s.name}</span>{s.district && <span className="block truncate text-xs text-slate-400">{s.district}</span>}</span>
-										<span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${n ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-400'}`} title={n ? `${n} ta biriktirilgan` : 'Hali biriktirilmagan'}>{n}</span>
+										<span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${n ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-400'}`} title={n ? `${n} ta biriktirilgan` : tx("Hali biriktirilmagan")}>{n}</span>
 									</button>
 								</li>
 							)
 						})}
-						{!loading && schoolList.length === 0 && <li className="px-4 py-10 text-center text-sm text-slate-500">Maktab topilmadi</li>}
+						{!loading && schoolList.length === 0 && <li className="px-4 py-10 text-center text-sm text-slate-500">{tx("Maktab topilmadi")}</li>}
 					</ul>
 				</aside>
 
@@ -200,11 +200,11 @@ const HikAssignment = ({ kind }) => {
 				<section className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
 					{!school ? (
 						<div className="p-6">
-							<div className="mb-5 flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800"><FiAlertCircle className="shrink-0" size={18} />{loading ? 'Yuklanmoqda...' : "Boshlash uchun chapdan maktabni tanlang."}</div>
+							<div className="mb-5 flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800"><FiAlertCircle className="shrink-0" size={18} />{loading ? tx("Yuklanmoqda...") : tx("Boshlash uchun chapdan maktabni tanlang.")}</div>
 							{!loading && (
 								<>
 									<p className="mb-3 text-sm font-semibold text-slate-700">{tx('Hali biriktirilmagan kameralar: {{n}} ta', { n: stats.free })}</p>
-									{unassignedAreas.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">Hamma kameralar maktablarga biriktirilgan</p> : (
+									{unassignedAreas.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">{tx("Hamma kameralar maktablarga biriktirilgan")}</p> : (
 										<ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 											{unassignedAreas.map(([area, list]) => <li key={area} className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-2.5 text-sm"><span className="truncate text-slate-700">{area}</span><span className="ml-3 shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">{list.length}</span></li>)}
 										</ul>
@@ -217,24 +217,24 @@ const HikAssignment = ({ kind }) => {
 							<div className="space-y-3 border-b border-slate-100 p-4">
 								<div className="flex flex-wrap items-center gap-3">
 									<p className="text-sm font-semibold text-slate-900">{school.name}</p>
-									<span className="text-xs text-slate-400">tanlangan: <b className="text-slate-700">{selectedIds.size}</b></span>
+									<span className="text-xs text-slate-400">{tx("tanlangan:")} <b className="text-slate-700">{selectedIds.size}</b></span>
 									<div className="ml-auto flex flex-wrap items-center gap-2">
-										{accounts.length > 1 && <SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[220px]" searchPlaceholder="Akkaunt qidirish..." value={accountFilter} onChange={setAccountFilter} options={[{ value: '', label: tx('Barcha akkauntlar') }, ...accounts.map(a => ({ value: a._id, label: a.name }))]} />}
-										<div className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Kamera, serial yoki hudud" className="w-60 rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400" /></div>
+										{accounts.length > 1 && <SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[220px]" searchPlaceholder={tx("Akkaunt qidirish...")} value={accountFilter} onChange={setAccountFilter} options={[{ value: '', label: tx('Barcha akkauntlar') }, ...accounts.map(a => ({ value: a._id, label: a.name }))]} />}
+										<div className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder={tx("Kamera, serial yoki hudud")} className="w-60 rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400" /></div>
 									</div>
 								</div>
 								<div className="flex flex-wrap gap-2">
-									<Chip active={filter === 'all'} onClick={() => setFilter('all')} count={base.length}>Hammasi</Chip>
-									<Chip active={filter === 'free'} onClick={() => setFilter('free')} count={base.filter(c => !c.schoolId).length}>Biriktirilmagan</Chip>
-									<Chip active={filter === 'selected'} onClick={() => setFilter('selected')} count={selectedIds.size}>Shu maktabniki</Chip>
-									<Chip active={filter === 'online'} onClick={() => setFilter('online')} count={base.filter(c => c.online === true).length}>Online</Chip>
-									<Chip active={filter === 'offline'} onClick={() => setFilter('offline')} count={base.filter(c => c.online === false).length}>Offline</Chip>
+									<Chip active={filter === 'all'} onClick={() => setFilter('all')} count={base.length}>{tx("Hammasi")}</Chip>
+									<Chip active={filter === 'free'} onClick={() => setFilter('free')} count={base.filter(c => !c.schoolId).length}>{tx("Biriktirilmagan")}</Chip>
+									<Chip active={filter === 'selected'} onClick={() => setFilter('selected')} count={selectedIds.size}>{tx("Shu maktabniki")}</Chip>
+									<Chip active={filter === 'online'} onClick={() => setFilter('online')} count={base.filter(c => c.online === true).length}>{tx("Online")}</Chip>
+									<Chip active={filter === 'offline'} onClick={() => setFilter('offline')} count={base.filter(c => c.online === false).length}>{tx("Offline")}</Chip>
 								</div>
 							</div>
 
 							<div className="space-y-4 p-4">
-								{cameras.length === 0 && <p className="py-6 text-center text-sm text-slate-500">Kamera yo'q. Avval "Hik akkauntlari" sahifasida akkaunt qo'shing</p>}
-								{cameras.length > 0 && freeGroups.length === 0 && <p className="py-6 text-center text-sm text-slate-500">Bu filtr bo'yicha kamera topilmadi</p>}
+								{cameras.length === 0 && <p className="py-6 text-center text-sm text-slate-500">{tx("Kamera yo'q. Avval \"Hik akkauntlari\" sahifasida akkaunt qo'shing")}</p>}
+								{cameras.length > 0 && freeGroups.length === 0 && <p className="py-6 text-center text-sm text-slate-500">{tx("Bu filtr bo'yicha kamera topilmadi")}</p>}
 								{freeGroups.map(([area, list]) => {
 									const allOn = list.every(c => selectedIds.has(c._id)); const someOn = !allOn && list.some(c => selectedIds.has(c._id))
 									return (
@@ -272,11 +272,11 @@ const HikAssignment = ({ kind }) => {
 							<div className={`sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t px-4 py-3 ${dirty ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-slate-50'}`}>
 								<p className="flex items-center gap-2 text-sm text-slate-700">
 									{dirty ? <><FiAlertCircle className="text-amber-600" /> {tx('Saqlanmagan:')} {added > 0 && <b className="text-green-700">{tx("+{{n}} qo'shiladi", { n: added })}</b>}{removed > 0 && <b className="text-red-600">{tx('−{{n}} olib tashlanadi', { n: removed })}</b>}{roleChanged > 0 && <b className="text-blue-700">{tx("{{n}} ta yo'nalish o'zgaradi", { n: roleChanged })}</b>}</>
-										: <><FiCheckCircle className="text-green-600" /> «{school.name}»ga {savedIds.size} ta {faceControl ? 'FaceControl' : 'oddiy'} kamera biriktirilgan</>}
+										: <><FiCheckCircle className="text-green-600" /> {tx("«{{name}}»ga {{n}} ta {{type}} kamera biriktirilgan", { name: school.name, n: savedIds.size, type: faceControl ? tx("FaceControl") : tx("oddiy") })}</>}
 								</p>
 								<div className="flex items-center gap-2">
-									{dirty && <button onClick={() => { setSelectedIds(new Set(savedIds)); setRoles(savedRoles) }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">Bekor qilish</button>}
-									<button onClick={save} disabled={!dirty || saving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"><FiSave size={14} /> {saving ? 'Saqlanmoqda...' : 'Saqlash'}</button>
+									{dirty && <button onClick={() => { setSelectedIds(new Set(savedIds)); setRoles(savedRoles) }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">{tx("Bekor qilish")}</button>}
+									<button onClick={save} disabled={!dirty || saving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"><FiSave size={14} /> {saving ? tx("Saqlanmoqda...") : tx("Saqlash")}</button>
 								</div>
 							</div>
 						</>

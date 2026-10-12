@@ -177,7 +177,7 @@ class HikClassroomService {
 
 		return {
 			success: true, dateString, lessonHours: LESSON, workStartTime: start, hasCamera: camIds.length > 0, insights,
-			class: { _id: cls._id, name: cls.name, head: cls.head, description: cls.description },
+			class: { _id: cls._id, name: cls.name, head: cls.head, headPhoto: cls.headPhoto || null, description: cls.description },
 			school: { _id: schoolId },
 			analysis: cls.analysis, cameras: cls.cameras, hours, actHours: act, baseline: cls.baseline, daily: cls.daily, eventsToday: cls.events,
 			attendance: { total, came, inside, absent: absent.length, late: late.length, percent: myPercent, avgArrival: avg === null ? null : `${String(Math.floor(avg / 60)).padStart(2, '0')}:${String(avg % 60).padStart(2, '0')}`, firstArrival: arrivalHours.findIndex(n => n > 0) },

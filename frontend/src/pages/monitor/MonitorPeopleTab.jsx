@@ -74,16 +74,16 @@ const MonitorPeopleTab = ({ schoolId, kind, initialStatus = '', initialSinf = ''
 			<div className="flex flex-wrap items-center gap-2">
 				<div className="relative flex-1 min-w-[220px]">
 					<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-					<input value={q} onChange={e => setQ(e.target.value)} placeholder={isStudent ? 'Ism yoki ID raqami' : 'Ism, ID yoki lavozim'} className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm outline-none focus:border-blue-400" />
+					<input value={q} onChange={e => setQ(e.target.value)} placeholder={isStudent ? tx("Ism yoki ID raqami") : tx("Ism, ID yoki lavozim")} className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm outline-none focus:border-blue-400" />
 				</div>
 				{isStudent && (
 					<AutoSelect value={sinfId} onChange={e => { setSinfId(e.target.value); setPage(1) }} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
-						<option value="">Barcha sinflar</option>
+						<option value="">{tx("Barcha sinflar")}</option>
 						{(classData?.classes || []).map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
 					</AutoSelect>
 				)}
 				<DateField value={date} max={todayStr()} onChange={v => { setDate(v); setPage(1) }} />
-				<button onClick={download} disabled={exporting || !data?.total} title="Excel" className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={14} /> {exporting ? '...' : 'Excel'}</button>
+				<button onClick={download} disabled={exporting || !data?.total} title={tx("Excel")} className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={14} /> {exporting ? '...' : tx("Excel")}</button>
 			</div>
 
 			<div className="flex flex-wrap gap-2">
@@ -113,22 +113,22 @@ const MonitorPeopleTab = ({ schoolId, kind, initialStatus = '', initialSinf = ''
 									<td className="px-4 py-2.5 text-gray-500 font-mono text-xs">{p.code || '—'}</td>
 									<td className="px-4 py-2.5 whitespace-nowrap">
 										<span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATE[p.status].cls}`}>{STATE[p.status].text}</span>
-										{p.late && <span className="ml-1.5 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">Kech</span>}
+										{p.late && <span className="ml-1.5 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">{tx("Kech")}</span>}
 									</td>
 									<td className="px-4 py-2.5 text-gray-700">{p.firstIn || '—'}</td>
 									<td className="px-4 py-2.5 text-gray-700">{p.lastOut || '—'}</td>
 									<td className="px-4 py-2.5 text-gray-700">{p.totalTime || '—'}</td>
 								</tr>
 							))}
-							{!loading && data?.people?.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-500">Hech kim topilmadi</td></tr>}
-							{loading && !data && <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-500">Yuklanmoqda...</td></tr>}
-							{error && <tr><td colSpan={7} className="px-4 py-12 text-center text-red-600">Ma'lumotni yuklab bo'lmadi</td></tr>}
+							{!loading && data?.people?.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-500">{tx("Hech kim topilmadi")}</td></tr>}
+							{loading && !data && <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-500">{tx("Yuklanmoqda...")}</td></tr>}
+							{error && <tr><td colSpan={7} className="px-4 py-12 text-center text-red-600">{tx("Ma'lumotni yuklab bo'lmadi")}</td></tr>}
 						</tbody>
 					</table>
 				</div>
 				{data && data.pages > 1 && (
 					<div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm text-gray-600">
-						<span>{fmt(data.total)} ta · {data.page}/{data.pages}-sahifa</span>
+						<span>{tx("{{total}} ta · {{page}}/{{pages}}-sahifa", { total: fmt(data.total), page: data.page, pages: data.pages })}</span>
 						<div className="flex gap-2">
 							<button disabled={data.page <= 1} onClick={() => setPage(p => p - 1)} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"><FiChevronLeft /></button>
 							<button disabled={data.page >= data.pages} onClick={() => setPage(p => p + 1)} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"><FiChevronRight /></button>

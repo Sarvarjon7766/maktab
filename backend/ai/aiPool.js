@@ -46,7 +46,9 @@ const buf = (u8) => Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength)
 
 module.exports = {
 	AiError,
-	detect: (b) => call('detect', { buf: b }),
+	detect: (b, opts = {}) => call('detect', { buf: b, tiled: opts.tiled, score: opts.score }),
+	phones: (b, boxes, opts = {}) => call('phones', { buf: b, boxes, score: opts.score }),
+	pose: (b, boxes, opts = {}) => call('pose', { buf: b, boxes, model: opts.model, conf: opts.conf }),
 	smallFrame: async (b, result, width = 640, color = '#22c55e', quality = 62) => buf(await call('smallFrame', { buf: b, result, width, color, quality })),
 	renderEvidence: async (opts) => buf(await call('renderEvidence', opts)),
 	renderClip: async (frames, opts) => buf(await call('renderClip', { frames, opts }))

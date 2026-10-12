@@ -5,7 +5,7 @@ const sharp = require('sharp')
 
 const FONT = path.join(__dirname, 'fonts', 'NotoSans-Bold.ttf')
 const TZ = 'Asia/Tashkent'
-const TONES = { vision_empty: '#dc2626', vision_surge: '#ea580c', vision_overcrowd: '#7c3aed', vision_sample: '#2563eb' }
+const TONES = { vision_empty: '#dc2626', vision_surge: '#ea580c', vision_overcrowd: '#7c3aed', vision_restless: '#d97706', vision_commotion: '#be123c', vision_sample: '#2563eb' }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const hhmm = (d) => new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date(d))
@@ -54,7 +54,7 @@ function sparkline(history, x, y, w, h, color) {
 }
 
 // Hodisa kadri (1280 px): sabab yozuvi, qutilar va chizma. kind — vision_*
-async function renderEvidence({ buf, result, kind, title, detail, history, cameraName, sinfName, at }) {
+async function renderEvidence({ buf, result, kind, title, detail, history, cameraName, sinfName, at, phones = [] }) {
 	const W = 1280
 	const scale = W / result.width
 	const H = Math.round(result.height * scale)
@@ -65,6 +65,7 @@ async function renderEvidence({ buf, result, kind, title, detail, history, camer
 
 	const svg = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`
 		+ boxRects(result.boxes, scale, color, 4)
+		+ require('./phone').svgOf(phones, scale)
 		+ `<rect x="0" y="0" width="${W}" height="${BH}" fill="${color}" fill-opacity="0.93"/>`
 		+ `<rect x="0" y="${H - 44}" width="${W}" height="44" fill="#000" fill-opacity="0.55"/>`
 		+ (chart.svg || `<rect x="${panel.x}" y="${panel.y}" width="${panel.w}" height="${panel.h}" rx="10" fill="#000" fill-opacity="0.6"/>`)

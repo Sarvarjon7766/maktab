@@ -11,6 +11,9 @@ import SearchableSelect from '../../components/SearchableSelect'
 import TabelExportPanel from '../../components/TabelExportPanel'
 import { typeColor, typeLabel } from '../../components/GlobalCommentModal'
 import UserAttendanceModal from './UserAttendanceModal'
+import { setVisibleInterval } from '../../utils/poll'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -34,7 +37,7 @@ const spent = (u) => {
 const Avatar = ({ user, status }) => (
 	<span className="relative shrink-0">
 		<span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-slate-200 to-slate-300 font-semibold text-slate-600">
-			{user.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} alt="" className="h-full w-full object-cover" /> : user.fullName?.charAt(0)?.toUpperCase()}
+			{user.photo ? <img src={`${uploadUrl(user.photo)}`} alt="" className="h-full w-full object-cover" /> : user.fullName?.charAt(0)?.toUpperCase()}
 		</span>
 		<span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${STATUS[status].dot}`} />
 	</span>
@@ -95,7 +98,7 @@ const AdminAttendance = () => {
 
 	useEffect(() => {
 		load()
-		const t = setInterval(() => load(true), 30000) // jim yangilanadi, ro'yxat miltillamaydi
+		const t = setVisibleInterval(() => load(true), 30000) // jim yangilanadi, ro'yxat miltillamaydi
 		return () => clearInterval(t)
 	}, [load])
 
@@ -136,47 +139,47 @@ const AdminAttendance = () => {
 				<Avatar user={u} status={st} />
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-sm font-semibold text-slate-900 group-hover:text-blue-600">{u.fullName}</p>
-					<p className="truncate text-xs text-slate-500">{u.position || "Lavozim ko'rsatilmagan"}</p>
+					<p className="truncate text-xs text-slate-500">{u.position || tx("Lavozim ko'rsatilmagan")}</p>
 					{c && <span className={`mt-1 inline-block max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-medium ${typeColor(c.type)}`}>{typeLabel(c.type)}: {c.comment}</span>}
 				</div>
 				<div className="hidden shrink-0 text-right sm:block">
 					{first ? (
 						<>
 							<p className="text-sm font-semibold text-slate-800">{first}{last && st === 'tashqarida' ? <span className="font-normal text-slate-400"> – {last}</span> : ''}</p>
-							<p className="text-xs text-slate-400">{dur ? `Maktabda ${dur}` : 'Kirdi'}</p>
+							<p className="text-xs text-slate-400">{dur ? `Maktabda ${dur}` : tx("Kirdi")}</p>
 						</>
-					) : <p className="text-xs text-slate-300">Hali kirmagan</p>}
+					) : <p className="text-xs text-slate-300">{tx("Hali kirmagan")}</p>}
 				</div>
 				<span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${s.pill}`}>{s.label}</span>
-				<Link to={`/${roleBase}/users/${u._id}/analytics`} onClick={e => e.stopPropagation()} title="Batafsil tahlil" className="rounded-lg p-2 text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"><FiBarChart2 size={16} /></Link>
+				<Link to={`/${roleBase}/users/${u._id}/analytics`} onClick={e => e.stopPropagation()} title={tx("Batafsil tahlil")} className="rounded-lg p-2 text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"><FiBarChart2 size={16} /></Link>
 			</li>
 		)
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6">
+		<div className="min-h-full bg-slate-50 p-4 md:p-6">
 			<div className="space-y-5">
 				<div className="flex flex-wrap items-center justify-end gap-3">
-					{updatedAt && <p className="text-xs text-slate-500">Yangilandi {hhmm(updatedAt)}</p>}
+					{updatedAt && <p className="text-xs text-slate-500">{tx("Yangilandi {{time}}", { time: hhmm(updatedAt) })}</p>}
 					<div className="flex gap-2">
-						<button onClick={() => setExportOpen(v => !v)} className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition ${exportOpen ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}><FiDownload size={15} /> Tabel yuklash</button>
-						<button onClick={() => { setRefreshing(true); load(true) }} title="Yangilash" className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 hover:bg-slate-50"><FiRefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /></button>
+						<button onClick={() => setExportOpen(v => !v)} className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition ${exportOpen ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}><FiDownload size={15} /> {tx("Tabel yuklash")}</button>
+						<button onClick={() => { setRefreshing(true); load(true) }} title={tx("Yangilash")} className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 hover:bg-slate-50"><FiRefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /></button>
 					</div>
 				</div>
 
 				{exportOpen && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><TabelExportPanel sinfs={groups.filter(d => d._id !== 'no-sinf')} /></div>}
 
 				<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-					<Stat active={filter === 'all'} onClick={() => setFilter('all')} label="Bugun kelganlar" value={`${pct}%`} hint={`${came} / ${counts.all} xodim`} color="bg-blue-500" pct={pct} />
-					<Stat active={filter === 'ishda'} onClick={() => setFilter(f => (f === 'ishda' ? 'all' : 'ishda'))} label="Hozir ishda" value={counts.ishda} hint="Maktab ichida" color="bg-emerald-500" />
-					<Stat active={filter === 'tashqarida'} onClick={() => setFilter(f => (f === 'tashqarida' ? 'all' : 'tashqarida'))} label="Tashqarida" value={counts.tashqarida} hint="Kelib, chiqib ketgan" color="bg-sky-500" />
-					<Stat active={filter === 'kelmagan'} onClick={() => setFilter(f => (f === 'kelmagan' ? 'all' : 'kelmagan'))} label="Kelmagan" value={counts.kelmagan} hint="Hali kirish qayd etilmagan" color="bg-rose-500" />
+					<Stat active={filter === 'all'} onClick={() => setFilter('all')} label={tx("Bugun kelganlar")} value={`${pct}%`} hint={`${came} / ${counts.all} xodim`} color="bg-blue-500" pct={pct} />
+					<Stat active={filter === 'ishda'} onClick={() => setFilter(f => (f === 'ishda' ? 'all' : 'ishda'))} label={tx("Hozir ishda")} value={counts.ishda} hint={tx("Maktab ichida")} color="bg-emerald-500" />
+					<Stat active={filter === 'tashqarida'} onClick={() => setFilter(f => (f === 'tashqarida' ? 'all' : 'tashqarida'))} label={tx("Tashqarida")} value={counts.tashqarida} hint={tx("Kelib, chiqib ketgan")} color="bg-sky-500" />
+					<Stat active={filter === 'kelmagan'} onClick={() => setFilter(f => (f === 'kelmagan' ? 'all' : 'kelmagan'))} label={tx("Kelmagan")} value={counts.kelmagan} hint={tx("Hali kirish qayd etilmagan")} color="bg-rose-500" />
 				</div>
 
 				<div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2.5 shadow-sm backdrop-blur">
 					<div className="relative min-w-[200px] flex-1">
 						<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-						<input value={q} onChange={e => setQ(e.target.value)} placeholder="Ism, lavozim yoki login bo'yicha qidirish" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400 focus:bg-white" />
+						<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Ism, lavozim yoki login bo'yicha qidirish")} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400 focus:bg-white" />
 						{q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"><FiX size={14} /></button>}
 					</div>
 					<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" value={sort} onChange={setSort} options={SORTS.map(([value, label]) => ({ value, label }))} />
@@ -187,9 +190,9 @@ const AdminAttendance = () => {
 				) : sections.every(s => s.users.length === 0) ? (
 					<div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
 						<span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUsers size={24} /></span>
-						<p className="mt-3 font-semibold text-slate-800">{filtered ? "Bu tanlov bo'yicha xodim topilmadi" : "Hali xodim qo'shilmagan"}</p>
-						<p className="mt-1 text-sm text-slate-500">{filtered ? "Qidiruv yoki filtrni o'zgartirib ko'ring" : "Xodimlar sahifasidan xodim qo'shing"}</p>
-						{filtered && <button onClick={() => { setQ(''); setFilter('all') }} className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800">Filtrni tozalash</button>}
+						<p className="mt-3 font-semibold text-slate-800">{filtered ? tx("Bu tanlov bo'yicha xodim topilmadi") : tx("Hali xodim qo'shilmagan")}</p>
+						<p className="mt-1 text-sm text-slate-500">{filtered ? tx("Qidiruv yoki filtrni o'zgartirib ko'ring") : tx("Xodimlar sahifasidan xodim qo'shing")}</p>
+						{filtered && <button onClick={() => { setQ(''); setFilter('all') }} className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800">{tx("Filtrni tozalash")}</button>}
 					</div>
 				) : (
 					<div className="space-y-4">
@@ -205,7 +208,7 @@ const AdminAttendance = () => {
 											<span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{total}</span>
 											<span className="ml-auto flex items-center gap-3 text-xs text-slate-500">
 												<span className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 sm:block"><span className={`block h-full rounded-full ${p >= 80 ? 'bg-emerald-500' : p >= 50 ? 'bg-amber-400' : 'bg-rose-400'}`} style={{ width: `${p}%` }} /></span>
-												{ok}/{total} kelgan
+												{tx("{{ok}}/{{total}} kelgan", { ok, total })}
 											</span>
 										</button>
 									)}

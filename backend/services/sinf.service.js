@@ -42,7 +42,7 @@ class SinfService {
 	}
 	async getAll(schoolId) {
 		try {
-			const sinfs = await sinfModel.find({ schoolId }).populate('head', 'fullName position').sort({ grade: 1, letter: 1, name: 1 })
+			const sinfs = await sinfModel.find({ schoolId }).populate('head', 'fullName position photo').sort({ grade: 1, letter: 1, name: 1 })
 			return { success: true, sinfs: sinfs || [] }
 		} catch (error) {
 			console.error('Sinf service xatosi:', error)

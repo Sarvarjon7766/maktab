@@ -49,7 +49,7 @@ const MonitorNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					<button onClick={onToggleSidebar} className="p-2 rounded hover:bg-slate-800"><FiMenu size={22} /></button>
 					<div className="leading-tight min-w-0">
 						<p className="font-semibold truncate">{title}</p>
-						{!sidebarOpen && <p className="text-xs text-slate-400">School Supervision · Umumiy nazorat</p>}
+						{!sidebarOpen && <p className="text-xs text-slate-400">{tx("School Supervision · Umumiy nazorat")}</p>}
 					</div>
 				</div>
 
@@ -69,10 +69,10 @@ const MonitorNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 									<p className="text-sm text-gray-500">{user.position}</p>
 								</div>
 								<button onClick={() => { setOpen(false); navigate('/monitor/profile') }} className="w-full text-left px-4 py-3 hover:bg-gray-50">
-									<FiUser className="inline mr-2" /> Profil
+									<FiUser className="inline mr-2" /> {tx("Profil")}
 								</button>
 								<button onClick={() => navigate('/logout')} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50">
-									<FiLogOut className="inline mr-2" /> Chiqish
+									<FiLogOut className="inline mr-2" /> {tx("Chiqish")}
 								</button>
 							</div>
 						)}

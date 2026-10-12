@@ -8,6 +8,9 @@ const Snapshots = require('../services/hik.snapshot.service')
 const Classroom = require('../services/hik.classroom.service')
 const Vision = require('../services/vision.service')
 const { isDate } = require('../utils/dateStr')
+const { fresh } = require('../utils/ttlCache')
+// Bir maktabning bir nechta admini bir xil sahifani ochib tursa (har 15-20 soniyada so'raladi) hisob-kitob 5 soniya ichida BIR marta bajariladi
+const SHORT_MS = 5000
 
 const handle = (fn) => async (req, res) => {
 	try {
@@ -48,6 +51,7 @@ router.put('/schools/:schoolId/assignment', ...owner, handle(req => HikService.s
 router.get('/my-cameras', verifyToken, requireRole('user', 'admin'), handle(req => HikService.listForSchool(req.user.school)))
 
 // Maktab admini: kamerani sinfga bog'lash, vazifasini (monitor | in | out) va avto-davomatni belgilash
+router.put('/my-cameras-bulk', verifyToken, requireRole('user', 'admin'), handle(req => HikService.bulkUpdateCameras(req.user.school, req.body?.ids, req.body || {})))
 router.put('/my-cameras/:id', verifyToken, requireRole('user', 'admin'), handle(req => HikService.updateCameraSettings(req.user.school, req.params.id, req.body || {})))
 
 // FaceControl sahifasi: kirish/chiqish kameralari, kun hodisalari va sanoq
@@ -75,17 +79,22 @@ router.get('/classroom-detail', verifyToken, requireRole('superadmin', 'monitor'
 // Maktab admini o'z maktabi, monitor/tizim egasi istalgan maktab (schoolId bilan)
 const visionSchool = (req) => ['user', 'admin'].includes(req.user.role) ? req.user.school : req.query.schoolId
 const visionRoles = requireRole('superadmin', 'monitor', 'user', 'admin')
-router.get('/vision/live', verifyToken, visionRoles, handle(req => {
+router.get('/vision/live', verifyToken, visionRoles, handle(fresh(SHORT_MS, req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.live(school)
-}))
+}, req => `vlive|${visionSchool(req)}`)))
 router.get('/vision/day', verifyToken, visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	const date = require('../utils/dateStr').isDate(req.query.date) ? req.query.date : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 	return Vision.day(school, date, req.query.sinfId || null)
 }))
+router.get('/vision/overview', verifyToken, visionRoles, handle(fresh(SHORT_MS, req => {
+	const school = visionSchool(req)
+	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
+	return Vision.overview(school, require('../utils/dateStr').isDate(req.query.date) ? req.query.date : null)
+}, req => `vover|${visionSchool(req)}|${req.query.date || ''}`)))
 router.get('/vision/evidence', verifyToken, visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
@@ -160,6 +169,6 @@ router.get('/events/:id/snapshot', verifyToken, requireRole('superadmin', 'monit
 })
 
 // Jonli ko'rish — tizim egasi va monitor istalgan kamerani, maktab admini faqat o'zinikini
-router.get('/cameras/:id/live', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user)))
+router.get('/cameras/:id/live', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user, { fresh: req.query.fresh === '1' })))
 
 module.exports = router

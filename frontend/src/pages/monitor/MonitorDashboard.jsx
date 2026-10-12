@@ -20,13 +20,13 @@ const RegionDistricts = () => {
 	const { data } = useMonitorData('districts', range, { auto: true })
 	const rows = (data?.rows || []).filter(r => r.studentPeriod !== null).slice(0, 8)
 	return (
-		<Panel title="Tumanlar reytingi (tumanni bossangiz, shu tumanga kirasiz)" className="mb-6" action={<Link to="/monitor/districts" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">Hammasi <FiArrowRight size={13} /></Link>}>
-			{rows.length === 0 ? <p className="py-8 text-center text-sm text-gray-500">Tumanlar bo'yicha davomat ma'lumoti hali yo'q</p> : (
+		<Panel title={tx("Tumanlar reytingi (tumanni bossangiz, shu tumanga kirasiz)")} className="mb-6" action={<Link to="/monitor/districts" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">{tx("Hammasi")} <FiArrowRight size={13} /></Link>}>
+			{rows.length === 0 ? <p className="py-8 text-center text-sm text-gray-500">{tx("Tumanlar bo'yicha davomat ma'lumoti hali yo'q")}</p> : (
 				<ul className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
 					{rows.map(r => (
 						<li key={r.name}>
 							<button type="button" onClick={() => enter(r.name)} className="group block w-full text-left">
-								<div className="mb-1 flex items-center justify-between gap-2 text-sm"><span className="flex items-center gap-2 font-medium text-gray-900 group-hover:text-blue-600"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{r.rank}</span>{r.name}</span><span className={`text-xs font-semibold ${levelText(r.studentPeriod)}`}>{r.studentPeriod}% <span className="font-normal text-gray-400">· {r.schools} maktab</span></span></div>
+								<div className="mb-1 flex items-center justify-between gap-2 text-sm"><span className="flex items-center gap-2 font-medium text-gray-900 group-hover:text-blue-600"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{r.rank}</span>{r.name}</span><span className={`text-xs font-semibold ${levelText(r.studentPeriod)}`}>{r.studentPeriod}% <span className="font-normal text-gray-400">· {tx("{{n}} maktab", { n: r.schools })}</span></span></div>
 								<div className="h-2 overflow-hidden rounded-full bg-gray-100"><div className={`h-full rounded-full ${levelColor(r.studentPeriod)}`} style={{ width: `${Math.min(r.studentPeriod, 100)}%` }} /></div>
 							</button>
 						</li>
@@ -44,15 +44,15 @@ const AiGlance = ({ region }) => {
 	const t = data.totals
 	const top = (region ? data.districts : data.schools).filter(x => x.alerts > 0).slice(0, 4)
 	return (
-		<Panel title="Aqlli kuzatuv (AI) · bugun" className="mb-6" action={<Link to="/monitor/ai" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">Kadrlar va lavhalar <FiArrowRight size={13} /></Link>}>
+		<Panel title={tx("Aqlli kuzatuv (AI) · bugun")} className="mb-6" action={<Link to="/monitor/ai" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">{tx("Kadrlar va lavhalar")} <FiArrowRight size={13} /></Link>}>
 			<div className="grid grid-cols-2 gap-3 md:grid-cols-4">
 				{[['Muhim hodisalar', t.alerts, t.alerts ? 'text-red-600' : 'text-slate-900', '/monitor/ai'], ['Jami lahzalar', t.total, 'text-slate-900', '/monitor/ai'], ['Qisqa lavhalar', t.clips, 'text-slate-900', '/monitor/ai'], ['AI kameralar online', `${t.online}/${t.cameras}`, t.cameras && t.online < t.cameras ? 'text-amber-600' : 'text-slate-900', '/monitor/camera-health']].map(([l, v, tone, to]) => (
 					<Link key={l} to={to} className="block rounded-xl bg-slate-50 px-4 py-3 transition hover:bg-blue-50 hover:shadow-sm"><p className="text-xs text-slate-500">{l}</p><p className={`mt-1 text-2xl font-bold leading-none ${tone}`}>{v}</p></Link>
 				))}
 			</div>
 			{top.length > 0 ? (
-				<div className="mt-4 flex flex-wrap items-center gap-2 text-sm"><span className="text-slate-500">{region ? 'Eng ko\'p muhim hodisa:' : 'Muhim hodisa bo\'lgan maktablar:'}</span>{top.map(x => <Link key={x.name} to={region ? `/monitor/ai?district=${encodeURIComponent(x.name)}` : '/monitor/ai'} className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 font-medium text-red-700 hover:bg-red-100">{x.name} <b>{x.alerts}</b></Link>)}</div>
-			) : <p className="mt-4 text-sm text-emerald-700">Bugun muhim hodisa aniqlanmagan.</p>}
+				<div className="mt-4 flex flex-wrap items-center gap-2 text-sm"><span className="text-slate-500">{region ? tx("Eng ko'p muhim hodisa:") : tx("Muhim hodisa bo'lgan maktablar:")}</span>{top.map(x => <Link key={x.name} to={region ? `/monitor/ai?district=${encodeURIComponent(x.name)}` : '/monitor/ai'} className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 font-medium text-red-700 hover:bg-red-100">{x.name} <b>{x.alerts}</b></Link>)}</div>
+			) : <p className="mt-4 text-sm text-emerald-700">{tx("Bugun muhim hodisa aniqlanmagan.")}</p>}
 		</Panel>
 	)
 }
@@ -93,7 +93,7 @@ const MonitorDashboard = () => {
 
 	return (
 		<Page>
-			<PageHeader title="Maktablar bo'yicha umumiy holat" onReload={reload} loading={loading}
+			<PageHeader title={tx("Maktablar bo'yicha umumiy holat")} onReload={reload} loading={loading}
 				subtitle={`Sana: ${data?.dateString || date}${updatedAt ? ` · yangilandi: ${updatedAt.toLocaleTimeString('uz-UZ')}` : ''}${date === todayStr() ? ' (har daqiqada avtomatik)' : ''}`}>
 				<DateField value={date} max={todayStr()} onChange={setDate} />
 			</PageHeader>
@@ -102,16 +102,16 @@ const MonitorDashboard = () => {
 
 				{/* Chap yarmi: tuman chizmasi, o'ng yarmi: statistika kartalari */}
 				<div className="mb-6 grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
-					<Panel title={mapData.data?.scope?.district ? tx("{{d}}: maktablar xaritasi", { d: mapData.data.scope.district }) : 'Maktablar xaritasi'} subtitle="Tuman chegarasi va maktablar joylashuvi: belgi ichida foiz, rangi holatini bildiradi" className="" action={<Link to="/monitor/map" className="text-sm text-blue-600 hover:underline">Batafsil xarita →</Link>}>
+					<Panel title={mapData.data?.scope?.district ? tx("{{d}}: maktablar xaritasi", { d: mapData.data.scope.district }) : tx("Maktablar xaritasi")} subtitle={tx("Tuman chegarasi va maktablar joylashuvi: belgi ichida foiz, rangi holatini bildiradi")} className="" action={<Link to="/monitor/map" className="text-sm text-blue-600 hover:underline">{tx("Batafsil xarita →")}</Link>}>
 						<DistrictSchematic maxHeight={400} data={mapData.data} metric={mapMetric} onMetric={setMapMetric} onOpenSchool={(sc) => navigate(`/monitor/schools/${sc._id}`)} />
 					</Panel>
 					<div className="grid grid-cols-1 content-start gap-4 sm:grid-cols-2">
-						<KpiLink to={mapData.data?.scope?.level === 'region' ? '/monitor/districts' : '/monitor/schools'} icon={<FaSchool />} label="Maktablar" value={schools.length} detail={tx("{{n}} tasi faol", { n: t.active })} />
-						<KpiLink to={`/monitor/lists?kind=student&status=came&date=${date}`} icon={<FaUserGraduate />} color="bg-amber-50 text-amber-600" label="Kelgan o'quvchilar" value={t.studentCame} detail={tx("{{a}} tadan · {{p}}%", { a: fmt(t.students), p: pct(t.studentCame, t.students) })} />
-						<KpiLink to={`/monitor/lists?kind=staff&status=came&date=${date}`} icon={<FaChalkboardTeacher />} color="bg-violet-50 text-violet-600" label="Kelgan xodimlar" value={t.staffCame} detail={`${fmt(t.staff)} tadan · ${pct(t.staffCame, t.staff)}%`} />
-						<KpiLink to={`/monitor/lists?kind=student&status=absent&date=${date}`} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label="Kelmagan o'quvchilar" value={Math.max(0, t.students - t.studentCame)} detail={`Xodimlar: ${fmt(Math.max(0, t.staff - t.staffCame))} nafar`} />
-						<KpiLink to={`/monitor/lists?kind=student&status=late&date=${date}`} icon={<FaClock />} color="bg-orange-50 text-orange-600" label="Kech qolganlar" value={t.studentLate + t.staffLate} detail={tx("{{a}} o'quvchi · {{b}} xodim", { a: fmt(t.studentLate), b: fmt(t.staffLate) })} />
-						<KpiLink to="/monitor/camera-health" icon={<FaVideo />} color="bg-green-50 text-green-600" label="Kameralar online" value={t.camsOnline} detail={tx("{{a}} tadan · {{b}} tasi offline", { a: fmt(t.cams), b: fmt(t.camsOffline) })} />
+						<KpiLink to={mapData.data?.scope?.level === 'region' ? '/monitor/districts' : '/monitor/schools'} icon={<FaSchool />} label={tx("Maktablar")} value={schools.length} detail={tx("{{n}} tasi faol", { n: t.active })} />
+						<KpiLink to={`/monitor/lists?kind=student&status=came&date=${date}`} icon={<FaUserGraduate />} color="bg-amber-50 text-amber-600" label={tx("Kelgan o'quvchilar")} value={t.studentCame} detail={tx("{{a}} tadan · {{p}}%", { a: fmt(t.students), p: pct(t.studentCame, t.students) })} />
+						<KpiLink to={`/monitor/lists?kind=staff&status=came&date=${date}`} icon={<FaChalkboardTeacher />} color="bg-violet-50 text-violet-600" label={tx("Kelgan xodimlar")} value={t.staffCame} detail={`${fmt(t.staff)} tadan · ${pct(t.staffCame, t.staff)}%`} />
+						<KpiLink to={`/monitor/lists?kind=student&status=absent&date=${date}`} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label={tx("Kelmagan o'quvchilar")} value={Math.max(0, t.students - t.studentCame)} detail={`Xodimlar: ${fmt(Math.max(0, t.staff - t.staffCame))} nafar`} />
+						<KpiLink to={`/monitor/lists?kind=student&status=late&date=${date}`} icon={<FaClock />} color="bg-orange-50 text-orange-600" label={tx("Kech qolganlar")} value={t.studentLate + t.staffLate} detail={tx("{{a}} o'quvchi · {{b}} xodim", { a: fmt(t.studentLate), b: fmt(t.staffLate) })} />
+						<KpiLink to="/monitor/camera-health" icon={<FaVideo />} color="bg-green-50 text-green-600" label={tx("Kameralar online")} value={t.camsOnline} detail={tx("{{a}} tadan · {{b}} tasi offline", { a: fmt(t.cams), b: fmt(t.camsOffline) })} />
 					</div>
 				</div>
 
@@ -120,7 +120,7 @@ const MonitorDashboard = () => {
 				<AiGlance region={mapData.data?.scope?.level === 'region'} />
 
 				{(alertsData.data?.alerts || []).length > 0 && (
-					<Panel title="Ogohlantirishlar" className="mb-6" action={<Link to="/monitor/alerts" className="text-sm text-blue-600 hover:underline">{tx("Hammasi ({{n}})", { n: alertsData.data.alerts.length })}</Link>}>
+					<Panel title={tx("Ogohlantirishlar")} className="mb-6" action={<Link to="/monitor/alerts" className="text-sm text-blue-600 hover:underline">{tx("Hammasi ({{n}})", { n: alertsData.data.alerts.length })}</Link>}>
 						<ul className="divide-y divide-gray-50">
 							{alertsData.data.alerts.slice(0, 5).map((a, ai) => (
 								<li key={`${a.id}-${a.type}-${ai}`}>
@@ -135,13 +135,13 @@ const MonitorDashboard = () => {
 				)}
 
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-					<Panel title="O'quvchilar davomati" subtitle="Hududingizdagi maktablar bo'yicha" action={<Link to="/monitor/students" className="text-sm text-blue-600 hover:underline">Batafsil →</Link>}>
-						<Donut data={pieStudents} total={t.studentCame} label="kelgan" />
+					<Panel title={tx("O'quvchilar davomati")} subtitle={tx("Hududingizdagi maktablar bo'yicha")} action={<Link to="/monitor/students" className="text-sm text-blue-600 hover:underline">{tx("Batafsil →")}</Link>}>
+						<Donut data={pieStudents} total={t.studentCame} label={tx("kelgan")} />
 					</Panel>
-					<Panel title="Xodimlar davomati" subtitle="Hududingizdagi maktablar bo'yicha" action={<Link to="/monitor/staff" className="text-sm text-blue-600 hover:underline">Batafsil →</Link>}>
-						<Donut data={pieStaff} total={t.staffCame} label="kelgan" />
+					<Panel title={tx("Xodimlar davomati")} subtitle={tx("Hududingizdagi maktablar bo'yicha")} action={<Link to="/monitor/staff" className="text-sm text-blue-600 hover:underline">{tx("Batafsil →")}</Link>}>
+						<Donut data={pieStaff} total={t.staffCame} label={tx("kelgan")} />
 					</Panel>
-					<Panel title={isRegion ? 'Eng past davomatli tumanlar' : 'Eng past davomatli maktablar'} subtitle="O'quvchilar bo'yicha, foiz" action={<Link to={isRegion ? '/monitor/districts' : '/monitor/ranking'} className="text-sm text-blue-600 hover:underline">Reyting →</Link>}>
+					<Panel title={isRegion ? tx("Eng past davomatli tumanlar") : tx("Eng past davomatli maktablar")} subtitle={tx("O'quvchilar bo'yicha, foiz")} action={<Link to={isRegion ? '/monitor/districts' : '/monitor/ranking'} className="text-sm text-blue-600 hover:underline">{tx("Reyting →")}</Link>}>
 						<ChartBox>
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart data={lowest} layout="vertical" margin={{ left: 10, right: 16 }}>
@@ -158,9 +158,9 @@ const MonitorDashboard = () => {
 
 
 				{mapData.data?.scope?.level === 'region' ? (
-					<div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-8 text-center"><p className="font-semibold text-slate-800">Maktablar va shaxslar ro'yxati tuman ichida</p><p className="mx-auto mt-1 max-w-xl text-sm text-slate-500">Yuqoridagi «Tumanlar reytingi»dan tumanni tanlang yoki chap menyudagi «Tuman» ro'yxatidan tanlang: shundan keyin shu tuman maktablari, xodim va o'quvchilariga o'tasiz.</p><Link to="/monitor/districts" className="mt-4 inline-block rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Tumanlar solishtiruvi</Link></div>
+					<div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-8 text-center"><p className="font-semibold text-slate-800">{tx("Maktablar va shaxslar ro'yxati tuman ichida")}</p><p className="mx-auto mt-1 max-w-xl text-sm text-slate-500">{tx("Yuqoridagi «Tumanlar reytingi»dan tumanni tanlang yoki chap menyudagi «Tuman» ro'yxatidan tanlang: shundan keyin shu tuman maktablari, xodim va o'quvchilariga o'tasiz.")}</p><Link to="/monitor/districts" className="mt-4 inline-block rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">{tx("Tumanlar solishtiruvi")}</Link></div>
 				) : (
-					<Panel title="Maktablar jadvali" action={<div className="flex items-center gap-3"><Link to="/monitor/schools" className="text-sm text-blue-600 hover:underline whitespace-nowrap">Solishtirish →</Link><SearchBox value={query} onChange={setQuery} placeholder="Maktab yoki hudud" /></div>}>
+					<Panel title={tx("Maktablar jadvali")} action={<div className="flex items-center gap-3"><Link to="/monitor/schools" className="text-sm text-blue-600 hover:underline whitespace-nowrap">{tx("Solishtirish →")}</Link><SearchBox value={query} onChange={setQuery} placeholder={tx("Maktab yoki hudud")} /></div>}>
 						<Table head={['Maktab', "O'quvchilar", 'Xodimlar', 'Kech qolgan', 'Kameralar', 'Holat']}>
 							{rows.map(s => (
 								<Tr key={s._id}>
@@ -168,11 +168,11 @@ const MonitorDashboard = () => {
 									<Td><Progress present={s.stats.studentCame} total={s.stats.studentTotal} /></Td>
 									<Td><Progress present={s.stats.staffCame} total={s.stats.staffTotal} /></Td>
 									<Td className="whitespace-nowrap text-gray-700">{tx("{{a}} o'q. · {{b}} xod.", { a: fmt(s.stats.studentLate), b: fmt(s.stats.staffLate) })}</Td>
-									<Td className="whitespace-nowrap">{s.stats.cameraTotal ? <span className={s.stats.cameraOffline ? 'text-red-600 font-medium' : 'text-gray-700'}>{tx("{{a}}/{{b}} online", { a: s.stats.cameraOnline, b: s.stats.cameraTotal })}</span> : <span className="text-gray-400">yo'q</span>}</Td>
+									<Td className="whitespace-nowrap">{s.stats.cameraTotal ? <span className={s.stats.cameraOffline ? 'text-red-600 font-medium' : 'text-gray-700'}>{tx("{{a}}/{{b}} online", { a: s.stats.cameraOnline, b: s.stats.cameraTotal })}</span> : <span className="text-gray-400">{tx("yo'q")}</span>}</Td>
 									<Td><Badge ok={s.isActive} /></Td>
 								</Tr>
 							))}
-							{rows.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-500">Maktablar topilmadi</td></tr>}
+							{rows.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-500">{tx("Maktablar topilmadi")}</td></tr>}
 						</Table>
 					</Panel>
 				)}

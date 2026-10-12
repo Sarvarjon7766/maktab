@@ -11,6 +11,8 @@ import { formatUzShortDate } from '../../utils/formatDate'
 import AdminStudentAdd from './AdminStudentAdd'
 import AdminStudentImportExcel from './AdminStudentImportExcel'
 import AdminStudentUpdate from './AdminStudentUpdate'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 // O'quvchi rasmining kameradagi holati: kamerada | navbatda | rad etildi (sabab bilan) | yuborilmagan | rasm yo'q
 const camState = (s) => {
@@ -32,7 +34,7 @@ const natural = (a, b) => (a || '').localeCompare(b || '', undefined, { numeric:
 
 const Avatar = ({ s }) => (
 	<span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 font-semibold text-indigo-700">
-		{s.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${s.photo}`} alt="" className="h-full w-full object-cover" /> : s.fullName?.charAt(0)?.toUpperCase()}
+		{s.photo ? <img src={`${uploadUrl(s.photo)}`} alt="" className="h-full w-full object-cover" /> : s.fullName?.charAt(0)?.toUpperCase()}
 	</span>
 )
 
@@ -135,50 +137,50 @@ const AdminStudents = () => {
 	const pill = (on) => `shrink-0 rounded-full px-3.5 py-1.5 text-sm transition ${on ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6">
+		<div className="min-h-full bg-slate-50 p-4 md:p-6">
 			<div className="space-y-5">
 				<div className="flex flex-wrap items-center justify-end gap-3">
 					<div className="flex flex-wrap gap-2">
-						<button onClick={exportExcel} disabled={!list.length} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"><FiDownload size={15} /> Excel{dirty ? ` (${list.length})` : ''}</button>
-						<button onClick={() => setImporting(true)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiUploadCloud size={15} /> Excel'dan qo'shish</button>
-						<button onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"><FiPlus size={16} /> Yangi o'quvchi</button>
+						<button onClick={exportExcel} disabled={!list.length} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"><FiDownload size={15} /> {tx("Excel")}{dirty ? ` (${list.length})` : ''}</button>
+						<button onClick={() => setImporting(true)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiUploadCloud size={15} /> {tx("Excel'dan qo'shish")}</button>
+						<button onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"><FiPlus size={16} /> {tx("Yangi o'quvchi")}</button>
 					</div>
 				</div>
 
 				<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-					<Tile label="Jami o'quvchilar" value={stats.total} hint={`${sinfs.length} ta sinfda`} onClick={clear} active={!dirty} />
-					<Tile label="Ota-ona telefoni yo'q" value={stats.noPhone} hint="Botga ulana olmaydi" tone={stats.noPhone ? 'text-red-600' : 'text-slate-900'} onClick={() => setNoPhone(v => !v)} active={noPhone} />
-					<Tile label="Sinfsiz" value={stats.noSinf} hint="Sinfga biriktirilmagan" tone={stats.noSinf ? 'text-amber-600' : 'text-slate-900'} onClick={() => setNoSinf(v => !v)} active={noSinf} />
-					<Tile label="Ko'rsatilmoqda" value={list.length} hint={dirty ? 'Filtr yoqilgan' : 'Hammasi'} />
+					<Tile label={tx("Jami o'quvchilar")} value={stats.total} hint={`${sinfs.length} ta sinfda`} onClick={clear} active={!dirty} />
+					<Tile label={tx("Ota-ona telefoni yo'q")} value={stats.noPhone} hint={tx("Botga ulana olmaydi")} tone={stats.noPhone ? 'text-red-600' : 'text-slate-900'} onClick={() => setNoPhone(v => !v)} active={noPhone} />
+					<Tile label={tx("Sinfsiz")} value={stats.noSinf} hint={tx("Sinfga biriktirilmagan")} tone={stats.noSinf ? 'text-amber-600' : 'text-slate-900'} onClick={() => setNoSinf(v => !v)} active={noSinf} />
+					<Tile label={tx("Ko'rsatilmoqda")} value={list.length} hint={dirty ? tx("Filtr yoqilgan") : tx("Hammasi")} />
 				</div>
 
 				<div className="sticky top-0 z-10 space-y-2 rounded-2xl border border-slate-200 bg-white/95 p-2.5 shadow-sm backdrop-blur">
 					<div className="flex flex-wrap items-center gap-2">
 						<div className="relative min-w-[220px] flex-1">
 							<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-							<input value={q} onChange={e => setQ(e.target.value)} placeholder="O'quvchi, ota-ona yoki telefon bo'yicha qidirish" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400 focus:bg-white" />
+							<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("O'quvchi, ota-ona yoki telefon bo'yicha qidirish")} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-sm text-black outline-none focus:border-blue-400 focus:bg-white" />
 							{q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"><FiX size={14} /></button>}
 						</div>
 						<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" value={sort} onChange={setSort} options={SORTS.map(([value, label]) => ({ value, label }))} />
-						{dirty && <button onClick={clear} className="text-sm text-blue-600 hover:underline">Tozalash</button>}
+						{dirty && <button onClick={clear} className="text-sm text-blue-600 hover:underline">{tx("Tozalash")}</button>}
 					</div>
 					<div className="flex gap-1.5 overflow-x-auto pb-0.5">
-						<button onClick={() => setSinf('all')} className={pill(sinf === 'all')}>Hammasi <span className="opacity-60">{stats.total}</span></button>
+						<button onClick={() => setSinf('all')} className={pill(sinf === 'all')}>{tx("Hammasi")} <span className="opacity-60">{stats.total}</span></button>
 						{[...sinfs].sort((a, b) => natural(a.name, b.name)).map(x => <button key={x._id} onClick={() => setSinf(sinf === x._id ? 'all' : x._id)} className={pill(sinf === x._id)}>{x.name} <span className="opacity-60">{perSinf.get(x._id) || 0}</span></button>)}
 					</div>
 				</div>
 
 				{!loading && (camCount.rejected > 0 || camCount.notsent > 0) && (
 					<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-						<span>{camCount.rejected > 0 && <><b>{camCount.rejected} ta o'quvchining</b> rasmi kameraga qabul qilinmadi. </>}{camCount.notsent > 0 && <><b>{camCount.notsent} ta o'quvchi</b> rasmi hali kameraga yuborilmagan.</>}</span>
+						<span>{camCount.rejected > 0 && <><b>{tx("{{n}} ta o'quvchining", { n: camCount.rejected })}</b> {tx("rasmi kameraga qabul qilinmadi.")} </>}{camCount.notsent > 0 && <><b>{tx("{{n}} ta o'quvchi", { n: camCount.notsent })}</b> {tx("rasmi hali kameraga yuborilmagan.")}</>}</span>
 						<span className="flex gap-2">
-							{camCount.rejected > 0 && <button onClick={() => setCam('rejected')} className="rounded-lg bg-white px-3 py-1.5 font-medium text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">Rad etilganlar</button>}
-							<button disabled={sending} onClick={() => resend({ all: true })} className="rounded-lg bg-rose-600 px-3 py-1.5 font-medium text-white hover:bg-rose-700 disabled:opacity-60">{sending ? 'Yuborilmoqda...' : 'Hammasini kameraga yuborish'}</button>
+							{camCount.rejected > 0 && <button onClick={() => setCam('rejected')} className="rounded-lg bg-white px-3 py-1.5 font-medium text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">{tx("Rad etilganlar")}</button>}
+							<button disabled={sending} onClick={() => resend({ all: true })} className="rounded-lg bg-rose-600 px-3 py-1.5 font-medium text-white hover:bg-rose-700 disabled:opacity-60">{sending ? tx("Yuborilmoqda...") : tx("Hammasini kameraga yuborish")}</button>
 						</span>
 					</div>
 				)}
 				<div className="flex flex-wrap items-center gap-1.5">
-					<span className="mr-1 text-xs font-medium text-slate-500">Kamera holati:</span>
+					<span className="mr-1 text-xs font-medium text-slate-500">{tx("Kamera holati:")}</span>
 					{CAM_FILTERS.filter(([k]) => k === 'all' || camCount[k]).map(([k, l]) => <button key={k} onClick={() => setCam(k)} className={`rounded-full px-3 py-1.5 text-sm transition ${cam === k ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>{l} <span className="opacity-60">{camCount[k] || 0}</span></button>)}
 				</div>
 
@@ -188,13 +190,13 @@ const AdminStudents = () => {
 					) : list.length === 0 ? (
 						<div className="px-6 py-14 text-center">
 							<span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUsers size={24} /></span>
-							<p className="mt-3 font-semibold text-slate-800">{dirty ? "Bu tanlov bo'yicha o'quvchi topilmadi" : "Hali o'quvchi qo'shilmagan"}</p>
-							<p className="mt-1 text-sm text-slate-500">{dirty ? "Qidiruv yoki filtrni o'zgartirib ko'ring" : "«Yangi o'quvchi» yoki Excel orqali ro'yxatni yuklang"}</p>
-							<button onClick={dirty ? clear : () => setAdding(true)} className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800">{dirty ? 'Filtrni tozalash' : "O'quvchi qo'shish"}</button>
+							<p className="mt-3 font-semibold text-slate-800">{dirty ? tx("Bu tanlov bo'yicha o'quvchi topilmadi") : tx("Hali o'quvchi qo'shilmagan")}</p>
+							<p className="mt-1 text-sm text-slate-500">{dirty ? tx("Qidiruv yoki filtrni o'zgartirib ko'ring") : tx("«Yangi o'quvchi» yoki Excel orqali ro'yxatni yuklang")}</p>
+							<button onClick={dirty ? clear : () => setAdding(true)} className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800">{dirty ? tx("Filtrni tozalash") : tx("O'quvchi qo'shish")}</button>
 						</div>
 					) : (
 						<>
-							<div className="hidden grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.6fr)_96px] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid"><span>O'quvchi</span><span>Sinf</span><span>Ota-ona</span><span>Kamera</span><span className="text-right">Amallar</span></div>
+							<div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_96px] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid"><span>{tx("O'quvchi")}</span><span>{tx("Sinf")}</span><span>{tx("Ota-ona")}</span><span>{tx("Kamera")}</span><span className="whitespace-nowrap text-right">{tx("Amallar")}</span></div>
 							<ul className="divide-y divide-slate-100">
 								{paged.items.map(s => (
 									<li key={s._id} className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-slate-50 md:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_96px] md:gap-4 md:px-5">
@@ -203,28 +205,28 @@ const AdminStudents = () => {
 											<p className="truncate text-sm font-semibold text-slate-900">{s.fullName}</p>
 										</PersonLink>
 										<div className="order-last col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1 pl-14 md:order-none md:col-span-3 md:grid md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1.3fr)] md:gap-4 md:pl-0">
-											<span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${s.sinf ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{s.sinf?.name || 'Sinfsiz'}</span>
+											<span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${s.sinf ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{s.sinf?.name || tx("Sinfsiz")}</span>
 											{s.parentPhone ? (
 												<div className="min-w-0">
-													<p className="truncate text-sm text-slate-700">{s.parentName || 'Ota-ona'}</p>
+													<p className="truncate text-sm text-slate-700">{s.parentName || tx("Ota-ona")}</p>
 													<a href={`tel:${s.parentPhone}`} className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600"><FiPhone size={11} /> {s.parentPhone}</a>
 												</div>
 											) : (
-												<button onClick={() => setEditing(s)} className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100"><FiAlertCircle size={13} /> Telefon kiriting</button>
+												<button onClick={() => setEditing(s)} className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100"><FiAlertCircle size={13} /> {tx("Telefon kiriting")}</button>
 											)}
 											{(() => {
 												const c = camState(s); return (
 													<div className="flex min-w-0 flex-col items-start gap-1">
 														<span title={c.detail} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${c.cls}`}><FiCamera size={12} />{c.label}</span>
 														{c.key === 'rejected' && <span className="max-w-full truncate text-[11px] text-rose-600" title={c.reason}>{c.reason}</span>}
-														{(c.key === 'rejected' || c.key === 'notsent') && <button disabled={sending} onClick={e => { e.stopPropagation(); resend({ ids: [s._id] }) }} className="text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-50">Qayta yuborish</button>}
+														{(c.key === 'rejected' || c.key === 'notsent') && <button disabled={sending} onClick={e => { e.stopPropagation(); resend({ ids: [s._id] }) }} className="text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-50">{tx("Qayta yuborish")}</button>}
 													</div>
 												)
 											})()}
 										</div>
 										<div className="flex justify-end gap-1 md:opacity-60 md:transition md:group-hover:opacity-100">
-											<button onClick={() => setEditing(s)} title="Tahrirlash" className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"><FiEdit2 size={16} /></button>
-											<button onClick={() => setDeleting(s)} title="O'chirish" className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><FiTrash2 size={16} /></button>
+											<button onClick={() => setEditing(s)} title={tx("Tahrirlash")} className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"><FiEdit2 size={16} /></button>
+											<button onClick={() => setDeleting(s)} title={tx("O'chirish")} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><FiTrash2 size={16} /></button>
 										</div>
 									</li>
 								))}
@@ -238,12 +240,12 @@ const AdminStudents = () => {
 			{deleting && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => !busy && setDeleting(null)}>
 					<div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-						<div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-100 text-red-600"><FiTrash2 size={20} /></span><h3 className="text-lg font-semibold text-slate-900">O'quvchini o'chirish</h3></div>
-						<p className="mt-4 text-slate-700"><b>{deleting.fullName}</b> o'chirilsinmi?</p>
-						<p className="mt-1 text-sm text-slate-500">Bu amalni qaytarib bo'lmaydi. Ota-onalarga xabar yuborish ham to'xtatiladi.</p>
+						<div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-100 text-red-600"><FiTrash2 size={20} /></span><h3 className="text-lg font-semibold text-slate-900">{tx("O'quvchini o'chirish")}</h3></div>
+						<p className="mt-4 text-slate-700"><b>{deleting.fullName}</b> {tx("o'chirilsinmi?")}</p>
+						<p className="mt-1 text-sm text-slate-500">{tx("Bu amalni qaytarib bo'lmaydi. Ota-onalarga xabar yuborish ham to'xtatiladi.")}</p>
 						<div className="mt-6 flex justify-end gap-2">
-							<button disabled={busy} onClick={() => setDeleting(null)} className="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-50">Bekor qilish</button>
-							<button disabled={busy} onClick={confirmDelete} className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50">{busy ? "O'chirilmoqda..." : "O'chirish"}</button>
+							<button disabled={busy} onClick={() => setDeleting(null)} className="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-50">{tx("Bekor qilish")}</button>
+							<button disabled={busy} onClick={confirmDelete} className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 disabled:opacity-50">{busy ? tx("O'chirilmoqda...") : tx("O'chirish")}</button>
 						</div>
 					</div>
 				</div>

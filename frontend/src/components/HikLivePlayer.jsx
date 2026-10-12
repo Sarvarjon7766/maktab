@@ -1,5 +1,11 @@
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
+import { tx } from '../i18n'
+
+// Brauzer bir vaqtda juda ko'p video dekoderini (WASM) ko'tarmaydi: shundan ortiq oqim ochilsa qolganlari "Ishga tushirish" tugmasi bilan kutadi
+// Kompyuter kuchiga qarab (yadrolar soni), 6 dan 16 gacha
+const MAX_ACTIVE = Math.min(16, Math.max(6, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 8))
+const activeStreams = new Set()
 
 // Birinchi kadr shu vaqtgacha kelmasa, oqim "kelmayapti" deb e'lon qilinadi (qurilma bulutdan uzilgan yoki tarmog'i sust)
 const STALL_MS = 20000
@@ -16,6 +22,15 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 	const [attempt, setAttempt] = useState(0)
 	const [state, setState] = useState({ status: 'loading', message: '' })
 	const [still, setStill] = useState({ loading: false, url: null, message: '' })
+	const [tabHidden, setTabHidden] = useState(typeof document !== 'undefined' && document.hidden)
+	const [forced, setForced] = useState(false) // chegaradan oshganda foydalanuvchi qo'lda ishga tushirdi
+
+	// Oyna yashirin bo'lsa oqim to'xtatiladi (CPU, tarmoq va Hik so'rovlari tejaladi), qaytganda o'zi davom etadi
+	useEffect(() => {
+		const onVis = () => setTabHidden(document.hidden)
+		document.addEventListener('visibilitychange', onVis)
+		return () => document.removeEventListener('visibilitychange', onVis)
+	}, [])
 
 	useEffect(() => {
 		if (!lazy) return
@@ -25,8 +40,13 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 		return () => observer.disconnect()
 	}, [lazy])
 
+	const active = visible && !tabHidden
+
 	useEffect(() => {
-		if (!visible) return
+		// Ko'rinishdan chiqqan yoki yashirin: oldingi "live" holati qolib, bo'sh qora oyna ko'rinmasin
+		if (!active) { setState({ status: 'loading', message: '' }); return }
+		if (activeStreams.size >= MAX_ACTIVE && !forced) { setState({ status: 'limit', message: '' }); return }
+		activeStreams.add(containerId)
 		let player = null
 		let cancelled = false
 		let stallTimer = null
@@ -41,7 +61,8 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 				const token = localStorage.getItem(tokenKey)
 				if (!token) throw new Error("Sessiya topilmadi — qayta kiring")
 				const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/cameras/${cameraId}/live`, {
-					headers: { Authorization: `Bearer ${token}` }
+					headers: { Authorization: `Bearer ${token}` },
+					params: attempt > 0 ? { fresh: 1 } : undefined // "Qayta urinish": serverdagi xato keshi va eski token tashlanadi
 				})
 				if (cancelled) return
 				const { streamToken, url, domain } = res.data
@@ -83,11 +104,12 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 
 		return () => {
 			cancelled = true
+			activeStreams.delete(containerId)
 			clearTimeout(stallTimer)
 			try { player?.destroy?.() } catch { /* pleyer allaqachon yopilgan */ }
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [visible, cameraId, containerId, tokenKey, attempt])
+	}, [active, cameraId, containerId, tokenKey, attempt, forced])
 
 	// Oxirgi kadr — faqat foydalanuvchi so'rasa (qurilmaga qo'shimcha yuk tushirmaslik uchun avtomatik emas)
 	const showStill = async () => {
@@ -110,22 +132,28 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 			<div id={containerId} className="absolute inset-0" />
 			{state.status !== 'live' && (
 				<div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 p-4 text-center text-xs text-slate-300 ${state.status === 'stalled' ? 'bg-slate-900/85' : 'bg-slate-900'}`}>
-					{!visible ? <span className="text-slate-500">Kutilmoqda...</span>
+					{!visible ? <span className="text-slate-500">{tx("Kutilmoqda...")}</span>
+						: state.status === 'limit' ? (
+							<>
+								<p className="max-w-xs text-slate-300">{tx("Bir vaqtda juda ko'p oqim ochiq ({{n}} ta). Brauzer sekinlashmasligi uchun bu kamera kutmoqda", { n: MAX_ACTIVE })}</p>
+								<button onClick={() => setForced(true)} className="px-3 py-1.5 rounded-lg bg-white text-slate-900 text-xs font-medium hover:bg-slate-100">{tx("Ishga tushirish")}</button>
+							</>
+						)
 						: problem ? (
 							<>
 								{still.url ? <img src={still.url} alt="" className="absolute inset-0 w-full h-full object-contain opacity-60" /> : null}
 								<p className="relative max-w-sm text-amber-300">{state.message}</p>
 								{still.message && <p className="relative max-w-sm text-slate-300">{still.message}</p>}
 								<div className="relative flex flex-wrap items-center justify-center gap-2">
-									<button onClick={() => setAttempt(a => a + 1)} className="px-3 py-1.5 rounded-lg bg-white text-slate-900 text-xs font-medium hover:bg-slate-100">Qayta urinish</button>
-									<button onClick={showStill} disabled={still.loading} className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 disabled:opacity-50">{still.loading ? 'Olinmoqda...' : 'Oxirgi kadrni ko\'rsatish'}</button>
+									<button onClick={() => setAttempt(a => a + 1)} className="px-3 py-1.5 rounded-lg bg-white text-slate-900 text-xs font-medium hover:bg-slate-100">{tx("Qayta urinish")}</button>
+									<button onClick={showStill} disabled={still.loading} className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 disabled:opacity-50">{still.loading ? tx("Olinmoqda...") : tx("Oxirgi kadrni ko'rsatish")}</button>
 								</div>
 							</>
 						)
 							: (
 								<>
 									<div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-600 border-t-cyan-400" />
-									{state.status === 'waiting' && <p className="text-slate-400">Oqim kutilmoqda...</p>}
+									{state.status === 'waiting' && <p className="text-slate-400">{tx("Oqim kutilmoqda...")}</p>}
 								</>
 							)}
 				</div>

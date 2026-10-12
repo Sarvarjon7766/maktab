@@ -11,7 +11,7 @@ const eventModel = require('../models/hik.cameraevent.model')
 const metricModel = require('../models/hik.visionmetric.model')
 
 const DIR = path.join(__dirname, '..', 'private', 'hik-events')
-const ALERT_KINDS = ['vision_empty', 'vision_surge', 'vision_overcrowd']
+const { ALERT_KINDS } = require('../ai/kinds')
 const SAFE_FILE = /^[a-f0-9]{24}(_(pre|post)\d+)?\.(jpg|webp)$/
 const DAY = 24 * 3600 * 1000
 const LIMITS = { min: 1, max: 365 }

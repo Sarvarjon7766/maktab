@@ -14,6 +14,7 @@ import {
 	FaVideo,
 	FaUserCheck,
 	FaChalkboard,
+	FaTachometerAlt,
 	FaLayerGroup,
 	FaBell,
 	FaClock,
@@ -24,6 +25,7 @@ import {
 import { FiLogOut, FiX } from 'react-icons/fi'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
+import { tx } from '../i18n'
 
 const AdminSidebar = ({ collapsed = false, onClose }) => {
 	const navigate = useNavigate()
@@ -45,6 +47,7 @@ const AdminSidebar = ({ collapsed = false, onClose }) => {
 				{ path: '/admin/attandance', icon: FaClipboardCheck, label: "Nazorat" },
 				{ path: '/admin/camera', icon: FaVideo, label: "Kameralar" },
 				{ path: '/admin/facecontrol', icon: FaUserCheck, label: "FaceControl" },
+				{ path: '/admin/nazorat', icon: FaTachometerAlt, label: "Sinfxonalar nazorati" },
 				{ path: '/admin/classrooms', icon: FaChalkboard, label: "Sinfxonalar" },
 				{ path: '/admin/kuzatuv', icon: FaRobot, label: "Aqlli kuzatuv" },
 				{ path: '/admin/parents', icon: FaTelegramPlane, label: "Ota-onalar boti" },
@@ -77,7 +80,7 @@ const AdminSidebar = ({ collapsed = false, onClose }) => {
 			{/* MOBILE HEADER */}
 			{onClose && (
 				<div className="lg:hidden p-4 border-b border-slate-700 flex justify-between">
-					<span className="flex items-center gap-2 font-bold"><BrandLogo className="w-8 h-8 shrink-0" />School Supervision</span>
+					<span className="flex items-center gap-2 font-bold"><BrandLogo className="w-8 h-8 shrink-0" />{tx("School Supervision")}</span>
 					<button onClick={onClose}><FiX /></button>
 				</div>
 			)}
@@ -87,7 +90,7 @@ const AdminSidebar = ({ collapsed = false, onClose }) => {
 				<div className="hidden lg:flex p-6 border-b border-slate-700">
 					<h1 className="flex items-center gap-3 font-bold text-xl">
 						<BrandLogo className="w-12 h-12 shrink-0" />
-						School Supervision
+						{tx("School Supervision")}
 					</h1>
 				</div>
 			)}
@@ -143,7 +146,7 @@ const AdminSidebar = ({ collapsed = false, onClose }) => {
 				>
 					<FiLogOut className="shrink-0" />
 					<span className={`truncate transition-all duration-300 ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[180px] opacity-100'}`}>
-						Chiqish
+						{tx("Chiqish")}
 					</span>
 				</button>
 			</div>

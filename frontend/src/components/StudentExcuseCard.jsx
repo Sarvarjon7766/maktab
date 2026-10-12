@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { FiPlus, FiRotateCcw, FiTrash2 } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import SearchableSelect from './SearchableSelect'
+import { tx } from '../i18n'
 
 const call = (method, path, config = {}) => axios({ method, url: `${import.meta.env.VITE_BASE_URL}/api/student/${path}`, ...config, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
@@ -50,19 +51,19 @@ const StudentExcuseCard = ({ sinfId, date, onChanged }) => {
 	const free = (data?.students || []).filter(s => !excusedIds.has(String(s._id)))
 	return (
 		<div className="space-y-4">
-			{!data ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : data.excuses.length === 0 ? (
-				<p className="text-sm text-gray-500">Bu kunda sababli kelmagan o'quvchi yo'q. Sabab kiritilsa, o'quvchi sinfda kutilmaydi va tahlil shunga moslanadi.</p>
+			{!data ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : data.excuses.length === 0 ? (
+				<p className="text-sm text-gray-500">{tx("Bu kunda sababli kelmagan o'quvchi yo'q. Sabab kiritilsa, o'quvchi sinfda kutilmaydi va tahlil shunga moslanadi.")}</p>
 			) : (
 				<ul className="divide-y divide-gray-100">
 					{data.excuses.map(x => (
 						<li key={x._id} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
 							<div className="min-w-0">
 								<p className="text-sm font-medium text-gray-900">{x.fullName} <span className={`ml-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${TYPE_TONE[x.type] || TYPE_TONE.boshqa}`}>{x.label}</span></p>
-								<p className="text-xs text-gray-500">{x.startDate} — {x.endDate || 'qaytguncha'}{x.comment ? ` · ${x.comment}` : ''}</p>
+								<p className="text-xs text-gray-500">{x.startDate} — {x.endDate || tx("qaytguncha")}{x.comment ? ` · ${x.comment}` : ''}</p>
 							</div>
 							<div className="flex items-center gap-1.5">
-								<button disabled={saving} onClick={() => run(() => call('put', `excuse/${x._id}/close`), "O'quvchi qaytdi: endi sinfda kutiladi")} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiRotateCcw size={12} /> Qaytdi</button>
-								<button disabled={saving} onClick={() => run(() => call('delete', `excuse/${x._id}`), "Sabab o'chirildi")} title="Sababni o'chirish" className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><FiTrash2 size={13} /></button>
+								<button disabled={saving} onClick={() => run(() => call('put', `excuse/${x._id}/close`), "O'quvchi qaytdi: endi sinfda kutiladi")} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiRotateCcw size={12} /> {tx("Qaytdi")}</button>
+								<button disabled={saving} onClick={() => run(() => call('delete', `excuse/${x._id}`), "Sabab o'chirildi")} title={tx("Sababni o'chirish")} className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><FiTrash2 size={13} /></button>
 							</div>
 						</li>
 					))}
@@ -70,15 +71,15 @@ const StudentExcuseCard = ({ sinfId, date, onChanged }) => {
 			)}
 
 			<form onSubmit={add} className="grid grid-cols-1 md:grid-cols-6 gap-2 rounded-xl bg-gray-50 p-3">
-				<SearchableSelect variant="outline" icon={false} className="md:col-span-2 w-full" searchPlaceholder="O'quvchi qidirish..." placeholder="O'quvchini tanlang"
+				<SearchableSelect variant="outline" icon={false} className="md:col-span-2 w-full" searchPlaceholder={tx("O'quvchi qidirish...")} placeholder={tx("O'quvchini tanlang")}
 					value={form.studentId} onChange={v => setForm({ ...form, studentId: v })}
 					options={[{ value: '', label: "O'quvchini tanlang" }, ...free.map(s => ({ value: s._id, label: s.fullName }))]} />
 				<SearchableSelect variant="outline" icon={false} className="w-full" value={form.type} onChange={v => setForm({ ...form, type: v })}
 					options={Object.entries(types).map(([k, label]) => ({ value: k, label }))} />
-				<input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} title="Boshlanish sanasi" className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
-				<input type="date" value={form.endDate} min={form.startDate} onChange={e => setForm({ ...form, endDate: e.target.value })} title="Tugash sanasi (bo'sh = qaytguncha)" className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
-				<button disabled={saving} className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-50"><FiPlus size={14} /> Qo'shish</button>
-				<input value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} maxLength={300} placeholder="Izoh (ixtiyoriy): masalan, isitma, shifokor ma'lumotnomasi" className="md:col-span-6 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
+				<input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} title={tx("Boshlanish sanasi")} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
+				<input type="date" value={form.endDate} min={form.startDate} onChange={e => setForm({ ...form, endDate: e.target.value })} title={tx("Tugash sanasi (bo'sh = qaytguncha)")} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
+				<button disabled={saving} className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-50"><FiPlus size={14} /> {tx("Qo'shish")}</button>
+				<input value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} maxLength={300} placeholder={tx("Izoh (ixtiyoriy): masalan, isitma, shifokor ma'lumotnomasi")} className="md:col-span-6 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
 			</form>
 		</div>
 	)

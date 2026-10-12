@@ -1,8 +1,9 @@
 import React from 'react'
+import { tx } from '../../i18n'
 
 const UserHome = () => {
 	return (
-		<div>UserHome</div>
+		<div>{tx("UserHome")}</div>
 	)
 }
 

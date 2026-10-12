@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react'
 import { FiAlertCircle, FiCheckCircle, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import GlobalCommentModal, { typeColor, typeLabel } from '../../components/GlobalCommentModal'
+import SearchableSelect from '../../components/SearchableSelect'
 import { getTashkentDateString } from '../../utils/formatDate'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const STUDENT_TYPES = { kasallik: 'Kasallik', oilaviy: 'Oilaviy sabab', musobaqa: 'Musobaqa / tadbir', boshqa: 'Boshqa sabab' }
 const STUDENT_TYPE_COLORS = { kasallik: 'bg-orange-50 text-orange-700', oilaviy: 'bg-violet-50 text-violet-700', musobaqa: 'bg-blue-50 text-blue-700', boshqa: 'bg-gray-100 text-gray-700' }
@@ -156,13 +159,9 @@ const UserComments = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="min-h-full bg-gray-50 p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Global Kommentlar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Xodimlar va o'quvchilarning sababli kelmaganligi</p>
-        </div>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
         <button
           onClick={() => personType === 'student' ? openStudentModal() : setModal({ employeeId: null, employeeName: '', existing: null, pickUser: true })}
           className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition shadow-sm"
@@ -170,7 +169,7 @@ const UserComments = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          {personType === 'student' ? 'Yangi sabab' : 'Yangi komment'}
+          {personType === 'student' ? tx("Yangi sabab") : tx("Yangi komment")}
         </button>
       </div>
 
@@ -205,7 +204,7 @@ const UserComments = () => {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={personType === 'student' ? "O'quvchi yoki izoh bo'yicha qidirish..." : "Xodim yoki izoh bo'yicha qidirish..."}
+            placeholder={personType === 'student' ? tx("O'quvchi yoki izoh bo'yicha qidirish...") : tx("Xodim yoki izoh bo'yicha qidirish...")}
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-black placeholder-gray-400 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none bg-white"
           />
         </div>
@@ -219,7 +218,7 @@ const UserComments = () => {
         /* ---- FAOL KOMMENTLAR: xodimlar ro'yxati ---- */
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           {filteredUsers.length === 0 ? (
-            <p className="text-center text-gray-400 py-16 text-sm">Xodim topilmadi</p>
+            <p className="text-center text-gray-400 py-16 text-sm">{tx("Xodim topilmadi")}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {filteredUsers.map(user => {
@@ -230,7 +229,7 @@ const UserComments = () => {
                       {/* Avatar */}
                       <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center shrink-0 overflow-hidden">
                         {user.photo
-                          ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} className="w-full h-full object-cover" alt="" />
+                          ? <img src={`${uploadUrl(user.photo)}`} className="w-full h-full object-cover" alt="" />
                           : user.fullName?.charAt(0)
                         }
                       </div>
@@ -246,7 +245,7 @@ const UserComments = () => {
                             </span>
                             <span className="text-xs text-gray-500 break-words">{comment.comment}</span>
                             <span className="text-xs text-gray-400 whitespace-nowrap">
-                              {comment.startDate}{comment.endDate ? ` → ${comment.endDate}` : ' (muddatsiz)'}
+                              {comment.startDate}{comment.endDate ? ` → ${comment.endDate}` : tx(" (muddatsiz)")}
                             </span>
                           </div>
                         )}
@@ -260,13 +259,13 @@ const UserComments = () => {
                         <button
                           onClick={() => handleClose(comment._id, user.fullName)}
                           disabled={closingId === comment._id}
-                          title="Xodim qaytdi — kommentni yopish"
+                          title={tx("Xodim qaytdi — kommentni yopish")}
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition text-xs font-medium disabled:opacity-40"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
-                          Qaytdi
+                          {tx("Qaytdi")}
                         </button>
                       )}
                       <button
@@ -275,7 +274,7 @@ const UserComments = () => {
                           ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
                           : 'bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600'
                           }`}
-                        title={comment ? "Tahrirlash" : "Komment qo'shish"}
+                        title={comment ? tx("Tahrirlash") : tx("Komment qo'shish")}
                       >
                         {comment ? (
                           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -292,7 +291,7 @@ const UserComments = () => {
                           onClick={() => handleDelete(comment._id, user.fullName)}
                           disabled={deletingId === comment._id}
                           className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition disabled:opacity-40"
-                          title="O'chirish"
+                          title={tx("O'chirish")}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -309,28 +308,28 @@ const UserComments = () => {
       ) : tab === 'active' ? (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           {filteredStudentExcuses.filter(c => c.active).length === 0 ? (
-            <p className="text-center text-gray-400 py-16 text-sm">Faol sababli kelmagan o'quvchi topilmadi</p>
+            <p className="text-center text-gray-400 py-16 text-sm">{tx("Faol sababli kelmagan o'quvchi topilmadi")}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {filteredStudentExcuses.filter(c => c.active).map(excuse => (
                 <div key={excuse._id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 hover:bg-gray-50 transition">
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <div className="w-9 h-9 rounded-full bg-sky-100 text-sky-700 font-bold text-sm flex items-center justify-center shrink-0 overflow-hidden">
-                      {excuse.student?.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${excuse.student.photo}`} className="w-full h-full object-cover" alt="" /> : excuse.studentName?.charAt(0)}
+                      {excuse.student?.photo ? <img src={`${uploadUrl(excuse.student.photo)}`} className="w-full h-full object-cover" alt="" /> : excuse.studentName?.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{excuse.studentName}</p>
                       <p className="text-xs text-gray-400 truncate">{excuse.sinfName}</p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STUDENT_TYPE_COLORS[excuse.type] || STUDENT_TYPE_COLORS.boshqa}`}>{STUDENT_TYPES[excuse.type] || excuse.label || 'Boshqa sabab'}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STUDENT_TYPE_COLORS[excuse.type] || STUDENT_TYPE_COLORS.boshqa}`}>{STUDENT_TYPES[excuse.type] || excuse.label || tx("Boshqa sabab")}</span>
                         {excuse.comment && <span className="text-xs text-gray-500 break-words">{excuse.comment}</span>}
-                        <span className="text-xs text-gray-400 whitespace-nowrap">{excuse.startDate}{excuse.endDate ? ` → ${excuse.endDate}` : ' (qaytguncha)'}</span>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">{excuse.startDate}{excuse.endDate ? ` → ${excuse.endDate}` : tx(" (qaytguncha)")}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto">
-                    <button onClick={() => handleClose(excuse._id, excuse.studentName, 'student')} disabled={closingId === excuse._id} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition text-xs font-medium disabled:opacity-40" title="O'quvchi qaytdi — sababni yopish">Qaytdi</button>
-                    <button onClick={() => handleDelete(excuse._id, excuse.studentName, 'student')} disabled={deletingId === excuse._id} className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition disabled:opacity-40" title="Sababni o'chirish">
+                    <button onClick={() => handleClose(excuse._id, excuse.studentName, 'student')} disabled={closingId === excuse._id} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition text-xs font-medium disabled:opacity-40" title={tx("O'quvchi qaytdi — sababni yopish")}>{tx("Qaytdi")}</button>
+                    <button onClick={() => handleDelete(excuse._id, excuse.studentName, 'student')} disabled={deletingId === excuse._id} className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition disabled:opacity-40" title={tx("Sababni o'chirish")}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a1.995 1.995 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
@@ -343,23 +342,23 @@ const UserComments = () => {
         /* ---- BARCHA TARIX ---- */
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           {filteredHistory.length === 0 ? (
-            <p className="text-center text-gray-400 py-16 text-sm">Kommentlar topilmadi</p>
+            <p className="text-center text-gray-400 py-16 text-sm">{tx("Kommentlar topilmadi")}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {filteredHistory.map(c => (
                 <div key={c._id} className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 hover:bg-gray-50 transition">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <span className={`shrink-0 mt-0.5 text-xs px-2.5 py-1 rounded-full font-medium ${personType === 'student' ? STUDENT_TYPE_COLORS[c.type] || STUDENT_TYPE_COLORS.boshqa : typeColor(c.type)}`}>
-                      {personType === 'student' ? STUDENT_TYPES[c.type] || c.label || 'Boshqa sabab' : typeLabel(c.type)}
+                      {personType === 'student' ? STUDENT_TYPES[c.type] || c.label || tx("Boshqa sabab") : typeLabel(c.type)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800">{c.personName}</p>
                       <p className="text-xs text-gray-400">{c.subtitle}</p>
                       <p className="text-sm text-gray-600 mt-1 break-words">{c.comment}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {c.startDate}{c.endDate ? ` → ${c.endDate}` : ' (muddatsiz)'}
-                        {c.endDate && c.endDate < today && <span className="ml-2 text-gray-300">· tugagan</span>}
-                        {personType === 'student' && c.active && <span className="ml-2 text-sky-600">· faol</span>}
+                        {c.startDate}{c.endDate ? ` → ${c.endDate}` : tx(" (muddatsiz)")}
+                        {c.endDate && c.endDate < today && <span className="ml-2 text-gray-300">{tx("· tugagan")}</span>}
+                        {personType === 'student' && c.active && <span className="ml-2 text-sky-600">{tx("· faol")}</span>}
                       </p>
                     </div>
                   </div>
@@ -367,7 +366,7 @@ const UserComments = () => {
                     {personType === 'employee' && <button
                       onClick={() => setModal({ employeeId: c.employee?._id || c.employee, employeeName: c.personName, existing: c })}
                       className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-amber-50 hover:text-amber-600 transition"
-                      title="Tahrirlash"
+                      title={tx("Tahrirlash")}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -404,12 +403,12 @@ const UserComments = () => {
                 }
               </div>
               <h3 className="text-base font-bold text-slate-800">
-                {confirmModal.type === 'close' ? (confirmModal.scope === 'student' ? "O'quvchi qaytdi?" : 'Xodim qaytdi?') : "O'chirishni tasdiqlang"}
+                {confirmModal.type === 'close' ? (confirmModal.scope === 'student' ? tx("O'quvchi qaytdi?") : tx("Xodim qaytdi?")) : tx("O'chirishni tasdiqlang")}
               </h3>
               <p className="text-sm text-slate-500 mt-1.5">
                 {confirmModal.type === 'close'
-                  ? <><strong className="text-slate-700">{confirmModal.name}</strong> qaytdi deb belgilansinmi? Sabab bugundan yopiladi.</>
-                  : <><strong className="text-slate-700">{confirmModal.name || 'Bu'}</strong> {confirmModal.scope === 'student' ? "o'quvchining sababini" : 'xodimning kommentini'} o'chirishni xohlaysizmi?</>
+                  ? <><strong className="text-slate-700">{confirmModal.name}</strong> {tx("qaytdi deb belgilansinmi? Sabab bugundan yopiladi.")}</>
+                  : <><strong className="text-slate-700">{confirmModal.name || tx("Bu")}</strong> {confirmModal.scope === 'student' ? tx("o'quvchining sababini") : tx("xodimning kommentini")} {tx("o'chirishni xohlaysizmi?")}</>
                 }
               </p>
             </div>
@@ -420,7 +419,7 @@ const UserComments = () => {
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition flex items-center justify-center gap-1.5"
               >
                 <FiX size={15} />
-                Bekor
+                {tx("Bekor")}
               </button>
               <button
                 onClick={confirmAction}
@@ -430,8 +429,8 @@ const UserComments = () => {
                   }`}
               >
                 {confirmModal.type === 'close'
-                  ? <><FiCheckCircle size={15} /> Tasdiqlash</>
-                  : <><FiAlertCircle size={15} /> O'chirish</>
+                  ? <><FiCheckCircle size={15} /> {tx("Tasdiqlash")}</>
+                  : <><FiAlertCircle size={15} /> {tx("O'chirish")}</>
                 }
               </button>
             </div>
@@ -455,7 +454,7 @@ const UserComments = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={e => e.target === e.currentTarget && setModal(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[70vh] flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b">
-              <h2 className="font-bold text-gray-800">Xodimni tanlang</h2>
+              <h2 className="font-bold text-gray-800">{tx("Xodimni tanlang")}</h2>
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-600"><FiX size={18} /></button>
             </div>
             <div className="p-3 border-b">
@@ -463,7 +462,7 @@ const UserComments = () => {
                 autoFocus
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Qidirish..."
+                placeholder={tx("Qidirish...")}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
@@ -492,21 +491,21 @@ const UserComments = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={e => e.target === e.currentTarget && !studentSaving && setStudentModal(false)}>
           <form onSubmit={saveStudentExcuse} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <div><h2 className="text-lg font-bold text-gray-800">O'quvchiga sabab qo'shish</h2><p className="text-sm text-gray-500">Sababli kunlar davomat foiziga kirmaydi</p></div>
+              <div><h2 className="text-lg font-bold text-gray-800">{tx("O'quvchiga sabab qo'shish")}</h2><p className="text-sm text-gray-500">{tx("Sababli kunlar davomat foiziga kirmaydi")}</p></div>
               <button type="button" onClick={() => setStudentModal(false)} disabled={studentSaving} className="text-gray-400 hover:text-gray-600"><FiX size={18} /></button>
             </div>
-            <SearchableSelect variant="outline" icon={false} value={studentForm.studentId} onChange={studentId => setStudentForm(f => ({ ...f, studentId }))} placeholder="O'quvchini tanlang" searchPlaceholder="O'quvchini qidirish..." options={[{ value: '', label: "O'quvchini tanlang" }, ...availableStudents.map(s => ({ value: s._id, label: `${s.fullName} · ${s.sinf?.name || ''}` }))]} />
+            <SearchableSelect variant="outline" icon={false} value={studentForm.studentId} onChange={studentId => setStudentForm(f => ({ ...f, studentId }))} placeholder={tx("O'quvchini tanlang")} searchPlaceholder={tx("O'quvchini qidirish...")} options={[{ value: '', label: "O'quvchini tanlang" }, ...availableStudents.map(s => ({ value: s._id, label: `${s.fullName} · ${s.sinf?.name || ''}` }))]} />
             <select value={studentForm.type} onChange={e => setStudentForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black bg-white">
               {Object.entries(STUDENT_TYPES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
             <div className="grid grid-cols-2 gap-3">
-              <label className="text-sm text-gray-700">Boshlanish sanasi<input type="date" required value={studentForm.startDate} onChange={e => setStudentForm(f => ({ ...f, startDate: e.target.value }))} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black" /></label>
-              <label className="text-sm text-gray-700">Tugash sanasi<input type="date" min={studentForm.startDate} value={studentForm.endDate} onChange={e => setStudentForm(f => ({ ...f, endDate: e.target.value }))} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black" /></label>
+              <label className="text-sm text-gray-700">{tx("Boshlanish sanasi")}<input type="date" required value={studentForm.startDate} onChange={e => setStudentForm(f => ({ ...f, startDate: e.target.value }))} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black" /></label>
+              <label className="text-sm text-gray-700">{tx("Tugash sanasi")}<input type="date" min={studentForm.startDate} value={studentForm.endDate} onChange={e => setStudentForm(f => ({ ...f, endDate: e.target.value }))} className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black" /></label>
             </div>
-            <textarea value={studentForm.comment} onChange={e => setStudentForm(f => ({ ...f, comment: e.target.value }))} maxLength={300} rows={3} placeholder="Izoh (ixtiyoriy)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black resize-none" />
+            <textarea value={studentForm.comment} onChange={e => setStudentForm(f => ({ ...f, comment: e.target.value }))} maxLength={300} rows={3} placeholder={tx("Izoh (ixtiyoriy)")} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black resize-none" />
             <div className="flex gap-3 pt-1">
-              <button type="button" disabled={studentSaving} onClick={() => setStudentModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">Bekor</button>
-              <button type="submit" disabled={studentSaving || !availableStudents.length} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">{studentSaving ? 'Saqlanmoqda...' : 'Saqlash'}</button>
+              <button type="button" disabled={studentSaving} onClick={() => setStudentModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">{tx("Bekor")}</button>
+              <button type="submit" disabled={studentSaving || !availableStudents.length} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">{studentSaving ? tx("Saqlanmoqda...") : tx("Saqlash")}</button>
             </div>
           </form>
         </div>

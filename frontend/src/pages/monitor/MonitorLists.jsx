@@ -55,21 +55,21 @@ const MonitorLists = () => {
 				<Segmented value={kind} onChange={k => update({ kind: k === 'student' ? '' : k })} options={[{ key: 'student', label: "O'quvchilar" }, { key: 'staff', label: 'Xodimlar' }]} />
 				<DateField value={date} max={todayStr()} onChange={v => update({ date: v === todayStr() ? '' : v })} />
 				<SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={v => update({ school: v })} />
-				<button onClick={download} disabled={exporting || !data?.total} className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={14} /> {exporting ? '...' : 'Excel'}</button>
+				<button onClick={download} disabled={exporting || !data?.total} className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={14} /> {exporting ? '...' : tx("Excel")}</button>
 			</PageHeader>
 
 			<div className="flex flex-wrap items-center gap-3 mb-4">
 				<Chips value={status} onChange={v => update({ status: v })} options={[
 					{ key: '', label: 'Hammasi', count: s?.total }, { key: 'came', label: 'Kelgan', count: s?.came }, { key: 'inside', label: 'Maktabda', count: s?.inside },
 					{ key: 'late', label: 'Kech qolgan', count: s?.late }, { key: 'absent', label: 'Kelmagan', count: s?.absent }]} />
-				<div className="ml-auto"><SearchBox value={q} onChange={setQ} placeholder="Ism, ID" /></div>
+				<div className="ml-auto"><SearchBox value={q} onChange={setQ} placeholder={tx("Ism, ID")} /></div>
 			</div>
 
 			{data?.bySchool?.length > 0 && !schoolId && (
 				<div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
-					<p className="text-xs font-semibold text-gray-500 mb-2">Maktablar kesimi — bosing, shu maktabga filtrlang</p>
+					<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Maktablar kesimi — bosing, shu maktabga filtrlang")}</p>
 					<div className="flex flex-wrap gap-2">
-						{data.bySchool.map(b => <button key={b.schoolId} onClick={() => update({ school: b.schoolId })} className="px-3 py-1.5 rounded-full text-xs bg-slate-50 border border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-200">{b.schoolName || "Noma'lum maktab"} <b className="ml-1">{fmt(b.n)}</b></button>)}
+						{data.bySchool.map(b => <button key={b.schoolId} onClick={() => update({ school: b.schoolId })} className="px-3 py-1.5 rounded-full text-xs bg-slate-50 border border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-200">{b.schoolName || tx("Noma'lum maktab")} <b className="ml-1">{fmt(b.n)}</b></button>)}
 					</div>
 				</div>
 			)}
@@ -82,18 +82,18 @@ const MonitorLists = () => {
 							{(data?.people || []).map(p => (
 								<tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30">
 									<td className="px-4 py-2.5"><PersonLink kind={kind} id={p._id} name={p.fullName} sub={p.code} photo={p.photo} /></td>
-									<td className="px-4 py-2.5">{p.schoolName ? <SchoolLink id={p.schoolId} name={p.schoolName} className="text-sm" /> : <span className="text-sm text-gray-400">Maktab topilmadi</span>}</td>
+									<td className="px-4 py-2.5">{p.schoolName ? <SchoolLink id={p.schoolId} name={p.schoolName} className="text-sm" /> : <span className="text-sm text-gray-400">{tx("Maktab topilmadi")}</span>}</td>
 									<td className="px-4 py-2.5 text-gray-600">{(kind === 'student' ? p.sinf : p.position) || '—'}</td>
-									<td className="px-4 py-2.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATE[p.status][1]}`}>{STATE[p.status][0]}</span>{p.late && <span className="ml-1.5 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">Kech</span>}</td>
+									<td className="px-4 py-2.5 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATE[p.status][1]}`}>{STATE[p.status][0]}</span>{p.late && <span className="ml-1.5 px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">{tx("Kech")}</span>}</td>
 									<td className="px-4 py-2.5">{p.firstIn || '—'}</td><td className="px-4 py-2.5">{p.lastOut || '—'}</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
-				{loading && !data && <Empty text="Yuklanmoqda..." />}
-				{!loading && data?.people?.length === 0 && <Empty text="Topilmadi" />}
-				{error && <Empty text="Ma'lumotni yuklab bo'lmadi" />}
+				{loading && !data && <Empty text={tx("Yuklanmoqda...")} />}
+				{!loading && data?.people?.length === 0 && <Empty text={tx("Topilmadi")} />}
+				{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 				{data && <Pagination page={data.page} pages={data.pages} total={data.total} onChange={setPage} />}
 			</div>
 		</Page>

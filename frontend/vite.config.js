@@ -14,7 +14,15 @@ export default defineConfig({
         // Standart 2 MiB chegara — recharts kabi kutubxonalar qo'shilgach
         // asosiy bundle shundan oshib qoldi, service-worker precache
         // bosqichi xato berardi.
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // Faqat ilova qobig'i (kichik fayllar) oldindan keshlanadi. Katta fayllar (jonli video pleyeri ~4 MB, Excel/Word eksport
+        // kutubxonalari) va ezuikit_static birinchi kirishda 25 MB ni orqa fonda yuklab tarmoqni band qilmasin: ular kerak bo'lganda
+        // yuklanadi va birinchi marta ochilgach brauzer keshida qoladi (runtimeCaching)
+        maximumFileSizeToCacheInBytes: 700 * 1024,
+        globIgnores: ['**/ezuikit_static/**', '**/assets/ezuikit-*.js', '**/assets/exceljs-*.js', '**/assets/export-*.js'],
+        runtimeCaching: [
+          { urlPattern: ({ url }) => url.pathname.startsWith('/ezuikit_static/'), handler: 'CacheFirst', options: { cacheName: 'ezuikit-static', expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 3600 } } },
+          { urlPattern: ({ url }) => /\/assets\/.*\.js$/.test(url.pathname), handler: 'CacheFirst', options: { cacheName: 'big-chunks', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 3600 } } }
+        ],
       },
       // Telefonga "ilova" sifatida o'rnatiladi (Chrome: ⋮ → Ilovani o'rnatish; iPhone: Ulashish → Asosiy ekranga)
       manifest: {
@@ -49,6 +57,8 @@ export default defineConfig({
           if (/node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler|clsx)[\\/]/.test(id)) return 'react'
           if (/node_modules[\\/](recharts|recharts-scale|victory-vendor|d3-[^\\/]+|internmap)[\\/]/.test(id)) return 'charts'
           if (/node_modules[\\/](leaflet|react-leaflet|@react-leaflet)[\\/]/.test(id)) return 'maps'
+          if (/node_modules[\\/](ezuikit-js)[\\/]/.test(id)) return 'ezuikit'
+          if (/node_modules[\\/](exceljs)[\\/]/.test(id)) return 'exceljs'
           if (/node_modules[\\/](jspdf|jspdf-autotable|html2canvas|xlsx-js-style|xlsx)[\\/]/.test(id)) return 'export'
         },
       },

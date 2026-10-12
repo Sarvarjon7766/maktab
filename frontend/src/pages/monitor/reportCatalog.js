@@ -22,7 +22,7 @@ const dt = (d) => (d ? new Date(d).toLocaleString('uz-UZ', { timeZone: 'Asia/Tas
 const wd = (date) => WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]
 const SEV = { high: 'Jiddiy', medium: "O'rta", low: 'Past' }
 const STATUS = { absent: 'Kelmagan', inside: 'Maktabda', out: 'Chiqib ketgan' }
-const KIND = { motion: 'Harakat', density: 'Odam zichligi', people: "Odamlar soni g'ayritabiiy", enter: 'Hududga kirish', exit: 'Hududdan chiqish', multi: "Ko'p turdagi obyekt", vision_empty: "Sinf bo'sh qolgan", vision_surge: 'Odamlar keskin oshgan', vision_overcrowd: "Ro'yxatdan ortiq odam" }
+const KIND = { motion: 'Harakat', density: 'Odam zichligi', people: "Odamlar soni g'ayritabiiy", enter: 'Hududga kirish', exit: 'Hududdan chiqish', multi: "Ko'p turdagi obyekt", vision_empty: "Sinf bo'sh qolgan", vision_surge: 'Odamlar keskin oshgan', vision_overcrowd: "Ro'yxatdan ortiq odam", vision_restless: 'Sinf notinch', vision_commotion: 'Zalda tartibsizlik' }
 const LEVEL = { attention: "E'tibor talab", mid: "O'rta", good: 'Yaxshi', nodata: "Ma'lumot yo'q" }
 const range2 = (r) => `${r.from} — ${r.to}`
 

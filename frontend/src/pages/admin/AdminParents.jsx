@@ -10,6 +10,7 @@ import RequestsTab from './parents/RequestsTab'
 import ShareTab from './parents/ShareTab'
 import StudentsTab from './parents/StudentsTab'
 import { api, sinfApi } from './parents/ui'
+import { tx } from '../../i18n'
 
 // Qamrov halqasi: nechta o'quvchining kamida bitta ota-onasi Telegramga ulangan
 const Ring = ({ pct }) => {
@@ -51,8 +52,8 @@ const AdminParents = () => {
 	}
 	const goStudents = (filters) => { setPreset({ ...filters }); setTab('students') }
 
-	if (!ov) return <div className="p-6 text-sm text-gray-500">Yuklanmoqda...</div>
-	if (ov.error) return <div className="p-6"><div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">Ma'lumotni yuklab bo'lmadi. Sahifani yangilab ko'ring.</div></div>
+	if (!ov) return <div className="p-6 text-sm text-gray-500">{tx("Yuklanmoqda...")}</div>
+	if (ov.error) return <div className="p-6"><div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Ma'lumotni yuklab bo'lmadi. Sahifani yangilab ko'ring.")}</div></div>
 
 	const c = ov.counts
 	const pct = c.students ? Math.round(c.coveredStudents / c.students * 100) : 0
@@ -70,15 +71,11 @@ const AdminParents = () => {
 	const tabs = [['share', 'Ulash'], ['students', 'Farzandlar'], ['parents', `Ota-onalar${c.guardians ? ` (${c.guardians})` : ''}`], ['requests', "So'rovlar", c.pending], ['reports', 'Sabab xabarlari', c.reports], ['messages', 'Xabarlar']]
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6 space-y-5">
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<div>
-					<h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><FaTelegramPlane className="text-sky-500" /> Ota-onalar boti</h1>
-					<p className="text-sm text-gray-500">Ota-onalarni Telegram orqali ro'yxatga oling va farzandiga biriktiring: farzandi maktabga kirsa yoki chiqsa, ularga avtomatik xabar boradi</p>
-				</div>
+		<div className="min-h-full bg-slate-50 p-4 md:p-6 space-y-5">
+			<div className="flex flex-wrap items-center justify-end gap-3">
 				<div className="flex items-center gap-2">
-					<span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${ov.bot.ready ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}><span className={`w-2 h-2 rounded-full ${ov.bot.ready ? 'bg-green-500' : 'bg-amber-500'}`} />{ov.bot.ready ? `Bot ulangan: @${ov.bot.username}` : 'Bot ulanmagan'}</span>
-					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw size={14} /> Yangilash</button>
+					<span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${ov.bot.ready ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}><span className={`w-2 h-2 rounded-full ${ov.bot.ready ? 'bg-green-500' : 'bg-amber-500'}`} />{ov.bot.ready ? `Bot ulangan: @${ov.bot.username}` : tx("Bot ulanmagan")}</span>
+					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw size={14} /> {tx("Yangilash")}</button>
 				</div>
 			</div>
 
@@ -89,15 +86,15 @@ const AdminParents = () => {
 			</div>
 
 			<section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-wrap items-center gap-6">
-				<div role="button" tabIndex={0} onClick={() => setTab('students')} onKeyDown={e => { if (e.key === 'Enter') setTab('students') }} className="flex items-center gap-4 cursor-pointer rounded-xl hover:bg-gray-50 transition"><Ring pct={pct} /><div><p className="text-xs text-gray-500">Ota-onasi ulangan o'quvchilar</p><p className="text-2xl font-bold text-gray-900">{c.coveredStudents} <span className="text-base font-medium text-gray-400">/ {c.students}</span></p></div></div>
+				<div role="button" tabIndex={0} onClick={() => setTab('students')} onKeyDown={e => { if (e.key === 'Enter') setTab('students') }} className="flex items-center gap-4 cursor-pointer rounded-xl hover:bg-gray-50 transition"><Ring pct={pct} /><div><p className="text-xs text-gray-500">{tx("Ota-onasi ulangan o'quvchilar")}</p><p className="text-2xl font-bold text-gray-900">{c.coveredStudents} <span className="text-base font-medium text-gray-400">/ {c.students}</span></p></div></div>
 				<div className="flex flex-wrap gap-3 flex-1 min-w-[260px]">
-					<Mini label="Ulangan ota-onalar" value={c.guardians} onClick={() => setTab('parents')} />
-					<Mini onClick={() => setTab('messages')} label="Bugun yuborilgan xabarlar" value={c.sentToday} hint={c.failedToday ? `${c.failedToday} ta xato` : 'Xatosiz'} tone={c.failedToday ? 'text-gray-900' : 'text-gray-900'} />
-					<Mini onClick={() => setTab('requests')} label="Tasdiqlash kutilmoqda" value={c.pending} hint={c.pending ? "«So'rovlar» bo'limida" : "Yo'q"} tone={c.pending ? 'text-amber-600' : 'text-gray-900'} />
+					<Mini label={tx("Ulangan ota-onalar")} value={c.guardians} onClick={() => setTab('parents')} />
+					<Mini onClick={() => setTab('messages')} label={tx("Bugun yuborilgan xabarlar")} value={c.sentToday} hint={c.failedToday ? `${c.failedToday} ta xato` : tx("Xatosiz")} tone={c.failedToday ? 'text-gray-900' : 'text-gray-900'} />
+					<Mini onClick={() => setTab('requests')} label={tx("Tasdiqlash kutilmoqda")} value={c.pending} hint={c.pending ? tx("«So'rovlar» bo'limida") : tx("Yo'q")} tone={c.pending ? 'text-amber-600' : 'text-gray-900'} />
 				</div>
 			</section>
 
-			<nav className="flex gap-1.5 overflow-x-auto pb-1" aria-label="Bo'limlar">
+			<nav className="flex gap-1.5 overflow-x-auto pb-1" aria-label={tx("Bo'limlar")}>
 				{tabs.map(([k, l, badge]) => (
 					<button key={k} onClick={() => setTab(k)} className={`px-4 py-2.5 rounded-xl text-sm font-medium border whitespace-nowrap transition inline-flex items-center gap-2 ${tab === k ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>
 						{l}{badge > 0 && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] flex items-center justify-center">{badge}</span>}

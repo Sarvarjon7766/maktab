@@ -20,11 +20,10 @@ const hikCameraEventSchema = new Schema({
 	detail: { type: String, default: '' },
 	count: { type: Number, default: null },
 	clip: { type: String, default: null },
-	// Sun'iy intellekt avtomatik saqlagan isbot (kind: vision_*): sabab sarlavhasi, tafsiloti, odam soni va qisqa lavha
-	title: { type: String, default: '' },
-	detail: { type: String, default: '' },
-	count: { type: Number, default: null },
-	clip: { type: String, default: null },
+	// Hodisa lahzasidagi odam holatlari (taxminiy): o'tirgan, tik turgan, boshi egilgan, qo'l ko'targan va h.k.
+	pose: { type: Object, default: null },
+	// "AI ikkinchi fikri" (ko'rish modeli): seated | standing | crowd | fight | empty
+	scene: { type: String, default: null },
 	hour: { type: Number, required: true },
 	dateString: { type: String, required: true }
 }, { timestamps: true })

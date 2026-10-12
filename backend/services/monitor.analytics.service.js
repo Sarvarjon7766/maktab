@@ -1,6 +1,8 @@
 // 'monitor' roli uchun chuqur tahlillar — FAQAT o'qish. Har bir natija "tafsilot"li: qaysi maktab, sinf, shaxs yoki
 // hodisadan kelib chiqqani identifikatorlari bilan qaytariladi, shunda UI har bir raqamdan manbaga o'ta oladi.
 const mongoose = require('mongoose')
+const { pageLate, MAX_ALL } = require('../utils/listPaging')
+const lateCache = new Map() // sahifalangan kech qolganlar reytingi: kalit -> { t, entries } (60 soniya)
 const { publicCode } = require('../utils/publicCode')
 const schoolModel = require('../models/school.model')
 const userModel = require('../models/user.model')
@@ -20,7 +22,7 @@ const MonitorService = require('./monitor.service')
 const HikService = require('./hikconnect.service')
 const ExcuseService = require('./excuse.service')
 const employeeCommentModel = require('../models/employee.comment.model')
-const { schoolFilter, schoolCond, inScope } = require('../utils/monitorScope')
+const { schoolFilter, schoolCond, inScope, scopeKey } = require('../utils/monitorScope')
 
 const TZ = 'Asia/Tashkent'
 const STAFF_ROLES = ['viewer', 'leader']
@@ -134,10 +136,18 @@ class MonitorAnalyticsService {
 	}
 
 	// ---------- 2) Eng ko'p kech qolganlar (shaxslar reytingi) ----------
-	async latePeople({ kind, from, to, schoolId, limit, sinfIds }) {
+	// page berilsa (yoki all=1) — sahifalangan rejim: hamma kech qolganlar hisoblanadi (keshlanadi), qidiruv/filtr/saralash/sahifa
+	// serverda bajariladi. page bo'lmasa avvalgi xatti-harakat: eng ko'p kech qolgan `limit` ta (hisobotlar, bosh sahifa kartalari)
+	async latePeople({ kind, from, to, schoolId, limit, sinfIds, page, pageSize, q, group, sort, all }) {
 		const P = PERSON[kind]
 		if (!P) return { success: false, status: 400, message: "Tur noto'g'ri" }
 		const range = resolveRange(from, to)
+		const paged = page !== undefined || (all !== undefined && all !== '' && all !== '0')
+		const cacheKey = paged ? `${scopeKey()}|${kind}|${range.from}|${range.to}|${schoolId || ''}|${Array.isArray(sinfIds) ? sinfIds.join(',') : ''}` : null
+		if (cacheKey) {
+			const hit = lateCache.get(cacheKey)
+			if (hit && Date.now() - hit.t < 60000) return { success: true, ...range, kind, totalLatePeople: hit.entries.length, ...pageLate(hit.entries, kind, { q, group, sort, page, pageSize, all }) }
+		}
 		// sinf rahbari: faqat o'z sinflari o'quvchilari
 		let only = {}
 		if (Array.isArray(sinfIds)) only = { [P.field]: { $in: (await studentModel.find({ sinf: { $in: sinfIds.map(oid) } }).select('_id').lean()).map(x => x._id) } }
@@ -152,24 +162,27 @@ class MonitorAnalyticsService {
 				{ $project: { p: '$_id.p', d: '$_id.d', hm: { $dateToString: { date: { $add: ['$first', 18000000] }, format: '%H:%M' } } } },
 				{ $group: { _id: '$p', days: { $sum: 1 }, lateDays: { $sum: { $cond: [{ $gt: ['$hm', limitStr] }, 1, 0] } }, worst: { $max: '$hm' } } },
 				{ $match: { lateDays: { $gt: 0 } } },
-				{ $sort: { lateDays: -1 } }, { $limit: 300 }
+				{ $sort: { lateDays: -1 } }, { $limit: paged ? 5000 : 300 }
 			])
 			agg.forEach(r => rows.push({ ...r, schoolId: school._id, limitStr }))
 		})
 		rows.sort((a, b) => b.lateDays - a.lateDays || pct(b.lateDays, b.days) - pct(a.lateDays, a.days))
-		const top = rows.slice(0, Math.min(Number(limit) || 100, 300))
+		const top = paged ? rows.slice(0, MAX_ALL) : rows.slice(0, Math.min(Number(limit) || 100, 300))
 		const people = await P.model.find({ _id: { $in: top.map(r => r._id) } }).select('fullName hodimID studentIdNumber position sinf photo').populate('sinf', 'name').lean()
 		const map = new Map(people.map(p => [String(p._id), p]))
-		return {
-			success: true, ...range, kind, totalLatePeople: rows.length,
-			people: top.map(r => {
-				const p = map.get(String(r._id)) || {}
-				return {
-					_id: r._id, fullName: p.fullName || '—', photo: p.photo || '', code: kind === 'staff' ? publicCode(p.hodimID) : publicCode(p.studentIdNumber), position: p.position || '', sinf: p.sinf?.name || '',
-					schoolId: r.schoolId, schoolName: names.get(String(r.schoolId)) || '', days: r.days, lateDays: r.lateDays, percent: pct(r.lateDays, r.days), worst: r.worst, limit: r.limitStr
-				}
-			})
+		const entries = top.map(r => {
+			const p = map.get(String(r._id)) || {}
+			return {
+				_id: r._id, fullName: p.fullName || '—', photo: p.photo || '', code: kind === 'staff' ? publicCode(p.hodimID) : publicCode(p.studentIdNumber), position: p.position || '', sinf: p.sinf?.name || '',
+				schoolId: r.schoolId, schoolName: names.get(String(r.schoolId)) || '', days: r.days, lateDays: r.lateDays, percent: pct(r.lateDays, r.days), worst: r.worst, limit: r.limitStr
+			}
+		})
+		if (paged) {
+			lateCache.set(cacheKey, { t: Date.now(), entries })
+			if (lateCache.size > 40) lateCache.delete(lateCache.keys().next().value)
+			return { success: true, ...range, kind, totalLatePeople: rows.length, ...pageLate(entries, kind, { q, group, sort, page, pageSize, all }) }
 		}
+		return { success: true, ...range, kind, totalLatePeople: rows.length, people: entries }
 	}
 
 	// ---------- 3) Xavf guruhi: tez-tez kelmaydigan yoki ketma-ket kelmayotgan o'quvchilar ----------

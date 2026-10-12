@@ -26,7 +26,8 @@ import {
 	FaClock,
 	FaUserSlash,
 	FaChartLine,
-	FaUmbrellaBeach
+	FaUmbrellaBeach,
+	FaTachometerAlt,
 } from 'react-icons/fa'
 import { FiArrowLeft, FiLogOut, FiX } from 'react-icons/fi'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
@@ -94,6 +95,7 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 				{ path: `${base}/attandance`, icon: FaClipboardCheck, label: tx('Nazorat') },
 				{ path: `${base}/camera`, icon: FaVideo, label: tx('Kameralar') },
 				{ path: `${base}/facecontrol`, icon: FaUserCheck, label: tx('FaceControl') },
+				{ path: `${base}/nazorat`, icon: FaTachometerAlt, label: tx('Sinfxonalar nazorati') },
 				{ path: `${base}/classrooms`, icon: FaChalkboard, label: tx('Sinfxonalar') },
 			],
 		},
@@ -130,8 +132,8 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 					<BrandLogo className="w-12 h-12 shrink-0" />
 					{!collapsed && (
 						<div className="leading-tight overflow-hidden">
-							<p className="font-bold truncate">{schoolId ? (schoolName || '...') : 'School Supervision'}</p>
-							<p className="text-xs text-slate-400 truncate">{schoolId ? 'Maktab ichida' : 'Platforma boshqaruvi'}</p>
+							<p className="font-bold truncate">{schoolId ? (schoolName || '...') : tx("School Supervision")}</p>
+							<p className="text-xs text-slate-400 truncate">{schoolId ? tx("Maktab ichida") : tx("Platforma boshqaruvi")}</p>
 						</div>
 					)}
 				</div>
@@ -149,7 +151,7 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 					className="flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-white border-b border-slate-700"
 				>
 					<FiArrowLeft size={13} />
-					Maktablarga qaytish
+					{tx("Maktablarga qaytish")}
 				</Link>
 			)}
 
@@ -188,10 +190,10 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 				<button
 					onClick={() => navigate('/logout')}
 					className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors ${collapsed ? 'justify-center' : ''}`}
-					title={collapsed ? "Chiqish" : undefined}
+					title={collapsed ? tx("Chiqish") : undefined}
 				>
 					<FiLogOut size={18} />
-					{!collapsed && "Chiqish"}
+					{!collapsed && tx("Chiqish")}
 				</button>
 			</div>
 		</div>

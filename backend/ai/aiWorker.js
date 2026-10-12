@@ -6,10 +6,15 @@ let detector = null
 let evidence = null
 const det = () => (detector = detector || require('./personDetector'))
 const evd = () => (evidence = evidence || require('./evidence'))
+let poser = null
+const pse = () => (poser = poser || require('./pose'))
 
 const OPS = {
-	detect: ({ buf }) => det().detectPeople(buf),
+	detect: ({ buf, tiled, score }) => det().detectPeople(buf, { tiled, score }),
+	// Holatlar: faqat sanoq qaytadi (skelet nuqtalari katta, asosiy oqimga kerak emas)
+	pose: async ({ buf, boxes, model, conf }) => (await pse().analyzePeople(buf, boxes, { model, conf })).counts,
 	smallFrame: ({ buf, result, width, color, quality }) => evd().smallFrame(buf, result, width, color, quality),
+	phones: ({ buf, boxes, score }) => require('./phone').find(buf, { boxes }, score),
 	renderEvidence: (opts) => evd().renderEvidence(opts),
 	renderClip: ({ frames, opts }) => evd().renderClip(frames, opts)
 }

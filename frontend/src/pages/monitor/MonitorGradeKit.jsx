@@ -1,6 +1,7 @@
 import { FiChevronRight } from 'react-icons/fi'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fmt, shiftDate, todayStr } from './monitorKit'
+import { tx } from '../../i18n'
 
 export const barColor = (p, avg) => (p === null || p === undefined ? '#e5e7eb' : p >= avg + 2 ? '#16a34a' : p <= avg - 2 ? '#dc2626' : '#2563eb')
 export const tone = (p, avg) => (p === null || p === undefined ? 'text-gray-300' : p >= avg + 2 ? 'text-green-600' : p <= avg - 2 ? 'text-red-600' : 'text-gray-900')
@@ -17,7 +18,7 @@ export const useGradeRange = () => {
 // Raqam qanday hisoblangani: kelgan kunlar / mumkin bo'lgan kunlar
 export const Formula = ({ present, possible, note }) => (
 	<div className="rounded-xl bg-white border border-gray-100 shadow-sm px-4 py-3 text-sm text-gray-600">
-		<span className="font-medium text-gray-800">Davomat</span> = kelgan kunlar ÷ mumkin bo'lgan kunlar = <b className="text-gray-900">{fmt(present)}</b> ÷ <b className="text-gray-900">{fmt(possible)}</b>{note && <span className="text-gray-400"> ({note})</span>}
+		<span className="font-medium text-gray-800">{tx("Davomat")}</span> {tx("= kelgan kunlar ÷ mumkin bo'lgan kunlar =")} <b className="text-gray-900">{fmt(present)}</b> ÷ <b className="text-gray-900">{fmt(possible)}</b>{note && <span className="text-gray-400"> ({note})</span>}
 	</div>
 )
 

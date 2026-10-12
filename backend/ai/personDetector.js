@@ -14,7 +14,7 @@ let sessionPromise = null
 function getSession() {
 	if (!sessionPromise) {
 		const ort = require('onnxruntime-node')
-		sessionPromise = ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['cpu'], graphOptimizationLevel: 'all' })
+		sessionPromise = ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['cpu'], graphOptimizationLevel: 'all', intraOpNumThreads: require('./threads').AI_THREADS })
 			.catch((e) => { sessionPromise = null; throw e })
 	}
 	return sessionPromise
@@ -53,7 +53,7 @@ function nms(boxes) {
 }
 
 // Bitta hudud (region) bo'yicha model ishlatadi. Qaytaradi: butun rasm koordinatalaridagi qutilar
-async function runRegion(buffer, region) {
+async function runRegion(buffer, region, scoreThreshold = SCORE_THRESHOLD, cls = 0) {
 	const ratio = Math.min(SIZE / region.width, SIZE / region.height)
 	const nw = Math.round(region.width * ratio), nh = Math.round(region.height * ratio)
 
@@ -84,8 +84,8 @@ async function runRegion(buffer, region) {
 	const boxes = []
 	for (let i = 0; i < GRIDS.length; i++) {
 		const o = i * 85
-		const score = out[o + 4] * out[o + 5] // obj * person
-		if (score < SCORE_THRESHOLD) continue
+		const score = out[o + 4] * out[o + 5 + cls] // obj * sinf ehtimoli (cls=0: odam)
+		if (score < scoreThreshold) continue
 		const [gx, gy, s] = GRIDS[i]
 		const cx = (out[o] + gx) * s, cy = (out[o + 1] + gy) * s
 		const bw = Math.exp(out[o + 2]) * s, bh = Math.exp(out[o + 3]) * s
@@ -112,13 +112,15 @@ function regionsFor(w, h, tiled) {
 }
 
 // buffer: JPEG/PNG. Qaytaradi { count, boxes:[{x1,y1,x2,y2,score}] } (asl rasm piksellarida)
-async function detectPeople(buffer, { tiled = true } = {}) {
+async function detectPeople(buffer, { tiled = true, score } = {}) {
+	const threshold = Number.isFinite(Number(score)) && Number(score) > 0 ? Number(score) : SCORE_THRESHOLD
+	tiled = tiled !== false
 	const meta = await sharp(buffer).metadata()
 	const w = meta.width, h = meta.height
 	if (!w || !h) throw new Error("Rasm o'lchami aniqlanmadi")
 
 	let all = []
-	for (const region of regionsFor(w, h, tiled)) all = all.concat(await runRegion(buffer, region))
+	for (const region of regionsFor(w, h, tiled)) all = all.concat(await runRegion(buffer, region, threshold))
 
 	const people = nms(all).map((b) => ({
 		x1: Math.max(0, Math.round(b.x1)), y1: Math.max(0, Math.round(b.y1)),
@@ -128,4 +130,14 @@ async function detectPeople(buffer, { tiled = true } = {}) {
 	return { count: people.length, boxes: people, width: w, height: h }
 }
 
-module.exports = { detectPeople }
+// Rasmning bir hududida istalgan COCO sinfini (masalan 67 = telefon) qidiradi. region rasm ichiga qirqiladi. Qaytaradi [{x1,y1,x2,y2,score}]
+async function detectClass(buffer, region, cls, score) {
+	const meta = await sharp(buffer).metadata()
+	const left = Math.max(0, Math.round(region.left)), top = Math.max(0, Math.round(region.top))
+	const width = Math.min(meta.width - left, Math.round(region.width)), height = Math.min(meta.height - top, Math.round(region.height))
+	if (width < 16 || height < 16) return []
+	const boxes = await runRegion(buffer, { left, top, width, height }, score, cls)
+	return nms(boxes).map((b) => ({ x1: Math.round(b.x1), y1: Math.round(b.y1), x2: Math.round(b.x2), y2: Math.round(b.y2), score: Math.round(b.score * 100) / 100 }))
+}
+
+module.exports = { detectPeople, detectClass }

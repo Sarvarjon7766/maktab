@@ -1,8 +1,9 @@
 import { FiX } from 'react-icons/fi'
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { getTashkentDateString } from '../utils/formatDate'
+import { tx } from '../i18n'
 
 const TYPE_OPTIONS = [
   { value: 'tatil',    label: "Mehnat ta'tili",   color: 'bg-green-100 text-green-800' },
@@ -74,7 +75,7 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div>
             <h2 className="text-lg font-bold text-gray-800">
-              {isEdit ? "Kommentni tahrirlash" : "Komment qo'shish"}
+              {isEdit ? tx("Kommentni tahrirlash") : tx("Komment qo'shish")}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">{employeeName}</p>
           </div>
@@ -89,7 +90,7 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sabab turi</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{tx("Sabab turi")}</label>
             <div className="grid grid-cols-2 gap-2">
               {TYPE_OPTIONS.map(opt => (
                 <button
@@ -111,7 +112,7 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
           {/* Date range */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Boshlanish sanasi</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{tx("Boshlanish sanasi")}</label>
               <input
                 type="date"
                 name="startDate"
@@ -123,8 +124,8 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tugash sanasi
-                <span className="ml-1 text-xs text-gray-400 font-normal">(ixtiyoriy)</span>
+                {tx("Tugash sanasi")}
+                <span className="ml-1 text-xs text-gray-400 font-normal">{tx("(ixtiyoriy)")}</span>
               </label>
               <input
                 type="date"
@@ -135,21 +136,21 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none"
               />
               {!form.endDate && (
-                <p className="text-xs text-amber-600 mt-1">Muddatsiz — belgilangunga qadar amal qiladi</p>
+                <p className="text-xs text-amber-600 mt-1">{tx("Muddatsiz — belgilangunga qadar amal qiladi")}</p>
               )}
             </div>
           </div>
 
           {/* Comment text */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tx("Izoh")}</label>
             <textarea
               name="comment"
               value={form.comment}
               onChange={handleChange}
               rows={3}
               required
-              placeholder="Masalan: Xizmat safarida, qaytish 15-iyul..."
+              placeholder={tx("Masalan: Xizmat safarida, qaytish 15-iyul...")}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-black focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none resize-none"
             />
           </div>
@@ -161,14 +162,14 @@ const GlobalCommentModal = ({ employeeId, employeeName, existingComment, onClose
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
             >
-              Bekor
+              {tx("Bekor")}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60"
             >
-              {saving ? "Saqlanmoqda..." : isEdit ? "Yangilash" : "Saqlash"}
+              {saving ? tx("Saqlanmoqda...") : isEdit ? tx("Yangilash") : tx("Saqlash")}
             </button>
           </div>
         </form>

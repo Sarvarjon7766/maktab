@@ -1,6 +1,6 @@
 import { pctFmt } from '../pages/monitor/monitorKit'
 import axios from 'axios'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiCameraOff, FiRefreshCw } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -10,6 +10,9 @@ import FactorList from './ClassFactors'
 import ClassBreakdown from './ClassBreakdown'
 import StudentExcuseCard from './StudentExcuseCard'
 import EvidenceGallery from './EvidenceViewer'
+import { makeGuard, setVisibleInterval } from '../utils/poll'
+import { tx } from '../i18n'
+import PersonPhotoPreview from './PersonPhotoPreview'
 
 const api = (path, config = {}) => axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/${path}`, { ...config, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
@@ -33,6 +36,8 @@ const KINDS = {
 	vision_empty: { label: "Sinf bo'sh qoldi", color: '#dc2626', chip: 'bg-red-50 text-red-700' },
 	vision_surge: { label: 'Odamlar keskin oshdi', color: '#ea580c', chip: 'bg-orange-50 text-orange-700' },
 	vision_overcrowd: { label: 'Ortiqcha odam', color: '#7c3aed', chip: 'bg-violet-50 text-violet-700' },
+	vision_restless: { label: 'Sinf notinch', color: '#d97706', chip: 'bg-amber-50 text-amber-700' },
+	vision_commotion: { label: 'Zalda tartibsizlik', color: '#be123c', chip: 'bg-rose-50 text-rose-700' },
 	vision_sample: { label: 'Avtomatik namuna', color: '#2563eb', chip: 'bg-blue-50 text-blue-700' }
 }
 const timeOf = (d) => new Date(d).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tashkent' })
@@ -54,7 +59,7 @@ const Ring = ({ score, level }) => {
 			<circle cx="50" cy="50" r={r} fill="none" stroke="#e5e7eb" strokeWidth="9" />
 			<circle cx="50" cy="50" r={r} fill="none" stroke={LEVELS[level].ring} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${(level === 'nodata' ? 0 : score) / 100 * c} ${c}`} transform="rotate(-90 50 50)" />
 			<text x="50" y="52" textAnchor="middle" fontSize="26" fontWeight="700" fill="#111827">{level === 'nodata' ? '—' : score}</text>
-			<text x="50" y="66" textAnchor="middle" fontSize="9" fill="#6b7280">ball</text>
+			<text x="50" y="66" textAnchor="middle" fontSize="9" fill="#6b7280">{tx("ball")}</text>
 		</svg>
 	)
 }
@@ -88,22 +93,22 @@ const AttendanceHero = ({ at, camerasLink }) => {
 	const t = Math.max(at.total, 1)
 	const insidePct = (at.inside / t) * 100, outPct = ((at.came - at.inside) / t) * 100, absentPct = (at.absent / t) * 100
 	return (
-		<Card title="Bugungi davomat">
+		<Card title={tx("Bugungi davomat")}>
 			<div className="flex flex-wrap items-end justify-between gap-4">
-				<div><p className="text-6xl font-bold text-gray-900 leading-none">{at.percent}<span className="text-3xl text-gray-400">%</span></p><p className="text-sm text-gray-500 mt-2">{fmt(at.came)} / {fmt(at.total)} o'quvchi kelgan</p></div>
+				<div><p className="text-6xl font-bold text-gray-900 leading-none">{at.percent}<span className="text-3xl text-gray-400">%</span></p><p className="text-sm text-gray-500 mt-2">{tx("{{came}} / {{total}} o'quvchi kelgan", { came: fmt(at.came), total: fmt(at.total) })}</p></div>
 				<div className="grid grid-cols-2 gap-2 text-center">
 					{[["Hozir maktabda", at.inside, 'text-blue-600'], ['Kech qolgan', at.late, 'text-orange-600'], ['Kelmagan', at.absent, 'text-red-600'], ["O'rtacha kelish", at.avgArrival || '—', 'text-gray-900']].map(([l, v, tone]) => <div key={l} className="rounded-xl bg-gray-50 px-4 py-2.5"><p className={`text-xl font-bold ${tone}`}>{v}</p><p className="text-[11px] text-gray-500">{l}</p></div>)}
 				</div>
 			</div>
 			<div className="mt-6 h-3 rounded-full bg-gray-100 overflow-hidden flex">
-				<div className="bg-blue-500 h-full" style={{ width: `${pctFmt(insidePct)}` }} title="Hozir maktabda" />
-				<div className="bg-green-500 h-full" style={{ width: `${pctFmt(outPct)}` }} title="Kelib ketgan" />
-				<div className="bg-red-400 h-full" style={{ width: `${pctFmt(absentPct)}` }} title="Kelmagan" />
+				<div className="bg-blue-500 h-full" style={{ width: `${pctFmt(insidePct)}` }} title={tx("Hozir maktabda")} />
+				<div className="bg-green-500 h-full" style={{ width: `${pctFmt(outPct)}` }} title={tx("Kelib ketgan")} />
+				<div className="bg-red-400 h-full" style={{ width: `${pctFmt(absentPct)}` }} title={tx("Kelmagan")} />
 			</div>
-			<div className="flex gap-4 mt-2 text-xs text-gray-500"><span><i className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5" />Maktabda</span><span><i className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5" />Kelib ketgan</span><span><i className="inline-block w-2 h-2 rounded-full bg-red-400 mr-1.5" />Kelmagan</span></div>
+			<div className="flex gap-4 mt-2 text-xs text-gray-500"><span><i className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5" />{tx("Maktabda")}</span><span><i className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5" />{tx("Kelib ketgan")}</span><span><i className="inline-block w-2 h-2 rounded-full bg-red-400 mr-1.5" />{tx("Kelmagan")}</span></div>
 			<div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/60 px-4 py-3">
-				<span className="inline-flex items-center gap-2 text-sm text-gray-600"><FiCameraOff className="text-gray-400" /> Sinfga kamera biriktirilmagan</span>
-				{camerasLink && <Link to={camerasLink} className="text-sm font-medium text-blue-600 hover:underline">Kameralarga o'tish →</Link>}
+				<span className="inline-flex items-center gap-2 text-sm text-gray-600"><FiCameraOff className="text-gray-400" /> {tx("Sinfga kamera biriktirilmagan")}</span>
+				{camerasLink && <Link to={camerasLink} className="text-sm font-medium text-blue-600 hover:underline">{tx("Kameralarga o'tish →")}</Link>}
 			</div>
 		</Card>
 	)
@@ -132,23 +137,27 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 	const [vision, setVision] = useState({ items: [], intervalSec: 60 })
 	const [visionDay, setVisionDay] = useState({})
 
+	const guard = useRef(makeGuard()).current
 	const load = useCallback(async () => {
+		const id = guard.next()
 		try {
 			const res = await api('classroom-detail', { params: { sinfId, schoolId, date } })
+			if (!guard.ok(id)) return // sana/sinf almashgan: eskirgan javob
 			setData(res.data)
 			setError('')
 		} catch (e) {
+			if (!guard.ok(id)) return
 			setError(e.response?.data?.message || "Ma'lumotni yuklab bo'lmadi")
 		} finally {
-			setLoading(false)
+			if (guard.ok(id)) setLoading(false)
 		}
-	}, [sinfId, schoolId, date])
+	}, [sinfId, schoolId, date, guard])
 
 	useEffect(() => {
 		setLoading(true)
 		load()
 		if (date !== today()) return
-		const t = setInterval(load, 15000)
+		const t = setVisibleInterval(load, 15000)
 		return () => clearInterval(t)
 	}, [load, date])
 
@@ -173,7 +182,7 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 		}
 		live(); day()
 		if (date !== today()) return () => { alive = false }
-		const t1 = setInterval(live, 15000), t2 = setInterval(day, 60000)
+		const t1 = setVisibleInterval(live, 15000), t2 = setVisibleInterval(day, 60000)
 		return () => { alive = false; clearInterval(t1); clearInterval(t2) }
 	}, [schoolId, sinfId, date])
 	const visionItems = useMemo(() => vision.items.filter(v => String(v.sinfId) === String(sinfId)), [vision, sinfId])
@@ -182,7 +191,7 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 	const kindBars = useMemo(() => Object.entries(data?.activity?.week || {}).map(([k, n]) => ({ key: k, name: KINDS[k]?.label || k, n, color: KINDS[k]?.color || '#64748b' })).sort((a, b) => b.n - a.n), [data])
 	const personLink = (id) => (personBase ? `${personBase}/${id}` : null)
 
-	if (loading && !data) return <div className="p-10 text-center text-gray-500">Yuklanmoqda...</div>
+	if (loading && !data) return <div className="p-10 text-center text-gray-500">{tx("Yuklanmoqda...")}</div>
 	if (error && !data) return <div className="p-10 text-center text-red-600">{error}</div>
 	const at = data.attendance, cmp = data.comparison, act = data.activity, ins = data.insights
 	const hasCamera = data.hasCamera
@@ -211,26 +220,26 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex items-center gap-3 min-w-0">
 					<Link to={backTo} className="p-2.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiArrowLeft /></Link>
-					<div className="min-w-0"><h1 className="text-2xl font-semibold text-gray-900 truncate">{data.class.name}</h1><p className="text-sm text-gray-500">{data.class.head ? `Sinf rahbari: ${data.class.head}` : data.class.description}</p></div>
+					<div className="flex min-w-0 items-center gap-3">{data.class.head && <PersonPhotoPreview photo={data.class.headPhoto} name={data.class.head} size="lg" />}<div className="min-w-0"><h1 className="text-2xl font-semibold text-gray-900 truncate">{data.class.name}</h1><p className="text-sm text-gray-500">{data.class.head ? tx("Sinf rahbari: {{head}}", { head: data.class.head }) : data.class.description}</p></div></div>
 					<span className={`px-3 py-1 rounded-full text-xs font-semibold border ${lv.badge}`}>{an.headline}</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					{!schoolId && (
 						<>
-							<Link to={`../kuzatuv?sinf=${sinfId}`} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">Aqlli kuzatuv</Link>
-							<Link to={`../students?sinf=${sinfId}`} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">O'quvchilar</Link>
-							<Link to="../reports" className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">Hisobot</Link>
+							<Link to={`../kuzatuv?sinf=${sinfId}`} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("Aqlli kuzatuv")}</Link>
+							<Link to={`../students?sinf=${sinfId}`} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("O'quvchilar")}</Link>
+							<Link to="../reports" className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("Hisobot")}</Link>
 						</>
 					)}
 					<input type="date" value={date} max={today()} onChange={e => e.target.value && setDate(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
-					<button onClick={load} title="Yangilash" className="w-10 h-10 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} /></button>
+					<button onClick={load} title={tx("Yangilash")} className="w-10 h-10 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} /></button>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] gap-5">
 				{hasCamera ? (
-					<Card title="Jonli video" action={
-						<span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-medium text-blue-700"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /> Aqlli kuzatuv yoqilgan</span>
+					<Card title={tx("Jonli video")} action={
+						<span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-medium text-blue-700"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /> {tx("Aqlli kuzatuv yoqilgan")}</span>
 					}>
 						{data.cameras.length > 1 && (
 							<div className="flex flex-wrap gap-2 mb-3">
@@ -239,27 +248,27 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 						)}
 						<div className="rounded-xl overflow-hidden bg-black">
 							{cam?.online === true && cam.serial ? <HikLivePlayer key={cam._id} cameraId={cam._id} /> : (
-								<div className="flex items-center justify-center text-slate-400 text-sm bg-slate-900" style={{ aspectRatio: '16 / 9' }}>Kamera offline</div>
+								<div className="flex items-center justify-center text-slate-400 text-sm bg-slate-900" style={{ aspectRatio: '16 / 9' }}>{tx("Kamera offline")}</div>
 							)}
 						</div>
 					</Card>
 				) : <AttendanceHero at={at} camerasLink={camerasLink} />}
 
-				<Card title={hasCamera ? 'Dars jarayoni holati' : 'Sinf holati'}>
+				<Card title={hasCamera ? tx("Dars jarayoni holati") : tx("Sinf holati")}>
 					<div className="flex items-center gap-4">
 						<Ring score={an.score} level={an.level} />
-						<div><p className="text-lg font-semibold text-gray-900">{an.headline}</p><p className="text-xs text-gray-500 mt-1">{an.lessonNow ? 'Hozir dars vaqti' : `Dars vaqti ${data.lessonHours[0]}:00–${data.lessonHours[1]}:00`}</p></div>
+						<div><p className="text-lg font-semibold text-gray-900">{an.headline}</p><p className="text-xs text-gray-500 mt-1">{an.lessonNow ? tx("Hozir dars vaqti") : `Dars vaqti ${data.lessonHours[0]}:00–${data.lessonHours[1]}:00`}</p></div>
 					</div>
 					<div className="mt-4"><FactorList factors={an.factors} links={schoolId ? {} : { lesson: `../kuzatuv?sinf=${sinfId}`, density: `../kuzatuv?sinf=${sinfId}`, attendance: `../students?sinf=${sinfId}`, teacher: '../users', cameras: '../camera' }} /></div>
 					{an.breakdown && <div className="mt-4"><ClassBreakdown breakdown={an.breakdown} cameraCount={visionItems.reduce((m, v) => (v.count !== null ? Math.max(m ?? 0, v.count) : m), null)} /></div>}
 					{hasCamera && <div className="mt-5">{visionItems.length > 0
 						? <ClassVisionPanel items={visionItems} intervalSec={vision.intervalSec} students={at.total} came={at.came} hourly={visionDay[String(sinfId)]} />
-						: <p className="text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3">Aqlli kuzatuv bu kamerada yoqilmagan. Kameralar sahifasida kamerani sinfga biriktirib, "odamlar sonini sanash"ni belgilang.</p>}</div>}
+						: <p className="text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3">{tx("Aqlli kuzatuv bu kamerada yoqilmagan. Kameralar sahifasida kamerani sinfga biriktirib, \"odamlar sonini sanash\"ni belgilang.")}</p>}</div>}
 				</Card>
 			</div>
 
 			{!schoolId && (
-				<Card title="Sababli kelmagan o'quvchilar">
+				<Card title={tx("Sababli kelmagan o'quvchilar")}>
 					<StudentExcuseCard sinfId={sinfId} date={date} onChanged={load} />
 				</Card>
 			)}
@@ -270,58 +279,58 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 
 			<div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 				{hasCamera && (
-					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title="Xona faolligi: bugun va odatiy holat (soatlar)">
+					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title={tx("Xona faolligi: bugun va odatiy holat (soatlar)")}>
 						<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 							<ComposedChart data={hourly} margin={{ left: -16, right: 8, top: 4 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="soat" tick={{ fontSize: 11 }} /><YAxis allowDecimals={false} tick={{ fontSize: 11 }} /><Tooltip />
-								<Bar dataKey="Bugun" fill="#2563eb" radius={[3, 3, 0, 0]} maxBarSize={26} /><Line type="monotone" dataKey="Odatiy" stroke="#f59e0b" strokeWidth={2} dot={false} />
+								<Bar isAnimationActive={false} dataKey="Bugun" fill="#2563eb" radius={[3, 3, 0, 0]} maxBarSize={26} /><Line isAnimationActive={false} type="monotone" dataKey="Odatiy" stroke="#f59e0b" strokeWidth={2} dot={false} />
 							</ComposedChart>
 						</ResponsiveContainer></div>
 					</Card>
 				)}
-				<Card onClick={go(`../students?sinf=${sinfId}`)} title="Sinf davomati: oxirgi 14 kun (%)">
+				<Card onClick={go(`../students?sinf=${sinfId}`)} title={tx("Sinf davomati: oxirgi 14 kun (%)")}>
 					<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 						<AreaChart data={data.attendanceTrend.map(d => ({ kun: d.date.slice(5), Davomat: d.percent }))} margin={{ left: -16, right: 8, top: 4 }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="kun" tick={{ fontSize: 11 }} /><YAxis domain={[0, 100]} tick={{ fontSize: 11 }} /><Tooltip formatter={v => `${v}%`} />
-							<Area type="monotone" dataKey="Davomat" stroke="#16a34a" fill="#16a34a" fillOpacity={0.15} />
+							<Area isAnimationActive={false} type="monotone" dataKey="Davomat" stroke="#16a34a" fill="#16a34a" fillOpacity={0.15} />
 						</AreaChart>
 					</ResponsiveContainer></div>
 				</Card>
-				<Card id="cd-arrival" onClick={go(`../students?sinf=${sinfId}`)} title="Bugungi kirish dinamikasi (to'plangan o'quvchilar)">
+				<Card id="cd-arrival" onClick={go(`../students?sinf=${sinfId}`)} title={tx("Bugungi kirish dinamikasi (to'plangan o'quvchilar)")}>
 					<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 						<AreaChart data={data.arrivalCurve.map(a => ({ soat: `${String(a.hour).padStart(2, '0')}:00`, "O'quvchilar": a.students }))} margin={{ left: -16, right: 8, top: 4 }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="soat" tick={{ fontSize: 11 }} /><YAxis allowDecimals={false} domain={[0, Math.max(at.total, 1)]} tick={{ fontSize: 11 }} /><Tooltip />
-							<Area type="stepAfter" dataKey="O'quvchilar" stroke="#2563eb" fill="#2563eb" fillOpacity={0.15} />
+							<Area isAnimationActive={false} type="stepAfter" dataKey="O'quvchilar" stroke="#2563eb" fill="#2563eb" fillOpacity={0.15} />
 						</AreaChart>
 					</ResponsiveContainer></div>
 				</Card>
-				<Card id="cd-weekday" onClick={go(`../students?sinf=${sinfId}`)} title="Hafta kunlari bo'yicha davomat (%)">
-					{ins.weekday.length === 0 ? <p className="text-sm text-gray-500 py-16 text-center">Ma'lumot yetarli emas</p> : (
+				<Card id="cd-weekday" onClick={go(`../students?sinf=${sinfId}`)} title={tx("Hafta kunlari bo'yicha davomat (%)")}>
+					{ins.weekday.length === 0 ? <p className="text-sm text-gray-500 py-16 text-center">{tx("Ma'lumot yetarli emas")}</p> : (
 						<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 							<BarChart data={ins.weekday.map(w => ({ kun: w.day.slice(0, 3), Davomat: w.percent }))} margin={{ left: -16, right: 8, top: 4 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="kun" tick={{ fontSize: 12 }} /><YAxis domain={[0, 100]} tick={{ fontSize: 11 }} /><Tooltip formatter={v => `${v}%`} />
-								<Bar dataKey="Davomat" radius={[5, 5, 0, 0]} maxBarSize={44}>{ins.weekday.map(w => <Cell key={w.day} fill={w.percent >= 85 ? '#16a34a' : w.percent >= 60 ? '#f59e0b' : '#dc2626'} />)}</Bar>
+								<Bar isAnimationActive={false} dataKey="Davomat" radius={[5, 5, 0, 0]} maxBarSize={44}>{ins.weekday.map(w => <Cell key={w.day} fill={w.percent >= 85 ? '#16a34a' : w.percent >= 60 ? '#f59e0b' : '#dc2626'} />)}</Bar>
 							</BarChart>
 						</ResponsiveContainer></div>
 					)}
 				</Card>
-				<Card onClick={go(`../students?sinf=${sinfId}`)} title="Haftalik dinamika: oxirgi 8 hafta (%)">
-					{ins.weekly.length < 2 ? <p className="text-sm text-gray-500 py-16 text-center">Ma'lumot yetarli emas</p> : (
+				<Card onClick={go(`../students?sinf=${sinfId}`)} title={tx("Haftalik dinamika: oxirgi 8 hafta (%)")}>
+					{ins.weekly.length < 2 ? <p className="text-sm text-gray-500 py-16 text-center">{tx("Ma'lumot yetarli emas")}</p> : (
 						<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 							<LineChart data={ins.weekly.map(w => ({ hafta: w.week.slice(5), Davomat: w.percent }))} margin={{ left: -16, right: 8, top: 4 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="hafta" tick={{ fontSize: 11 }} /><YAxis domain={[0, 100]} tick={{ fontSize: 11 }} /><Tooltip formatter={v => `${v}%`} />
-								<Line type="monotone" dataKey="Davomat" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3 }} />
+								<Line isAnimationActive={false} type="monotone" dataKey="Davomat" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3 }} />
 							</LineChart>
 						</ResponsiveContainer></div>
 					)}
 				</Card>
 				{hasCamera && (
-					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title="Kamera hodisalari turlari (oxirgi 7 kun)">
-						{kindBars.length === 0 ? <p className="text-sm text-gray-500 py-16 text-center">Hodisa kelmagan</p> : (
+					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title={tx("Kamera hodisalari turlari (oxirgi 7 kun)")}>
+						{kindBars.length === 0 ? <p className="text-sm text-gray-500 py-16 text-center">{tx("Hodisa kelmagan")}</p> : (
 							<div style={{ height: 240 }}><ResponsiveContainer width="100%" height="100%">
 								<BarChart data={kindBars} layout="vertical" margin={{ left: 10, right: 20 }}>
 									<CartesianGrid strokeDasharray="3 3" horizontal={false} /><XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} /><YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} /><Tooltip />
-									<Bar dataKey="n" name="Hodisalar" radius={[0, 5, 5, 0]} maxBarSize={22}>{kindBars.map(k => <Cell key={k.key} fill={k.color} />)}</Bar>
+									<Bar isAnimationActive={false} dataKey="n" name="Hodisalar" radius={[0, 5, 5, 0]} maxBarSize={22}>{kindBars.map(k => <Cell key={k.key} fill={k.color} />)}</Bar>
 								</BarChart>
 							</ResponsiveContainer></div>
 						)}
@@ -330,21 +339,21 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 			</div>
 
 			<div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-5">
-				{hasCamera ? <Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title={data.heatSource === 'vision' ? 'Faollik issiqlik xaritasi: kameradagi harakat (%), oxirgi 7 kun (soatlar)' : 'Faollik issiqlik xaritasi: oxirgi 7 kun (soatlar)'}><Heatmap rows={data.heatmap} lesson={data.lessonHours} /></Card> : (
-					<Card title="O'quvchilar kesimi: oxirgi 30 kun">
+				{hasCamera ? <Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title={data.heatSource === 'vision' ? tx("Faollik issiqlik xaritasi: kameradagi harakat (%), oxirgi 7 kun (soatlar)") : tx("Faollik issiqlik xaritasi: oxirgi 7 kun (soatlar)")}><Heatmap rows={data.heatmap} lesson={data.lessonHours} /></Card> : (
+					<Card title={tx("O'quvchilar kesimi: oxirgi 30 kun")}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 							<div>
-								<p className="text-xs font-semibold text-gray-500 mb-2">Davomati eng past</p>
-								{ins.lowest.length === 0 ? <p className="text-sm text-gray-400">Ma'lumot yetarli emas</p> : <ul className="divide-y divide-gray-50">{ins.lowest.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={`${s.present}/${s.days} kun`} right={<span className="inline-flex items-center gap-2"><span className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden inline-block"><span className={`block h-full ${pctColor(s.percent)}`} style={{ width: `${pctFmt(s.percent)}` }} /></span><span className="font-semibold text-gray-800 w-12 inline-block">{pctFmt(s.percent)}</span></span>} />)}</ul>}
+								<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Davomati eng past")}</p>
+								{ins.lowest.length === 0 ? <p className="text-sm text-gray-400">{tx("Ma'lumot yetarli emas")}</p> : <ul className="divide-y divide-gray-50">{ins.lowest.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={tx("{{present}}/{{days}} kun", { present: s.present, days: s.days })} right={<span className="inline-flex items-center gap-2"><span className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden inline-block"><span className={`block h-full ${pctColor(s.percent)}`} style={{ width: `${pctFmt(s.percent)}` }} /></span><span className="font-semibold text-gray-800 w-12 inline-block">{pctFmt(s.percent)}</span></span>} />)}</ul>}
 							</div>
 							<div>
-								<p className="text-xs font-semibold text-gray-500 mb-2">Eng ko'p kech qolgan</p>
-								{ins.mostLate.length === 0 ? <p className="text-sm text-green-600">Kech qolgan yo'q</p> : <ul className="divide-y divide-gray-50">{ins.mostLate.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={`${s.days} kun ichida`} right={<span className="text-orange-600 font-semibold">{s.lateDays} kun</span>} />)}</ul>}
+								<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Eng ko'p kech qolgan")}</p>
+								{ins.mostLate.length === 0 ? <p className="text-sm text-green-600">{tx("Kech qolgan yo'q")}</p> : <ul className="divide-y divide-gray-50">{ins.mostLate.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={tx("{{days}} kun ichida", { days: s.days })} right={<span className="text-orange-600 font-semibold">{tx("{{n}} kun", { n: s.lateDays })}</span>} />)}</ul>}
 							</div>
 						</div>
 					</Card>
 				)}
-				<Card id="cd-classes" title="Sinflar davomati (maktab ichida)">
+				<Card id="cd-classes" title={tx("Sinflar davomati (maktab ichida)")}>
 					<ul className="space-y-2.5 max-h-[300px] overflow-y-auto">
 						{cmp.classes.map(c => (
 							<li key={c._id} onClick={go(`../classrooms/${c._id}`)} className={schoolId ? '' : 'cursor-pointer rounded-lg hover:bg-gray-50 -mx-2 px-2 py-1'}>
@@ -358,46 +367,46 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 
 			<div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 				<Card id="cd-absent" title={`Bugun kelmagan o'quvchilar (${at.absent})`}>
-					{data.absentList.length === 0 ? <p className="text-sm text-green-600">Hamma kelgan</p> : <ul className="divide-y divide-gray-50 max-h-[320px] overflow-y-auto">{data.absentList.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} right={<span className="text-gray-400 font-mono text-xs">{s.code}</span>} />)}</ul>}
+					{data.absentList.length === 0 ? <p className="text-sm text-green-600">{tx("Hamma kelgan")}</p> : <ul className="divide-y divide-gray-50 max-h-[320px] overflow-y-auto">{data.absentList.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} right={<span className="text-gray-400 font-mono text-xs">{s.code}</span>} />)}</ul>}
 				</Card>
-				<Card title={`Bugun kech qolganlar (${at.late})`}>
-					{data.lateList.length === 0 ? <p className="text-sm text-gray-500">Kech qolgan yo'q</p> : <ul className="divide-y divide-gray-50 max-h-[320px] overflow-y-auto">{data.lateList.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} right={<span className="text-orange-600 font-medium">{s.firstIn} · +{s.minutesLate} daqiqa</span>} />)}</ul>}
+				<Card title={tx("Bugun kech qolganlar ({{n}})", { n: at.late })}>
+					{data.lateList.length === 0 ? <p className="text-sm text-gray-500">{tx("Kech qolgan yo'q")}</p> : <ul className="divide-y divide-gray-50 max-h-[320px] overflow-y-auto">{data.lateList.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} right={<span className="text-orange-600 font-medium">{s.firstIn} · +{tx("{{n}} daqiqa", { n: s.minutesLate })}</span>} />)}</ul>}
 				</Card>
 			</div>
 
 			{hasCamera && (
 				<>
-					<Card title="O'quvchilar kesimi: oxirgi 30 kun">
+					<Card title={tx("O'quvchilar kesimi: oxirgi 30 kun")}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 							<div>
-								<p className="text-xs font-semibold text-gray-500 mb-2">Davomati eng past</p>
-								{ins.lowest.length === 0 ? <p className="text-sm text-gray-400">Ma'lumot yetarli emas</p> : <ul className="divide-y divide-gray-50">{ins.lowest.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={`${s.present}/${s.days} kun`} right={<span className="font-semibold text-gray-800">{pctFmt(s.percent)}</span>} />)}</ul>}
+								<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Davomati eng past")}</p>
+								{ins.lowest.length === 0 ? <p className="text-sm text-gray-400">{tx("Ma'lumot yetarli emas")}</p> : <ul className="divide-y divide-gray-50">{ins.lowest.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={tx("{{present}}/{{days}} kun", { present: s.present, days: s.days })} right={<span className="font-semibold text-gray-800">{pctFmt(s.percent)}</span>} />)}</ul>}
 							</div>
 							<div>
-								<p className="text-xs font-semibold text-gray-500 mb-2">Eng ko'p kech qolgan</p>
-								{ins.mostLate.length === 0 ? <p className="text-sm text-green-600">Kech qolgan yo'q</p> : <ul className="divide-y divide-gray-50">{ins.mostLate.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={`${s.days} kun ichida`} right={<span className="text-orange-600 font-semibold">{s.lateDays} kun</span>} />)}</ul>}
+								<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Eng ko'p kech qolgan")}</p>
+								{ins.mostLate.length === 0 ? <p className="text-sm text-green-600">{tx("Kech qolgan yo'q")}</p> : <ul className="divide-y divide-gray-50">{ins.mostLate.map(s => <NameRow key={s._id} to={personLink(s._id)} name={s.fullName} sub={tx("{{days}} kun ichida", { days: s.days })} right={<span className="text-orange-600 font-semibold">{tx("{{n}} kun", { n: s.lateDays })}</span>} />)}</ul>}
 							</div>
 						</div>
 					</Card>
 
-					<Card title={`Kuzatuv lahzalari (${data.gallery.length})`} action={data.gallery.length > 6 && !schoolId ? <Link to={`../kuzatuv?sinf=${sinfId}`} className="text-sm font-medium text-blue-600 hover:underline">Barchasini ko'rish →</Link> : null}>
-						<EvidenceGallery items={data.gallery.slice(0, 6).map(g => ({ ...g, sinf: data.class.name }))} empty="Hozircha saqlangan lahza yo'q. Aqlli kuzatuv hodisa topganda va har 30 daqiqada namuna saqlaganda shu yerda paydo bo'ladi" />
+					<Card title={`Kuzatuv lahzalari (${data.gallery.length})`} action={data.gallery.length > 6 && !schoolId ? <Link to={`../kuzatuv?sinf=${sinfId}`} className="text-sm font-medium text-blue-600 hover:underline">{tx("Barchasini ko'rish →")}</Link> : null}>
+						<EvidenceGallery items={data.gallery.slice(0, 6).map(g => ({ ...g, sinf: data.class.name }))} empty={tx("Hozircha saqlangan lahza yo'q. Aqlli kuzatuv hodisa topganda va har 30 daqiqada namuna saqlaganda shu yerda paydo bo'ladi")} />
 					</Card>
 
-					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title="So'nggi kamera hodisalari">
+					<Card onClick={go(`../kuzatuv?sinf=${sinfId}`)} title={tx("So'nggi kamera hodisalari")}>
 						<div className="overflow-x-auto max-h-[360px]">
 							<table className="w-full text-sm">
-								<thead className="sticky top-0 bg-white"><tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100"><th className="py-2 pr-4 font-semibold">Vaqt</th><th className="py-2 pr-4 font-semibold">Hodisa</th><th className="py-2 pr-4 font-semibold">Kamera</th><th className="py-2 font-semibold">Kadr</th></tr></thead>
+								<thead className="sticky top-0 bg-white"><tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100"><th className="py-2 pr-4 font-semibold">{tx("Vaqt")}</th><th className="py-2 pr-4 font-semibold">{tx("Hodisa")}</th><th className="py-2 pr-4 font-semibold">{tx("Kamera")}</th><th className="py-2 font-semibold">{tx("Kadr")}</th></tr></thead>
 								<tbody>
 									{data.events.map(e => (
 										<tr key={e._id} className="border-b border-gray-50 last:border-0">
 											<td className="py-2 pr-4 whitespace-nowrap text-gray-700">{timeOf(e.time)}</td>
 											<td className="py-2 pr-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${(KINDS[e.kind] || KINDS.motion).chip}`}>{(KINDS[e.kind] || KINDS.motion).label}</span></td>
 											<td className="py-2 pr-4 text-gray-600">{e.camera}</td>
-											<td className="py-2 text-gray-500">{e.hasSnapshot ? 'Bor' : '—'}</td>
+											<td className="py-2 text-gray-500">{e.hasSnapshot ? tx("Bor") : '—'}</td>
 										</tr>
 									))}
-									{data.events.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-gray-500">Bu davrda hodisa yo'q</td></tr>}
+									{data.events.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-gray-500">{tx("Bu davrda hodisa yo'q")}</td></tr>}
 								</tbody>
 							</table>
 						</div>

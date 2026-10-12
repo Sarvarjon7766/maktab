@@ -3,7 +3,7 @@ const router = express.Router()
 const {
 	create, getAll, getById, update, toggleActive, rotateToken, bootstrapAdmin,
 	getSchoolAdmins, resetAdminPassword, toggleSchoolAdminActive, deleteSchoolAdmin,
-	impersonate, getImpersonationLogs
+	impersonate, getImpersonationLogs, getPlatformStats
 } = require('../controllers/school.controller')
 const verifyToken = require('../middlewares/verifyToken')
 const requireRole = require('../middlewares/requireRole')
@@ -13,6 +13,8 @@ const requireSuperAdmin = requireRole('superadmin')
 
 router.post('/create', verifyToken, requireSuperAdmin, create)
 router.get('/getAll', verifyToken, requireSuperAdmin, getAll)
+// `/:id` dan OLDIN: aks holda "platform-stats" maktab id'si deb o'qiladi
+router.get('/platform-stats', verifyToken, requireSuperAdmin, getPlatformStats)
 // DIQQAT: /impersonation-logs `/:id` dan OLDIN bo'lishi shart — aks holda
 // Express uni "impersonation-logs" nomli maktab id'si deb noto'g'ri o'qiydi
 router.get('/impersonation-logs', verifyToken, requireSuperAdmin, getImpersonationLogs)

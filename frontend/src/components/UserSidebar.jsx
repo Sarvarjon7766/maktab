@@ -49,8 +49,8 @@ const UserSidebar = ({ collapsed = false, onClose }) => {
 					<BrandLogo className="w-12 h-12 shrink-0" />
 					{!collapsed && (
 						<div className="leading-tight">
-							<p className="font-bold">School Supervision</p>
-							<p className="text-xs text-slate-400">O'qituvchi paneli</p>
+							<p className="font-bold">{tx("School Supervision")}</p>
+							<p className="text-xs text-slate-400">{tx("O'qituvchi paneli")}</p>
 						</div>
 					)}
 				</div>
@@ -89,10 +89,10 @@ const UserSidebar = ({ collapsed = false, onClose }) => {
 				<button
 					onClick={() => navigate('/logout')}
 					className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors ${collapsed ? 'justify-center' : ''}`}
-					title={collapsed ? "Chiqish" : undefined}
+					title={collapsed ? tx("Chiqish") : undefined}
 				>
 					<FiLogOut size={18} />
-					{!collapsed && "Chiqish"}
+					{!collapsed && tx("Chiqish")}
 				</button>
 			</div>
 		</div>

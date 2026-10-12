@@ -3,6 +3,8 @@ import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { uploadUrl } from '../utils/uploadUrl'
+import { tx } from '../i18n'
 
 const UserNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	const navigate = useNavigate()
@@ -45,7 +47,7 @@ const UserNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					</div>
 					{!sidebarOpen && (
 						<span className="lg:hidden flex items-center gap-2 font-bold transition-opacity">
-							<BrandLogo className="w-7 h-7 shrink-0" /> School Supervision <span className="text-slate-400 font-normal">· Nazoratchi</span>
+							<BrandLogo className="w-7 h-7 shrink-0" /> {tx("School Supervision")} <span className="text-slate-400 font-normal">{tx("· Nazoratchi")}</span>
 						</span>
 					)}
 				</div>
@@ -58,7 +60,7 @@ const UserNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 						<div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
 							{user?.photo ? (
 								<img
-									src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+									src={`${uploadUrl(user.photo)}`}
 									alt={user.fullName}
 									className="w-full h-full object-cover"
 								/>
@@ -79,14 +81,14 @@ const UserNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 								className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50"
 							>
 								<FiUser className="inline mr-2" />
-								Profil
+								{tx("Profil")}
 							</button>
 							<button
 								onClick={() => navigate('/logout')}
 								className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
 							>
 								<FiLogOut className="inline mr-2" />
-								Chiqish
+								{tx("Chiqish")}
 							</button>
 						</div>
 					)}

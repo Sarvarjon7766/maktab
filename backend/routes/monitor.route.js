@@ -73,7 +73,7 @@ function register(router, { federation = false } = {}) {
 	// Chuqur tahlillar (tafsilotli): butun tizim bo'yicha ro'yxatlar va reytinglar
 	const q = (req) => req.query
 	router.get('/people-all', handle(cached(30000, req => Analytics.peopleAll({ kind: q(req).kind, status: q(req).status, date: q(req).date, schoolId: q(req).schoolId, sinfId: q(req).sinfId, q: q(req).q, page: q(req).page, limit: q(req).limit }))))
-	router.get('/late-people', handle(cached(60000, req => Analytics.latePeople({ kind: q(req).kind, from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, limit: q(req).limit }))))
+	router.get('/late-people', handle(cached(60000, req => Analytics.latePeople({ kind: q(req).kind, from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, limit: q(req).limit, page: q(req).page, pageSize: q(req).pageSize, q: q(req).q, group: q(req).group, sort: q(req).sort, all: q(req).all }))))
 	router.get('/at-risk', handle(cached(60000, req => Analytics.atRisk({ from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, minStreak: q(req).minStreak, limit: q(req).limit }))))
 	router.get('/classes-all', handle(cached(60000, req => Analytics.classesAll({ date: q(req).date, schoolId: q(req).schoolId }))))
 	router.get('/arrival', handle(cached(120000, req => Analytics.arrival({ from: q(req).from, to: q(req).to, schoolId: q(req).schoolId }))))

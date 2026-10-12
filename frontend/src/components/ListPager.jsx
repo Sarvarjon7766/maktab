@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { tx } from '../i18n'
 
 // Katta ro'yxatlar (maktabda 2000 tagacha o'quvchi) uchun mijoz tomonida sahifalash: DOM kichik qoladi, qidiruv va aylantirish tez ishlaydi.
 // Ro'yxat uzunligi o'zgarganda (qidiruv, filtr) 1-sahifaga qaytadi
@@ -23,13 +24,13 @@ export const ListPager = ({ page, pages, total, size, setPage, className = '' })
 	const from = (page - 1) * size + 1, to = Math.min(page * size, total)
 	return (
 		<div className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm text-gray-600 ${className}`}>
-			<span>{from}–{to} / {total} ta</span>
+			<span>{tx("{{from}}–{{to}} / {{total}} ta", { from, to, total })}</span>
 			<div className="flex items-center gap-1">
-				<button onClick={() => setPage(page - 1)} disabled={page <= 1} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40" aria-label="Oldingi"><FiChevronLeft size={14} /></button>
+				<button onClick={() => setPage(page - 1)} disabled={page <= 1} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40" aria-label={tx("Oldingi")}><FiChevronLeft size={14} /></button>
 				{range(page, pages).map((n, i) => n === '…' ? <span key={`d${i}`} className="px-1 text-gray-400">…</span> : (
 					<button key={n} onClick={() => setPage(n)} className={`h-8 min-w-8 rounded-lg border px-2 ${n === page ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 hover:bg-gray-50'}`}>{n}</button>
 				))}
-				<button onClick={() => setPage(page + 1)} disabled={page >= pages} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40" aria-label="Keyingi"><FiChevronRight size={14} /></button>
+				<button onClick={() => setPage(page + 1)} disabled={page >= pages} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40" aria-label={tx("Keyingi")}><FiChevronRight size={14} /></button>
 			</div>
 		</div>
 	)

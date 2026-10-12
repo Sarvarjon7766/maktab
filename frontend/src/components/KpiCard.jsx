@@ -3,6 +3,7 @@
 // UserAttandance.jsx bir xil uslubda ishlatadi — bittasi o'zgarsa,
 // ikkalasi ham izchil qoladi.
 import { useNavigate } from 'react-router-dom'
+import { tx } from '../i18n'
 
 const TONE_STYLES = {
 	good:     { badge: 'bg-green-500', bar: 'bg-green-500', text: 'text-green-600', ring: 'ring-green-200 border-green-400' },
@@ -72,7 +73,7 @@ const KpiCard = ({ icon, label, value, total, tone = 'blue', onClick, to, active
 			{hasTotal && (
 				<>
 					<div className="flex items-center justify-between mt-3 sm:mt-4 mb-1.5 text-xs">
-						<span className="text-gray-400">Jarayon</span>
+						<span className="text-gray-400">{tx("Jarayon")}</span>
 						<span className="font-medium text-gray-600">{pct}%</span>
 					</div>
 					<div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FiCheck, FiChevronDown, FiGlobe } from 'react-icons/fi'
 import { LANGS, getLang, setLang } from '../i18n'
+import { tx } from '../i18n'
 
 // Til tanlash: UZ · ЎЗ · RU · EN. Tanlanganda sahifa tanlangan tilda qayta yuklanadi
 const LanguageSwitcher = ({ compact = false, dark = false, className = '' }) => {
@@ -16,7 +17,7 @@ const LanguageSwitcher = ({ compact = false, dark = false, className = '' }) => 
 
 	return (
 		<div ref={ref} className={`relative ${className}`}>
-			<button type="button" onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} title="Til / Language"
+			<button type="button" onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} title={tx("Til / Language")}
 				className={`inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition ${dark ? 'text-white/90 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}>
 				<FiGlobe size={16} />{!compact && <span>{current.short}</span>}<FiChevronDown size={13} className={`transition ${open ? 'rotate-180' : ''}`} />
 			</button>

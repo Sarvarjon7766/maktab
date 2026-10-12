@@ -4,6 +4,7 @@ import { FiArrowRight, FiCheck, FiClock, FiRotateCcw, FiSave } from 'react-icons
 import { Link, useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import SchoolLocationCard from '../../components/SchoolLocationCard'
+import { tx } from '../../i18n'
 
 // Token har so'rovda joriy qiymatdan olinadi (mount paytida qotib qolmasin)
 const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` })
@@ -35,9 +36,9 @@ const Seconds = ({ label, hint, name, value, onChange }) => {
 			<label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700"><FiClock className="text-slate-400" /> {label}</label>
 			<div className="flex items-center gap-2">
 				<input type="number" min="0" max="3600" name={name} value={value} onChange={onChange} className={`${inputCls} max-w-[160px] ${bad ? 'border-rose-400' : ''}`} />
-				<span className="text-sm text-slate-500">soniya</span>
+				<span className="text-sm text-slate-500">{tx("soniya")}</span>
 			</div>
-			<p className={`mt-1.5 text-xs ${bad ? 'text-rose-600' : 'text-slate-400'}`}>{bad ? "0 dan 3600 gacha son kiriting" : hint}</p>
+			<p className={`mt-1.5 text-xs ${bad ? 'text-rose-600' : 'text-slate-400'}`}>{bad ? tx("0 dan 3600 gacha son kiriting") : hint}</p>
 		</div>
 	)
 }
@@ -79,35 +80,35 @@ const AdminSettings = () => {
 	if (loading) return <div className="p-6"><div className="h-64 max-w-3xl animate-pulse rounded-2xl bg-white" /></div>
 
 	return (
-		<form onSubmit={save} className="min-h-screen bg-slate-50 p-4 pb-28 md:p-6">
+		<form onSubmit={save} className="min-h-full bg-slate-50 p-4 pb-28 md:p-6">
 			<div className="max-w-4xl space-y-5">
-				<Card title="Ish va dars boshlanish vaqti" desc="Shu vaqtdan keyin birinchi marta kirgan xodim va o'quvchi «kech qoldi» hisoblanadi. Statistika, hisobotlar va ogohlantirishlardagi kechikish shu vaqtga tayanadi.">
+				<Card title={tx("Ish va dars boshlanish vaqti")} desc="Shu vaqtdan keyin birinchi marta kirgan xodim va o'quvchi «kech qoldi» hisoblanadi. Statistika, hisobotlar va ogohlantirishlardagi kechikish shu vaqtga tayanadi.">
 					<div>
-						<label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700"><FiClock className="text-slate-400" /> Boshlanish vaqti</label>
+						<label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700"><FiClock className="text-slate-400" /> {tx("Boshlanish vaqti")}</label>
 						<div className="flex flex-wrap items-center gap-2">
 							<input type="time" name="workStartTime" value={form.workStartTime} onChange={onChange} required className={`${inputCls} max-w-[160px]`} />
 							{TIMES.map(t => <button type="button" key={t} onClick={() => set('workStartTime', t)} className={`rounded-full px-3 py-1.5 text-sm transition ${form.workStartTime === t ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>{t}</button>)}
 						</div>
-						<p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">Misol: {example} da kirgan odam <b className="text-slate-700">10 daqiqa kech</b> qolgan hisoblanadi; {form.workStartTime} yoki undan oldin kirgan — vaqtida.</p>
+						<p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">{tx("Misol: {{example}} da kirgan odam", { example })} <b className="text-slate-700">{tx("10 daqiqa kech")}</b> {tx("qolgan hisoblanadi; {{time}} yoki undan oldin kirgan — vaqtida.", { time: form.workStartTime })}</p>
 					</div>
 				</Card>
 
-				<Card title="Takroriy skanlarni filtrlash" desc="Kamera odamni bir necha marta ketma-ket taniganda (masalan eshik oldida to'xtab qolsa) ortiqcha kirdi-chiqdi yozuvlari paydo bo'lmasligi uchun minimal kutish vaqti. Eng ko'p maktablarda standart qiymat mos keladi.">
+				<Card title={tx("Takroriy skanlarni filtrlash")} desc="Kamera odamni bir necha marta ketma-ket taniganda (masalan eshik oldida to'xtab qolsa) ortiqcha kirdi-chiqdi yozuvlari paydo bo'lmasligi uchun minimal kutish vaqti. Eng ko'p maktablarda standart qiymat mos keladi.">
 					<div className="flex flex-wrap gap-2">
 						{PRESETS.map(([name, hint, a, b]) => {
 							const on = Number(form.entryToExitCooldownSeconds) === a && Number(form.exitToEntryCooldownSeconds) === b
-							return <button type="button" key={name} onClick={() => setForm(f => ({ ...f, entryToExitCooldownSeconds: a, exitToEntryCooldownSeconds: b }))} className={`rounded-xl border px-4 py-2.5 text-left transition ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white hover:bg-slate-50'}`}><span className="flex items-center gap-1.5 text-sm font-medium">{on && <FiCheck size={13} />}{name}</span><span className={`text-xs ${on ? 'text-slate-300' : 'text-slate-400'}`}>{a} / {b} soniya · {hint}</span></button>
+							return <button type="button" key={name} onClick={() => setForm(f => ({ ...f, entryToExitCooldownSeconds: a, exitToEntryCooldownSeconds: b }))} className={`rounded-xl border px-4 py-2.5 text-left transition ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white hover:bg-slate-50'}`}><span className="flex items-center gap-1.5 text-sm font-medium">{on && <FiCheck size={13} />}{name}</span><span className={`text-xs ${on ? 'text-slate-300' : 'text-slate-400'}`}>{tx("{{a}} / {{b}} soniya", { a, b })} · {hint}</span></button>
 						})}
 					</div>
 					<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-						<Seconds label="Kirishdan keyin chiqish uchun kutish" hint="Kirgandan so'ng shu vaqt o'tmaguncha chiqish yozilmaydi" name="entryToExitCooldownSeconds" value={form.entryToExitCooldownSeconds} onChange={onChange} />
-						<Seconds label="Chiqishdan keyin kirish uchun kutish" hint="Chiqqandan so'ng shu vaqt o'tmaguncha kirish yozilmaydi" name="exitToEntryCooldownSeconds" value={form.exitToEntryCooldownSeconds} onChange={onChange} />
+						<Seconds label={tx("Kirishdan keyin chiqish uchun kutish")} hint={tx("Kirgandan so'ng shu vaqt o'tmaguncha chiqish yozilmaydi")} name="entryToExitCooldownSeconds" value={form.entryToExitCooldownSeconds} onChange={onChange} />
+						<Seconds label={tx("Chiqishdan keyin kirish uchun kutish")} hint={tx("Chiqqandan so'ng shu vaqt o'tmaguncha kirish yozilmaydi")} name="exitToEntryCooldownSeconds" value={form.exitToEntryCooldownSeconds} onChange={onChange} />
 					</div>
 				</Card>
 
 				<SchoolLocationCard />
 
-				<Card title="Boshqa sozlamalar" desc="Quyidagilar o'z sahifalarida sozlanadi:">
+				<Card title={tx("Boshqa sozlamalar")} desc="Quyidagilar o'z sahifalarida sozlanadi:">
 					<ul className="grid grid-cols-1 gap-3 md:grid-cols-3">
 						{[
 							['Ota-onalarga xabarlar', "Kirdi/chiqdi xabarlarini yoqish va o'chirish", 'parents?tab=messages'],
@@ -122,10 +123,10 @@ const AdminSettings = () => {
 
 			<div className={`fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur transition ${dirty ? 'translate-y-0' : 'translate-y-full'}`}>
 				<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:pl-[17rem] md:pr-6">
-					<p className="text-sm text-slate-600">{valid ? "Saqlanmagan o'zgarishlar bor" : "Maydonlarda xato bor: tuzating"}</p>
+					<p className="text-sm text-slate-600">{valid ? tx("Saqlanmagan o'zgarishlar bor") : tx("Maydonlarda xato bor: tuzating")}</p>
 					<div className="flex gap-2">
-						<button type="button" onClick={() => setForm(saved)} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiRotateCcw size={14} /> Bekor qilish</button>
-						<button type="submit" disabled={saving || !valid} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"><FiSave size={15} /> {saving ? 'Saqlanmoqda...' : 'Saqlash'}</button>
+						<button type="button" onClick={() => setForm(saved)} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiRotateCcw size={14} /> {tx("Bekor qilish")}</button>
+						<button type="submit" disabled={saving || !valid} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"><FiSave size={15} /> {saving ? tx("Saqlanmoqda...") : tx("Saqlash")}</button>
 					</div>
 				</div>
 			</div>

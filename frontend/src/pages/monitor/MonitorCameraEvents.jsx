@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Chips, ChartBox, Empty, Page, PageHeader, Pagination, Panel, RangePicker, SchoolLink, SchoolSelect, SearchBox, SelectBox, matchText, fmt, shiftDate, todayStr, useMonitorData } from './monitorKit'
+import { tx } from '../../i18n'
 
 const KINDS = {
 	motion: { label: 'Harakat', color: '#2563eb', chip: 'bg-blue-50 text-blue-700' },
@@ -40,10 +41,10 @@ const MonitorCameraEvents = () => {
 			<PageHeader onReload={reload} loading={loading}><SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={v => update({ school: v })} /></PageHeader>
 			<div className="mb-4"><RangePicker {...range} onChange={r => update({ from: r.from, to: r.to })} /></div>
 			<div className="mb-6"><Chips value={kind} onChange={v => update({ kind: v })} options={[{ key: '', label: 'Hammasi', count: total }, ...allKinds.map((k, i) => ({ key: k, label: kindMeta(k, i).label, count: kindCounts[k] || 0 }))]} /></div>
-			{error && <Empty text="Ma'lumotni yuklab bo'lmadi" />}
+			{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-				<Panel title="Kunlar bo'yicha hodisalar" className="xl:col-span-2">
+				<Panel title={tx("Kunlar bo'yicha hodisalar")} className="xl:col-span-2">
 					{data?.byDay?.length ? (
 						<ChartBox height={240}><ResponsiveContainer width="100%" height="100%">
 							<BarChart data={data.byDay.map(d => ({ ...d, kun: d.date.slice(5) }))} margin={{ left: -12, right: 8 }}>
@@ -52,14 +53,14 @@ const MonitorCameraEvents = () => {
 								{allKinds.map((k, i) => { const v = kindMeta(k, i); return <Bar key={k} dataKey={k} name={v.label} stackId="a" fill={v.color} maxBarSize={30} /> })}
 							</BarChart>
 						</ResponsiveContainer></ChartBox>
-					) : <Empty text={loading ? 'Yuklanmoqda...' : "Bu davrda hodisa yo'q"} />}
+					) : <Empty text={loading ? tx("Yuklanmoqda...") : tx("Bu davrda hodisa yo'q")} />}
 				</Panel>
-				<Panel title="Maktablar bo'yicha">
+				<Panel title={tx("Maktablar bo'yicha")}>
 					<ul className="divide-y divide-gray-50 max-h-[240px] overflow-y-auto">
 						{(data?.bySchool || []).map(s => (
 							<li key={s.schoolId} className="py-2 flex items-center justify-between gap-2 text-sm">
 								<button onClick={() => update({ school: String(s.schoolId) })} className="text-left text-gray-800 hover:text-blue-600 truncate">{s.schoolName}</button>
-								<span className="shrink-0 text-gray-500">{fmt(s.n)}{s.density > 0 && <span className="ml-2 px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-xs font-medium">zichlik {s.density}</span>}</span>
+								<span className="shrink-0 text-gray-500">{fmt(s.n)}{s.density > 0 && <span className="ml-2 px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-xs font-medium">{tx("zichlik {{n}}", { n: s.density })}</span>}</span>
 							</li>
 						))}
 						{!data?.bySchool?.length && <li className="py-6 text-center text-sm text-gray-400">—</li>}
@@ -68,8 +69,8 @@ const MonitorCameraEvents = () => {
 			</div>
 
 			<div className="flex flex-wrap items-center gap-3 mb-3">
-				<SearchBox value={q} onChange={setQ} placeholder="Kamera, sinf yoki maktab qidirish..." />
-				<SelectBox value={camera} onChange={setCamera} searchPlaceholder="Kamera qidirish..." options={cameraOpts} />
+				<SearchBox value={q} onChange={setQ} placeholder={tx("Kamera, sinf yoki maktab qidirish...")} />
+				<SelectBox value={camera} onChange={setCamera} searchPlaceholder={tx("Kamera qidirish...")} options={cameraOpts} />
 			</div>
 			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 				<div className="overflow-x-auto">
@@ -88,7 +89,7 @@ const MonitorCameraEvents = () => {
 						</tbody>
 					</table>
 				</div>
-				{!loading && data && events.length === 0 && <Empty text="Topilmadi" />}
+				{!loading && data && events.length === 0 && <Empty text={tx("Topilmadi")} />}
 				{data && <Pagination page={data.page} pages={data.pages} total={data.total} onChange={setPage} />}
 			</div>
 		</Page>

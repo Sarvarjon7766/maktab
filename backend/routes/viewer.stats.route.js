@@ -71,7 +71,7 @@ router.get('/leaves', handle(async (req, c) => {
 }))
 router.get('/grades', handle(async (req, c) => (c.sinfIds.length ? Analytics.gradesReport({ from: q(req).from, to: q(req).to, grade: q(req).grade, schoolId: c.school, sinfIds: c.sinfIds }) : empty)))
 router.get('/grade-class', handle((req, c) => Analytics.gradeClassDetail({ sinfId: q(req).sinfId, from: q(req).from, to: q(req).to, schoolId: c.school, sinfIds: c.sinfIds })))
-router.get('/late-people', handle(async (req, c) => (c.sinfIds.length ? Analytics.latePeople({ kind: 'student', from: q(req).from, to: q(req).to, schoolId: c.school, limit: q(req).limit, sinfIds: c.sinfIds }) : empty)))
+router.get('/late-people', handle(async (req, c) => (c.sinfIds.length ? Analytics.latePeople({ kind: 'student', from: q(req).from, to: q(req).to, schoolId: c.school, limit: q(req).limit, sinfIds: c.sinfIds, page: q(req).page, pageSize: q(req).pageSize, q: q(req).q, group: q(req).group, sort: q(req).sort, all: q(req).all }) : empty)))
 router.get('/at-risk', handle(async (req, c) => (c.sinfIds.length ? Analytics.atRisk({ from: q(req).from, to: q(req).to, schoolId: c.school, minStreak: q(req).minStreak, limit: q(req).limit, sinfIds: c.sinfIds }) : empty)))
 router.get('/person/:kind/:id', handle(async (req, c) => ((await allowed(req.params.kind, req.params.id, c)) ? MonitorService.person({ kind: req.params.kind, id: req.params.id, from: q(req).from, to: q(req).to }) : { success: false, message: 'Topilmadi' })))
 router.get('/person-day/:kind/:id', handle(async (req, c) => ((await allowed(req.params.kind, req.params.id, c)) ? MonitorService.personDay({ kind: req.params.kind, id: req.params.id, date: q(req).date }) : { success: false, message: 'Topilmadi' })))

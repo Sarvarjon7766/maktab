@@ -3,6 +3,7 @@ import AutoSelect from '../../components/AutoSelect'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, DateField, LoadState, Page, PageHeader, Panel, Progress, KpiLink, Table, Td, Tr, exportXlsx, fmt, pct, todayStr, useMonitorData, matchText, SearchBox } from './monitorKit'
 import { FaChalkboard, FaUserGraduate, FaUserTimes } from 'react-icons/fa'
+import { tx } from '../../i18n'
 
 // Bitta maktab: sinflar kesimida o'quvchilar davomati + kelmagan o'quvchilar ro'yxati
 // Bo'sh massiv har renderda yangi bo'lib effekt/useMemo'ni qayta ishga tushirmasligi uchun
@@ -36,22 +37,22 @@ const MonitorClasses = () => {
 
 	return (
 		<Page>
-			<PageHeader title="Sinflar kesimida" subtitle="Tanlangan maktabning sinflari bo'yicha o'quvchilar davomati" onReload={reload} loading={loading}>
+			<PageHeader title={tx("Sinflar kesimida")} subtitle={tx("Tanlangan maktabning sinflari bo'yicha o'quvchilar davomati")} onReload={reload} loading={loading}>
 				<AutoSelect value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[260px]">
 					{schools.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
 				</AutoSelect>
-				<DateField label="Sana" value={date} max={todayStr()} onChange={setDate} />
-				<button onClick={download} disabled={!classes.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<DateField label={tx("Sana")} value={date} max={todayStr()} onChange={setDate} />
+				<button onClick={download} disabled={!classes.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
 
 			<LoadState loading={loading && !data} error={error} empty={data && classes.length === 0}>
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-					<KpiLink to={schoolId ? `/monitor/classrooms?school=${schoolId}` : undefined} icon={<FaChalkboard />} label="Sinflar" value={classes.length} />
-					<KpiLink to={`/monitor/lists?kind=student&status=came&school=${schoolId}&date=${date}`} icon={<FaUserGraduate />} color="bg-green-50 text-green-600" label="Kelgan o'quvchilar" value={t.came} detail={`${fmt(t.total)} tadan · ${pct(t.came, t.total)}%`} />
-					<KpiLink to={`/monitor/lists?kind=student&status=absent&school=${schoolId}&date=${date}`} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label="Kelmaganlar" value={Math.max(0, t.total - t.came)} />
+					<KpiLink to={schoolId ? `/monitor/classrooms?school=${schoolId}` : undefined} icon={<FaChalkboard />} label={tx("Sinflar")} value={classes.length} />
+					<KpiLink to={`/monitor/lists?kind=student&status=came&school=${schoolId}&date=${date}`} icon={<FaUserGraduate />} color="bg-green-50 text-green-600" label={tx("Kelgan o'quvchilar")} value={t.came} detail={`${fmt(t.total)} tadan · ${pct(t.came, t.total)}%`} />
+					<KpiLink to={`/monitor/lists?kind=student&status=absent&school=${schoolId}&date=${date}`} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label={tx("Kelmaganlar")} value={Math.max(0, t.total - t.came)} />
 				</div>
 
-				<Panel title="Sinflar bo'yicha" className="mb-6">
+				<Panel title={tx("Sinflar bo'yicha")} className="mb-6">
 					<ChartBox height={300}><ResponsiveContainer width="100%" height="100%">
 						<BarChart data={chart} margin={{ left: -8, right: 12 }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -64,8 +65,8 @@ const MonitorClasses = () => {
 				</Panel>
 
 				<div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-					<Panel title="Sinflar jadvali">
-						<div className="mb-3"><SearchBox value={cq} onChange={setCq} placeholder="Sinf yoki rahbar qidirish..." /></div>
+					<Panel title={tx("Sinflar jadvali")}>
+						<div className="mb-3"><SearchBox value={cq} onChange={setCq} placeholder={tx("Sinf yoki rahbar qidirish...")} /></div>
 						<Table head={['Sinf', 'Sinf rahbari', 'Davomat', { label: 'Kelmagan', right: true }]}>
 							{shownClasses.map(c => (
 								<Tr key={c._id}>
@@ -75,19 +76,19 @@ const MonitorClasses = () => {
 									<Td right className="text-red-600 font-medium">{fmt(c.absent)}</Td>
 								</Tr>
 							))}
-							{classes.length > 0 && shownClasses.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">Topilmadi</td></tr>}
+							{classes.length > 0 && shownClasses.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">{tx("Topilmadi")}</td></tr>}
 						</Table>
 					</Panel>
-					<Panel title="Kelmagan o'quvchilar" subtitle={sinfId ? `Tanlangan sinf bo'yicha (${absent.data?.total ?? 0} nafar) — qayta bosib bekor qiling` : `Barcha sinflar (${absent.data?.total ?? 0} nafar)`}>
-						{absent.loading && !absent.data ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : (
+					<Panel title={tx("Kelmagan o'quvchilar")} subtitle={sinfId ? `Tanlangan sinf bo'yicha (${absent.data?.total ?? 0} nafar) — qayta bosib bekor qiling` : `Barcha sinflar (${absent.data?.total ?? 0} nafar)`}>
+						{absent.loading && !absent.data ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : (
 							<div className="max-h-[420px] overflow-y-auto">
-								<div className="mb-3"><SearchBox value={aq} onChange={setAq} placeholder="O'quvchi qidirish..." /></div>
+								<div className="mb-3"><SearchBox value={aq} onChange={setAq} placeholder={tx("O'quvchi qidirish...")} /></div>
 								<Table head={['F.I.Sh', 'Sinf']}>
 									{shownAbsent.map(s => <Tr key={s._id}><Td>{s.fullName}</Td><Td className="text-gray-600">{s.sinf}</Td></Tr>)}
-									{absent.data?.students?.length > 0 && shownAbsent.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">Topilmadi</td></tr>}
-									{absent.data?.students?.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-green-600">Hamma kelgan</td></tr>}
+									{absent.data?.students?.length > 0 && shownAbsent.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">{tx("Topilmadi")}</td></tr>}
+									{absent.data?.students?.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-green-600">{tx("Hamma kelgan")}</td></tr>}
 								</Table>
-								{absent.data?.truncated && <p className="text-xs text-gray-500 mt-2">Faqat dastlabki 1000 tasi ko'rsatildi</p>}
+								{absent.data?.truncated && <p className="text-xs text-gray-500 mt-2">{tx("Faqat dastlabki 1000 tasi ko'rsatildi")}</p>}
 							</div>
 						)}
 					</Panel>

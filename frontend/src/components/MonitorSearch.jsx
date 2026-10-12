@@ -5,6 +5,7 @@ import { FaSchool } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import PersonPhotoPreview from './PersonPhotoPreview'
 import { monitorMenuGroups } from './MonitorSidebar'
+import { tx } from '../i18n'
 
 const PAGES = monitorMenuGroups.flatMap(g => g.items)
 const norm = (t) => String(t || '').toLowerCase().replace(/['‘’ʻʼ`´]/g, '')
@@ -75,13 +76,13 @@ const MonitorSearch = () => {
 	return (
 		<div className="relative w-full max-w-md" ref={boxRef}>
 			<FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-			<input ref={inputRef} value={q} onFocus={() => setOpen(true)} onKeyDown={onKey} onChange={e => { setQ(e.target.value); setOpen(true) }} placeholder="Maktab, sinf, o'quvchi yoki xodim qidirish"
+			<input ref={inputRef} value={q} onFocus={() => setOpen(true)} onKeyDown={onKey} onChange={e => { setQ(e.target.value); setOpen(true) }} placeholder={tx("Maktab, sinf, o'quvchi yoki xodim qidirish")}
 				className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-100 border border-transparent text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-400" />
 			{!q && <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-block rounded border border-slate-200 bg-white px-1.5 text-[10px] text-slate-400">/</kbd>}
 			{showBox && (
 				<div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-[70vh] overflow-y-auto z-50 py-1">
-					{loading && flat.length === 0 && <p className="px-4 py-3 text-sm text-gray-500">Qidirilmoqda...</p>}
-					{empty && <p className="px-4 py-3 text-sm text-gray-500">"{q.trim()}" bo'yicha hech narsa topilmadi. Ism, ID, maktab yoki sinf ("5-A") yozib ko'ring.</p>}
+					{loading && flat.length === 0 && <p className="px-4 py-3 text-sm text-gray-500">{tx("Qidirilmoqda...")}</p>}
+					{empty && <p className="px-4 py-3 text-sm text-gray-500">{tx('"{{q}}" bo\'yicha hech narsa topilmadi. Ism, ID, maktab yoki sinf ("5-A") yozib ko\'ring.', { q: q.trim() })}</p>}
 					{groups.map(g => (
 						<div key={g.title} className="py-1">
 							<p className="px-4 py-1.5 text-[11px] uppercase tracking-wide text-gray-400 font-semibold flex items-center gap-1.5">{g.icon}{g.title}</p>

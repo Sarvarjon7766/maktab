@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import MapView from './MapView'
+import { tx } from '../i18n'
 
 export const METRICS = {
 	student: { label: "O'quvchi davomati", value: s => s.studentPercent, good: true },
@@ -56,12 +57,12 @@ const SchoolsMapPanel = ({ data, metric, onMetric, selectedId = null, focus = nu
 				{!data ? <div className="h-full w-full animate-pulse bg-slate-200" /> : (
 					<>
 						<MapView geojson={data.geojson} districtStyle={geoStyle} markers={markers} focus={focus} selectedId={selectedId} lock={!!data.scope?.scoped} labels height="100%" className="!rounded-none !border-0" />
-						<div className="pointer-events-none absolute left-14 top-3 z-[400] rounded-xl bg-white/95 px-3.5 py-2 shadow-md ring-1 ring-slate-200"><p className="text-sm font-bold leading-tight text-slate-900">{data.scope?.level === 'region' ? `${data.scope.region} viloyati` : data.scope?.district || 'Barcha tumanlar'}</p><p className="text-xs text-slate-500">{schools.length} maktab · {METRICS[metric].label.toLowerCase()}: <b className="text-slate-800">{fmtPct(avgOf(schools, metric))}</b> (o'rtacha)</p></div>
+						<div className="pointer-events-none absolute left-14 top-3 z-[400] rounded-xl bg-white/95 px-3.5 py-2 shadow-md ring-1 ring-slate-200"><p className="text-sm font-bold leading-tight text-slate-900">{data.scope?.level === 'region' ? `${data.scope.region} viloyati` : data.scope?.district || tx("Barcha tumanlar")}</p><p className="text-xs text-slate-500">{tx("{{n}} maktab", { n: schools.length })} · {METRICS[metric].label.toLowerCase()}: <b className="text-slate-800">{fmtPct(avgOf(schools, metric))}</b> {tx("(o'rtacha)")}</p></div>
 						<div className="absolute bottom-5 left-1/2 z-[400] flex max-w-[94%] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-2xl bg-white/95 p-1.5 shadow-lg ring-1 ring-slate-200">
 							{Object.entries(METRICS).map(([k, m]) => <button key={k} onClick={() => onMetric(k)} className={`rounded-xl px-3.5 py-1.5 text-sm transition ${metric === k ? 'bg-slate-900 font-medium text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{m.label}</button>)}
 						</div>
 						<div className="pointer-events-none absolute bottom-5 left-3 z-[400] hidden flex-col gap-1 rounded-xl bg-white/95 px-3 py-2 text-[11px] text-slate-600 shadow-md ring-1 ring-slate-200 md:flex">{LEGEND.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{l}</span>)}</div>
-						{markers.length === 0 && <p className="absolute left-1/2 top-1/2 z-[400] w-72 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white/95 px-4 py-3 text-center text-sm text-slate-600 shadow-lg">Xaritada maktab yo'q: maktab adminlari «Sozlamalar»da joylashuvni belgilashi kerak.</p>}
+						{markers.length === 0 && <p className="absolute left-1/2 top-1/2 z-[400] w-72 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white/95 px-4 py-3 text-center text-sm text-slate-600 shadow-lg">{tx("Xaritada maktab yo'q: maktab adminlari «Sozlamalar»da joylashuvni belgilashi kerak.")}</p>}
 					</>
 				)}
 			</div>
@@ -76,11 +77,11 @@ const SchoolsMapPanel = ({ data, metric, onMetric, selectedId = null, focus = nu
 			</div>
 			{!data ? <div className="animate-pulse rounded-xl bg-slate-100" style={{ height }} /> : (
 				<div className="relative">
-					<div className="pointer-events-none absolute left-14 top-3 z-[400] rounded-xl bg-white/95 px-3.5 py-2 shadow-md ring-1 ring-slate-200"><p className="text-sm font-bold leading-tight text-slate-900">{data.scope?.level === 'region' ? `${data.scope.region} viloyati` : data.scope?.district || 'Barcha tumanlar'}</p><p className="text-xs text-slate-500">{schools.length} maktab · {METRICS[metric].label.toLowerCase()}: <b className="text-slate-800">{fmtPct(avgOf(schools, metric))}</b> (o'rtacha)</p></div>
+					<div className="pointer-events-none absolute left-14 top-3 z-[400] rounded-xl bg-white/95 px-3.5 py-2 shadow-md ring-1 ring-slate-200"><p className="text-sm font-bold leading-tight text-slate-900">{data.scope?.level === 'region' ? `${data.scope.region} viloyati` : data.scope?.district || tx("Barcha tumanlar")}</p><p className="text-xs text-slate-500">{tx("{{n}} maktab", { n: schools.length })} · {METRICS[metric].label.toLowerCase()}: <b className="text-slate-800">{fmtPct(avgOf(schools, metric))}</b> {tx("(o'rtacha)")}</p></div>
 					<MapView geojson={data.geojson} districtStyle={geoStyle} markers={markers} focus={focus} selectedId={selectedId} lock={!!data.scope?.scoped} height={height} />
 					{compact && <div className="pointer-events-none absolute bottom-3 left-3 z-[400] flex flex-wrap gap-2 rounded-lg bg-white/90 px-2.5 py-1.5 text-[11px] text-slate-600 shadow">{LEGEND.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full" style={{ background: c }} />{l.split(' ')[0]}</span>)}</div>}
-					{data.scope?.scoped && !data.geojson?.features?.length && <p className="absolute left-3 top-3 z-[400] max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow">{data.scope.district} chegarasi yuklanmagan: xarita maktablar atrofiga ochildi.</p>}
-					{markers.length === 0 && <p className="absolute left-1/2 top-1/2 z-[400] w-72 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white/95 px-4 py-3 text-center text-sm text-slate-600 shadow-lg">Xaritada maktab yo'q: maktab adminlari «Sozlamalar»da joylashuvni belgilashi kerak.</p>}
+					{data.scope?.scoped && !data.geojson?.features?.length && <p className="absolute left-3 top-3 z-[400] max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow">{tx("{{district}} chegarasi yuklanmagan: xarita maktablar atrofiga ochildi.", { district: data.scope.district })}</p>}
+					{markers.length === 0 && <p className="absolute left-1/2 top-1/2 z-[400] w-72 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white/95 px-4 py-3 text-center text-sm text-slate-600 shadow-lg">{tx("Xaritada maktab yo'q: maktab adminlari «Sozlamalar»da joylashuvni belgilashi kerak.")}</p>}
 				</div>
 			)}
 		</div>

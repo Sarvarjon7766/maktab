@@ -1,0 +1,44 @@
+{
+  "backend": {
+    "_comment": "Endi backend KO'P MAKTABLI (multi-tenant) — base_url BARCHA maktablar uchun BIR XIL umumiy server manzili, lekin token HAR BIR MAKTAB uchun O'ZINING alohida tokeni (platforma superadmini /platform panelidan 'Yangi maktab' yoki 'Tokenni yangilash' orqali yaratadi/ko'rsatadi, faqat BIR MARTA ko'rsatiladi). Shu kompyuter/tarmoqdagi server_proxy nusxasi shu MAKTABning kameralarigagina xizmat qiladi — boshqa maktabning tokeni bilan ishlatilsa, backend hech qanday ma'lumot qaytarmaydi (404). Qarang: README.md.",
+    "base_url": "http://localhost:5000",
+    "token": "CHANGE_ME_32_PLUS_RANDOM_CHARS"
+  },
+  "web_api": {
+    "url": "",
+    "token": ""
+  },
+  "telegram": {
+    "bot_token": "",
+    "chat_id": ""
+  },
+  "webhook": {
+    "token": "CHANGE_ME_32_PLUS_RANDOM_CHARS",
+    "host": "0.0.0.0",
+    "port": 8088
+  },
+  "pull_api": {
+    "url": "",
+    "token": "",
+    "ack_url": "",
+    "poll_interval_seconds": 10
+  },
+  "delete_api": {
+    "url": "",
+    "token": "",
+    "ack_url": ""
+  },
+  "devices": [
+    {
+      "ip": "192.168.8.11",
+      "port": 80,
+      "username": "admin",
+      "password": "CHANGE_ME",
+      "qayer": "1",
+      "where": "2",
+      "joy": "kirish",
+      "post": "1"
+    }
+  ]
+}
+

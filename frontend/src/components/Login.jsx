@@ -8,6 +8,7 @@ import { useOrg } from "../context/OrgContext"
 import BrandLogo from "./BrandLogo"
 import { clearSession } from "../api/sessionCleanup"
 import { resetMonitorLevel } from "../pages/monitor/monitorLevel"
+import { tx } from '../i18n'
 
 const Login = () => {
 	const org = useOrg()
@@ -131,15 +132,15 @@ const Login = () => {
 				<div className="relative z-10 flex flex-col justify-center max-w-lg">
 					<div className="flex items-center gap-3 mb-6">
 						<BrandLogo className="w-11 h-11" />
-						<span className="text-xl font-semibold tracking-tight">{org.isPlatform ? "School Supervision" : org.orgName}</span>
+						<span className="text-xl font-semibold tracking-tight">{org.isPlatform ? tx("School Supervision") : org.orgName}</span>
 					</div>
 
 					<h1 className="text-4xl font-bold mb-4">
-						{org.isPlatform ? "Maktablar uchun yuz-nazorat tizimi" : org.orgName}
+						{org.isPlatform ? tx("Maktablar uchun yuz-nazorat tizimi") : org.orgName}
 					</h1>
 
 					<p className="text-blue-200 text-lg">
-						Davomatni nazorat qilish va tahlil qilish uchun yagona platforma
+						{tx("Davomatni nazorat qilish va tahlil qilish uchun yagona platforma")}
 					</p>
 
 					<div className="mt-10 space-y-3 text-blue-100">
@@ -160,7 +161,7 @@ const Login = () => {
 						<div className="absolute bottom-10 left-16 right-16 border-t border-blue-500/30 pt-6">
 							{org.phone && (
 								<>
-									<p className="text-blue-300 text-sm mb-1">Aloqa uchun</p>
+									<p className="text-blue-300 text-sm mb-1">{tx("Aloqa uchun")}</p>
 									<p className="text-white font-semibold text-xl tracking-wide">
 										{org.phone}
 									</p>
@@ -183,10 +184,10 @@ const Login = () => {
 					<div className="text-center mb-8">
 						<FaceIdMark className="w-16 h-16 mx-auto mb-4" />
 						<h2 className="text-2xl font-bold text-slate-800">
-							Tizimga kirish
+							{tx("Tizimga kirish")}
 						</h2>
 						<p className="text-slate-500 text-sm mt-1">
-							{org.isPlatform ? "Login va parolingizni kiriting" : `${org.orgName} xodimlari uchun`}
+							{org.isPlatform ? tx("Login va parolingizni kiriting") : `${org.orgName} xodimlari uchun`}
 						</p>
 					</div>
 
@@ -202,7 +203,7 @@ const Login = () => {
 								name="username"
 								value={formData.username}
 								onChange={handleChange}
-								placeholder="Foydalanuvchi nomi"
+								placeholder={tx("Foydalanuvchi nomi")}
 								autoComplete="username"
 								className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-black placeholder-slate-400
 								focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none transition"
@@ -221,7 +222,7 @@ const Login = () => {
 								name="password"
 								value={formData.password}
 								onChange={handleChange}
-								placeholder="Parol"
+								placeholder={tx("Parol")}
 								autoComplete="current-password"
 								className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-black placeholder-slate-400
 								focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none transition"
@@ -237,7 +238,7 @@ const Login = () => {
               hover:scale-[1.02] active:scale-[0.98]
               shadow-lg"
 						>
-							{isLoading ? "Kirish..." : "Kirish"}
+							{isLoading ? tx("Kirish...") : tx("Kirish")}
 						</button>
 					</form>
 
@@ -246,7 +247,7 @@ const Login = () => {
 						<div className="mt-8 pt-6 border-t border-slate-200 text-center md:hidden space-y-2">
 							{org.phone && (
 								<>
-									<p className="text-slate-600 text-sm">Aloqa uchun</p>
+									<p className="text-slate-600 text-sm">{tx("Aloqa uchun")}</p>
 									<p className="text-blue-700 font-semibold text-lg">
 										{org.phone}
 									</p>

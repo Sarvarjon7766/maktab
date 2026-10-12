@@ -124,13 +124,23 @@ module.exports = {
 		ttl: 60000,
 		prepare: (query) => {
 			if (!['student', 'staff'].includes(query.kind)) throw new FederationError("Tur noto'g'ri", 400)
+			// Sahifalangan so'rov: har tumandan filtrlangan HAMMA natija olinadi (all=1), sahifalash bu yerda qayta bajariladi
+			if (query.page !== undefined) { const { page, pageSize, ...rest } = query; return { ...rest, all: '1' } }
 			return query
 		},
 		merge: (parts, ctx) => {
 			const ds = parts.map((p) => p.data)
+			const d0 = ds[0]
+			if (ctx.query.page !== undefined) {
+				const { pageLate } = require('../../../utils/listPaging')
+				const entries = ds.flatMap((d) => d.people || [])
+				const groups = [...new Set(ds.flatMap((d) => d.groups || []))].sort((a, b) => String(a).localeCompare(String(b), 'uz', { numeric: true }))
+				const top = ds.map((d) => d.top).filter(Boolean).sort((a, b) => b.lateDays - a.lateDays || num(b.percent) - num(a.percent))[0] || null
+				const paged = pageLate(entries, d0.kind, { sort: ctx.query.sort, page: ctx.query.page, pageSize: ctx.query.pageSize })
+				return { success: true, from: d0.from, to: d0.to, kind: d0.kind, totalLatePeople: sum(ds, 'totalLatePeople'), ...paged, groups, top }
+			}
 			const top = kmerge(ds.map((d) => d.people || []), (a, b) => b.lateDays - a.lateDays || num(b.percent) - num(a.percent))
 				.slice(0, Math.min(Number(ctx.query.limit) || 100, 300))
-			const d0 = ds[0]
 			return { success: true, from: d0.from, to: d0.to, kind: d0.kind, totalLatePeople: sum(ds, 'totalLatePeople'), people: top }
 		}
 	},

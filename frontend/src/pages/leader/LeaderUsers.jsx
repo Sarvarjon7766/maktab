@@ -5,6 +5,7 @@ import { FiBarChart2, FiChevronDown, FiChevronUp, FiFilter, FiSearch, FiUsers } 
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import SearchableSelect from '../../components/SearchableSelect'
+import { uploadUrl } from '../../utils/uploadUrl'
 
 const norm = (t) => String(t || '').toLowerCase().replace(/['‘’ʻʼ`´]/g, '')
 
@@ -33,7 +34,7 @@ const LeaderUsers = () => {
 				})
 				setExpandedDepartments(expandedState)
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Server bilan aloqa xatosi")
 		}
 	}
@@ -50,7 +51,7 @@ const LeaderUsers = () => {
 				setUsers(res.data.users)
 				setFilteredUsers(res.data.users)
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Server bilan aloqa xatosi")
 		} finally {
 			setIsLoading(false)
@@ -96,7 +97,7 @@ const LeaderUsers = () => {
 	}
 
 	return (
-		<div className="p-4 md:p-6 bg-slate-50 min-h-screen">
+		<div className="p-4 md:p-6 bg-slate-50 min-h-full">
 			{/* Filter Section */}
 			<div className="bg-white rounded-lg shadow-sm p-4 md:p-5 mb-6 border border-gray-200">
 				<div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -107,7 +108,7 @@ const LeaderUsers = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Ism, familiya yoki lavozim boʻyicha qidirish..."
+							placeholder={tx("Ism, familiya yoki lavozim boʻyicha qidirish...")}
 							className="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-700 transition-all duration-200"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
@@ -124,7 +125,7 @@ const LeaderUsers = () => {
 								variant="outline"
 								icon={false}
 								className="w-full md:w-56"
-								searchPlaceholder="Sinf qidirish..."
+								searchPlaceholder={tx("Sinf qidirish...")}
 								value={selectedDepartment || ''}
 								onChange={(v) => setSelectedDepartment(v || null)}
 								options={[{ value: '', label: tx('Barcha sinflar') }, ...sinfs.map(dept => ({ value: dept._id, label: dept.name }))]}
@@ -138,7 +139,7 @@ const LeaderUsers = () => {
 			{isLoading ? (
 				<div className="flex justify-center items-center p-12">
 					<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-					<span className="ml-3 text-gray-600 font-medium">Ma'lumotlar yuklanmoqda...</span>
+					<span className="ml-3 text-gray-600 font-medium">{tx("Ma'lumotlar yuklanmoqda...")}</span>
 				</div>
 			) : selectedDepartment ? (
 				// Show selected department with its users
@@ -147,7 +148,7 @@ const LeaderUsers = () => {
 						<div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
 							<div>
 								<h2 className="text-lg md:text-xl font-semibold text-gray-800">
-									{sinfs.find(d => d._id === selectedDepartment)?.name || 'Tanlangan sinf'}
+									{sinfs.find(d => d._id === selectedDepartment)?.name || tx("Tanlangan sinf")}
 								</h2>
 								<p className="text-gray-600 mt-1 text-sm">
 									{tx('{{n}} ta xodim', { n: getUsersByDepartment(selectedDepartment).length })}
@@ -157,7 +158,7 @@ const LeaderUsers = () => {
 								onClick={() => setSelectedDepartment(null)}
 								className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
 							>
-								Barcha sinflarni koʻrish
+								{tx("Barcha sinflarni koʻrish")}
 							</button>
 						</div>
 					</div>
@@ -167,10 +168,10 @@ const LeaderUsers = () => {
 							<thead className="bg-gray-50">
 								<tr>
 									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">№</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rasm</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Xodim</th>
-									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lavozim</th>
-										<th scope="col" className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amal</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Rasm")}</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Xodim")}</th>
+									<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Lavozim")}</th>
+										<th scope="col" className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Amal")}</th>
 								</tr>
 							</thead>
 							<tbody className="bg-white divide-y divide-gray-200">
@@ -185,7 +186,7 @@ const LeaderUsers = () => {
 													{user.photo ? (
 														<img
 															className="h-14 w-14 rounded-full object-cover border border-gray-200"
-															src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+															src={`${uploadUrl(user.photo)}`}
 															alt={user.fullName}
 														/>
 													) : (
@@ -197,7 +198,7 @@ const LeaderUsers = () => {
 											</td>
 											<td className="px-5 py-4">
 												<div className="text-sm font-medium text-gray-900">{user.fullName}</div>
-												<div className="text-xs text-gray-500">{user.sinf?.name || 'Sinf mavjud emas'}</div>
+												<div className="text-xs text-gray-500">{user.sinf?.name || tx("Sinf mavjud emas")}</div>
 											</td>
 											<td className="px-5 py-4">
 												<div className="text-sm text-gray-900 font-medium">
@@ -205,8 +206,8 @@ const LeaderUsers = () => {
 												</div>
 											</td>
 										<td className="px-5 py-4 text-right">
-											<Link to={`/leader/users/${user._id}/analytics`} title="Batafsil tahlil" className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-colors">
-												<FiBarChart2 size={13} /> Tahlil
+											<Link to={`/leader/users/${user._id}/analytics`} title={tx("Batafsil tahlil")} className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-colors">
+												<FiBarChart2 size={13} /> {tx("Tahlil")}
 											</Link>
 										</td>
 										</tr>
@@ -216,9 +217,9 @@ const LeaderUsers = () => {
 										<td colSpan="4" className="px-6 py-12 text-center">
 											<div className="flex flex-col items-center justify-center">
 												<FiUsers className="h-16 w-16 text-gray-300 mb-4" />
-												<h3 className="text-lg font-medium text-gray-700">Xodimlar topilmadi</h3>
+												<h3 className="text-lg font-medium text-gray-700">{tx("Xodimlar topilmadi")}</h3>
 												<p className="text-gray-500 mt-2 max-w-md text-sm">
-													Ushbu sinfda hozircha xodimlar mavjud emas yoki qidiruv boʻyicha hech narsa topilmadi
+													{tx("Ushbu sinfda hozircha xodimlar mavjud emas yoki qidiruv boʻyicha hech narsa topilmadi")}
 												</p>
 											</div>
 										</td>
@@ -256,10 +257,10 @@ const LeaderUsers = () => {
 										<thead className="bg-gray-50">
 											<tr>
 												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">№</th>
-												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rasm</th>
-												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Xodim</th>
-												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lavozim</th>
-										<th scope="col" className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amal</th>
+												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Rasm")}</th>
+												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Xodim")}</th>
+												<th scope="col" className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Lavozim")}</th>
+										<th scope="col" className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Amal")}</th>
 											</tr>
 										</thead>
 										<tbody className="bg-white divide-y divide-gray-200">
@@ -274,7 +275,7 @@ const LeaderUsers = () => {
 																{user.photo ? (
 																	<img
 																		className="h-14 w-14 rounded-full object-cover border border-gray-200"
-																		src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+																		src={`${uploadUrl(user.photo)}`}
 																		alt={user.fullName}
 																	/>
 																) : (
@@ -286,7 +287,7 @@ const LeaderUsers = () => {
 														</td>
 														<td className="px-5 py-4">
 															<div className="text-sm font-medium text-gray-900">{user.fullName}</div>
-															<div className="text-xs text-gray-500">{user.sinf?.name || 'Sinf mavjud emas'}</div>
+															<div className="text-xs text-gray-500">{user.sinf?.name || tx("Sinf mavjud emas")}</div>
 														</td>
 														<td className="px-5 py-4">
 															<div className="text-sm text-gray-900 font-medium">
@@ -294,8 +295,8 @@ const LeaderUsers = () => {
 															</div>
 														</td>
 										<td className="px-5 py-4 text-right">
-											<Link to={`/leader/users/${user._id}/analytics`} title="Batafsil tahlil" className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-colors">
-												<FiBarChart2 size={13} /> Tahlil
+											<Link to={`/leader/users/${user._id}/analytics`} title={tx("Batafsil tahlil")} className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-colors">
+												<FiBarChart2 size={13} /> {tx("Tahlil")}
 											</Link>
 										</td>
 													</tr>
@@ -305,8 +306,8 @@ const LeaderUsers = () => {
 													<td colSpan="4" className="px-6 py-8 text-center">
 														<div className="flex flex-col items-center justify-center">
 															<FiUsers className="h-12 w-12 text-gray-300 mb-3" />
-															<h3 className="text-base font-medium text-gray-700">Xodimlar topilmadi</h3>
-															<p className="text-gray-500 mt-1 text-sm">Ushbu sinfda hozircha xodimlar mavjud emas</p>
+															<h3 className="text-base font-medium text-gray-700">{tx("Xodimlar topilmadi")}</h3>
+															<p className="text-gray-500 mt-1 text-sm">{tx("Ushbu sinfda hozircha xodimlar mavjud emas")}</p>
 														</div>
 													</td>
 												</tr>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 /* Butun ilova faqat och (light) rejim uchun ishlab chiqilgan — hech qayerda
    dark: variant ishlatilmagan. daisyUI'ning standart xatti-harakati esa
    qurilma/brauzerning tizim sozlamasi (prefers-color-scheme: dark) qorong'u
@@ -19,6 +20,15 @@
 
 .align-items {
   @apply mx-auto p-3 max-w-[1400px];
+}
+
+@layer components {
+
+  .school-admin-surfaces :is(section, article, aside, div, a, ul, li)[class~="bg-white"][class*="rounded-"][class*="border"]:is([class~="p-3"], [class~="p-4"], [class~="p-5"], [class~="p-6"]):not([class*="sticky"]):not([class*="shadow-xl"]),
+  .school-admin-surfaces button[class~="bg-white"][class*="rounded-"][class*="border"][class*="p-"] {
+    border-color: transparent !important;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04) !important;
+  }
 }
 
 @layer utilities {

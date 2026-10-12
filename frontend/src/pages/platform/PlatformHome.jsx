@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { FaSchool } from 'react-icons/fa'
 import { FiCheckCircle, FiXCircle } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
+import { tx } from '../../i18n'
 
 const api = axios.create({ baseURL: import.meta.env.VITE_BASE_URL })
 
@@ -32,14 +33,12 @@ const PlatformHome = () => {
 
 	return (
 		<div className="p-4 md:p-6">
-			<h1 className="text-2xl font-semibold text-gray-900 mb-1">Platforma boshqaruvi</h1>
-			<p className="text-sm text-gray-500 mb-6">FaceID tizimiga ulangan barcha maktablar</p>
 
 			{!loading && (
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-					<StatCard icon={<FaSchool size={22} className="text-blue-600" />} label="Jami maktablar" value={schools.length} tone="bg-blue-50" />
-					<StatCard icon={<FiCheckCircle size={22} className="text-green-600" />} label="Faol maktablar" value={active} tone="bg-green-50" />
-					<StatCard icon={<FiXCircle size={22} className="text-red-600" />} label="To'xtatilgan" value={schools.length - active} tone="bg-red-50" />
+					<StatCard icon={<FaSchool size={22} className="text-blue-600" />} label={tx("Jami maktablar")} value={schools.length} tone="bg-blue-50" />
+					<StatCard icon={<FiCheckCircle size={22} className="text-green-600" />} label={tx("Faol maktablar")} value={active} tone="bg-green-50" />
+					<StatCard icon={<FiXCircle size={22} className="text-red-600" />} label={tx("To'xtatilgan")} value={schools.length - active} tone="bg-red-50" />
 				</div>
 			)}
 
@@ -47,7 +46,7 @@ const PlatformHome = () => {
 				to="/platform/schools"
 				className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-medium shadow-sm"
 			>
-				<FaSchool size={18} /> Maktablarni boshqarish
+				<FaSchool size={18} /> {tx("Maktablarni boshqarish")}
 			</Link>
 		</div>
 	)

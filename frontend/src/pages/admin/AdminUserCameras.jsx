@@ -1,6 +1,8 @@
 import axios from "axios"
 import { Camera, Search } from "lucide-react"
 import { useEffect, useState } from "react"
+import { setVisibleInterval } from '../../utils/poll'
+import { tx } from '../../i18n'
 
 export default function AdminUserCameras() {
 	/* ================= STATE ================= */
@@ -38,7 +40,7 @@ export default function AdminUserCameras() {
 	useEffect(() => {
 		getCameras()
 		// HikConnect heartbeat ~60s'da yangilanadi, shuning uchun (skeletonsiz) shunga mos poll qilamiz
-		const interval = setInterval(() => getCameras(true), 30000)
+		const interval = setVisibleInterval(() => getCameras(true), 30000)
 		return () => clearInterval(interval)
 	}, [])
 
@@ -67,10 +69,10 @@ export default function AdminUserCameras() {
 				<Camera className="text-gray-400" size={32} />
 			</div>
 			<h3 className="text-xl font-semibold text-gray-700 mb-2">
-				Qurilmalar topilmadi
+				{tx("Qurilmalar topilmadi")}
 			</h3>
 			<p className="text-gray-500">
-				Hozircha hech qanday qurilma mavjud emas
+				{tx("Hozircha hech qanday qurilma mavjud emas")}
 			</p>
 		</div>
 	)
@@ -80,16 +82,16 @@ export default function AdminUserCameras() {
 		<div className="text-center py-12">
 			<Search className="mx-auto text-gray-400 mb-3" size={40} />
 			<h3 className="text-lg font-semibold text-gray-700 mb-2">
-				Natija topilmadi
+				{tx("Natija topilmadi")}
 			</h3>
 			<p className="text-gray-500">
-				"{searchTerm}" so'rovi bo'yicha qurilma topilmadi
+				{tx("\"{{q}}\" so'rovi bo'yicha qurilma topilmadi", { q: searchTerm })}
 			</p>
 		</div>
 	)
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+		<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
 			<div className="mx-auto">
 				<div className="p-6 mb-8">
 					<div className="mb-6">
@@ -97,7 +99,7 @@ export default function AdminUserCameras() {
 							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
 							<input
 								type="text"
-								placeholder="Qurilma nomi yoki serial raqami bo'yicha qidirish..."
+								placeholder={tx("Qurilma nomi yoki serial raqami bo'yicha qidirish...")}
 								className="w-full pl-12 pr-4 text-black py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,10 +132,10 @@ export default function AdminUserCameras() {
 													}`}
 													title={
 														cam.online === true
-															? "Onlayn"
+															? tx("Onlayn")
 															: cam.online === false
 															? `Oflayn${cam.lastStatusError ? `: ${cam.lastStatusError}` : ""}`
-															: "Holat noma'lum"
+															: tx("Holat noma'lum")
 													}
 												/>
 											</div>
@@ -146,14 +148,14 @@ export default function AdminUserCameras() {
 												<div className="flex flex-wrap items-center gap-2 mt-1">
 													{cam.post !== null && cam.post !== undefined && (
 														<span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs">
-															Post: {cam.post}
+															{tx("Post: {{p}}", { p: cam.post })}
 														</span>
 													)}
 													{cam.direction && (
 														<span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
 															cam.direction === "in" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
 														}`}>
-															{cam.direction === "in" ? "Kirish" : "Chiqish"}
+															{cam.direction === "in" ? tx("Kirish") : tx("Chiqish")}
 														</span>
 													)}
 												</div>

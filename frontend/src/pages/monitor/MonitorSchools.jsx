@@ -3,6 +3,7 @@ import { FiArrowDown, FiArrowUp, FiCheck, FiDownload } from 'react-icons/fi'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartBox, Empty, exportXlsx, LoadState, Page, PageHeader, Panel, RangePicker, SearchBox, fmt, matchText, schoolPlace, shiftDate, todayStr, useMonitorData } from './monitorKit'
+import { tx } from '../../i18n'
 
 const COLORS = ['#2563eb', '#f59e0b', '#16a34a']
 const COLS = [
@@ -27,7 +28,7 @@ const Cell = ({ s, c, avg }) => {
 	return (
 		<td className="px-3 py-3 text-right whitespace-nowrap">
 			<b className={`text-sm ${tone(v, avg, c.higher)}`}>{show(v, c)}</b>
-			{diff !== null && diff !== 0 && <p className="text-[10px] text-gray-400">{diff > 0 ? '+' : ''}{diff} o'rtachadan</p>}
+			{diff !== null && diff !== 0 && <p className="text-[10px] text-gray-400">{diff > 0 ? '+' : ''}{diff} {tx("o'rtachadan")}</p>}
 		</td>
 	)
 }
@@ -84,16 +85,16 @@ const MonitorSchools = () => {
 	return (
 		<Page>
 			<PageHeader onReload={reload} loading={loading}>
-				<button onClick={download} disabled={!rows.length} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> Excel</button>
-				<SearchBox value={query} onChange={setQuery} placeholder="Maktab yoki hudud" />
+				<button onClick={download} disabled={!rows.length} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> {tx("Excel")}</button>
+				<SearchBox value={query} onChange={setQuery} placeholder={tx("Maktab yoki hudud")} />
 			</PageHeader>
 			<div className="mb-5"><RangePicker {...range} onChange={setRange} /></div>
 			{districts.length > 1 && (
 				<div className="mb-5 flex flex-wrap items-center gap-1.5">
-					<span className="mr-1 text-xs font-medium text-slate-500">Tuman:</span>
-					<button onClick={() => setDist('')} className={`rounded-full px-3.5 py-1.5 text-sm transition ${dist === '' ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>Hammasi <span className="opacity-60">{all.length}</span></button>
+					<span className="mr-1 text-xs font-medium text-slate-500">{tx("Tuman:")}</span>
+					<button onClick={() => setDist('')} className={`rounded-full px-3.5 py-1.5 text-sm transition ${dist === '' ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>{tx("Hammasi")} <span className="opacity-60">{all.length}</span></button>
 					{districts.map(([name, n]) => <button key={name} onClick={() => setDist(dist === name ? '' : name)} className={`rounded-full px-3.5 py-1.5 text-sm transition ${dist === name ? 'bg-slate-900 font-medium text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-100'}`}>{name} <span className="opacity-60">{n}</span></button>)}
-					{dist && <Link to={`/monitor/districts/${encodeURIComponent(dist)}`} className="ml-2 text-sm font-medium text-blue-600 hover:underline">{dist} tuman sahifasi →</Link>}
+					{dist && <Link to={`/monitor/districts/${encodeURIComponent(dist)}`} className="ml-2 text-sm font-medium text-blue-600 hover:underline">{tx("{{district}} tuman sahifasi →", { district: dist })}</Link>}
 				</div>
 			)}
 
@@ -111,7 +112,7 @@ const MonitorSchools = () => {
 				)}
 
 				{chosen.length >= 2 && (
-					<Panel title="Tanlangan maktablar taqqoslamasi" className="mb-6" action={<button onClick={() => setPicked([])} className="text-sm text-gray-500 hover:text-gray-800">Tozalash</button>}>
+					<Panel title={tx("Tanlangan maktablar taqqoslamasi")} className="mb-6" action={<button onClick={() => setPicked([])} className="text-sm text-gray-500 hover:text-gray-800">{tx("Tozalash")}</button>}>
 						<div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 							<ChartBox height={240}><ResponsiveContainer width="100%" height="100%">
 								<BarChart data={chart} margin={{ left: -12, right: 8 }}>
@@ -136,35 +137,35 @@ const MonitorSchools = () => {
 					</Panel>
 				)}
 
-				<Panel className="overflow-hidden" title={`Maktablar (${fmt(rows.length)})`} action={<span className="text-xs text-gray-400">Taqqoslash uchun 2–3 maktabni belgilang</span>}>
+				<Panel className="overflow-hidden" title={`Maktablar (${fmt(rows.length)})`} action={<span className="text-xs text-gray-400">{tx("Taqqoslash uchun 2–3 maktabni belgilang")}</span>}>
 					<div className="overflow-x-auto -mx-5 -mb-5">
 						<table className="w-full text-sm">
 							<thead>
 								<tr className="text-xs uppercase tracking-wide text-gray-500 border-y border-gray-100 bg-gray-50/60">
-									<th className="w-10 px-3 py-2.5" /><th className="px-3 py-2.5 text-left font-semibold">Maktab</th>
+									<th className="w-10 px-3 py-2.5" /><th className="px-3 py-2.5 text-left font-semibold">{tx("Maktab")}</th>
 									{COLS.map(c => (
 										<th key={c.key} title={c.hint} className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">
 											<button onClick={() => toggleSort(c.key)} className={`inline-flex items-center gap-1 uppercase tracking-wide ${sort.key === c.key ? 'text-blue-700' : ''}`}>{c.label}{sort.key === c.key && (sort.dir === 'desc' ? <FiArrowDown size={12} /> : <FiArrowUp size={12} />)}</button>
 										</th>
 									))}
-									<th className="px-3 py-2.5 text-left font-semibold">Kuchli tomoni</th><th className="px-3 py-2.5 text-left font-semibold">Zaif tomoni</th>
+									<th className="px-3 py-2.5 text-left font-semibold">{tx("Kuchli tomoni")}</th><th className="px-3 py-2.5 text-left font-semibold">{tx("Zaif tomoni")}</th>
 								</tr>
 							</thead>
 							<tbody>
 								{rows.map((s, i) => (
 									<tr key={s._id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/40">
-										<td className="px-3 py-3"><button onClick={() => toggle(s._id)} aria-label="Taqqoslash" className={`w-5 h-5 rounded border flex items-center justify-center ${picked.includes(s._id) ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 bg-white'}`}>{picked.includes(s._id) && <FiCheck size={12} />}</button></td>
+										<td className="px-3 py-3"><button onClick={() => toggle(s._id)} aria-label={tx("Taqqoslash")} className={`w-5 h-5 rounded border flex items-center justify-center ${picked.includes(s._id) ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 bg-white'}`}>{picked.includes(s._id) && <FiCheck size={12} />}</button></td>
 										<td className="px-3 py-3 min-w-[200px]">
 											<Link to={`/monitor/schools/${s._id}`} className="font-semibold text-gray-900 hover:text-blue-600"><span className="text-gray-400 font-normal mr-2">{i + 1}</span>{s.name}</Link>
-											<p className="text-xs text-gray-400 ml-5">{schoolPlace(s)} · {fmt(s.students)} o'quvchi · {fmt(s.staff)} xodim · {fmt(s.classes)} sinf</p>
+											<p className="text-xs text-gray-400 ml-5">{schoolPlace(s)} · {tx("{{n}} o'quvchi", { n: fmt(s.students) })} · {tx("{{n}} xodim", { n: fmt(s.staff) })} · {tx("{{n}} sinf", { n: fmt(s.classes) })}</p>
 										</td>
 										{COLS.map(c => <Cell key={c.key} s={s} c={c} avg={avgs[c.key] ?? null} />)}
 										<td className="px-3 py-3 min-w-[170px]"><div className="flex flex-wrap gap-1">{s.strengths.map(x => <span key={x.key} title={`${x.value}% · o'rtacha ${x.avg}%`} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-50 text-green-700">{x.label}</span>)}{!s.strengths.length && <span className="text-gray-300">—</span>}</div></td>
 										<td className="px-3 py-3 min-w-[170px]"><div className="flex flex-wrap gap-1">{s.weaknesses.map(x => <span key={x.key} title={`${x.value}% · o'rtacha ${x.avg}%`} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-700">{x.label}</span>)}{!s.weaknesses.length && <span className="text-gray-300">—</span>}</div></td>
 									</tr>
 								))}
-								{rows.length === 0 && <tr><td colSpan={9}><Empty text="Topilmadi" /></td></tr>}
-								<tr className="bg-gray-50/70 text-xs text-gray-500"><td /><td className="px-3 py-2.5 font-semibold">Barcha maktablar o'rtachasi</td>{COLS.map(c => <td key={c.key} className="px-3 py-2.5 text-right font-semibold">{show(avgs[c.key] ?? null, c)}</td>)}<td colSpan={2} /></tr>
+								{rows.length === 0 && <tr><td colSpan={9}><Empty text={tx("Topilmadi")} /></td></tr>}
+								<tr className="bg-gray-50/70 text-xs text-gray-500"><td /><td className="px-3 py-2.5 font-semibold">{tx("Barcha maktablar o'rtachasi")}</td>{COLS.map(c => <td key={c.key} className="px-3 py-2.5 text-right font-semibold">{show(avgs[c.key] ?? null, c)}</td>)}<td colSpan={2} /></tr>
 							</tbody>
 						</table>
 					</div>

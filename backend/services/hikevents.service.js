@@ -32,6 +32,8 @@ const SUBSCRIBE_TYPES = [FACE_RECOGNITION, ...Object.keys(ANALYTICS).map(Number)
 const POLL_MS = 3000
 const RESUBSCRIBE_MS = 6 * 3600 * 1000
 const MAX_ROUNDS = 5
+const MAX_BATCH_TRIES = 3
+const batchTries = new Map() // batchId -> muvaffaqiyatsiz urinishlar soni
 
 const subscribed = new Map() // accountId -> vaqt
 const status = new Map() // accountId -> { lastPollAt, lastError, lastEventAt }
@@ -160,10 +162,23 @@ async function pollAccount(account) {
 	for (let round = 0; round < MAX_ROUNDS; round++) {
 		const data = await HikService.call(account, 'post', '/api/hccgw/alarm/v1/mq/messages', { maxNumberPerTime: 100 })
 		const list = data.alarmMsg || []
+		let failed = 0
 		for (const msg of list) {
-			try { await processMessage(account, msg) } catch (error) { console.log('Hik hodisani qayta ishlash xatosi:', error.message) }
+			try { await processMessage(account, msg) } catch (error) { failed++; console.log('Hik hodisani qayta ishlash xatosi:', error.message) }
 		}
-		if (data.batchId) await HikService.call(account, 'post', '/api/hccgw/alarm/v1/mq/messages/complete', { batchId: data.batchId })
+		if (data.batchId) {
+			// Xato bo'lgan (masalan baza vaqtincha ishlamagan) paket tasdiqlanmaydi: Hik uni qayta yuboradi (takroriy hodisalar guid bo'yicha o'tkazib yuboriladi).
+			// Doimiy xato beruvchi paket navbatni to'sib qo'ymasligi uchun 3 urinishdan keyin baribir tasdiqlanadi
+			const tries = failed ? (batchTries.get(data.batchId) || 0) + 1 : 0
+			if (!failed || tries >= MAX_BATCH_TRIES) {
+				batchTries.delete(data.batchId)
+				await HikService.call(account, 'post', '/api/hccgw/alarm/v1/mq/messages/complete', { batchId: data.batchId })
+			} else {
+				batchTries.set(data.batchId, tries)
+				if (batchTries.size > 200) batchTries.delete(batchTries.keys().next().value)
+				break // qayta yuborilishini keyingi so'rovda kutamiz
+			}
+		}
 		if (!list.length || !(Number(data.remainingNumber) > 0)) break
 	}
 }

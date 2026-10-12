@@ -5,6 +5,7 @@ import { FaChalkboardTeacher } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { ViewerStatsProvider } from '../../components/SchoolStatsShell'
 import { LoadState, Page, Panel, PersonLink, WEEKDAYS, fmt, levelColor, levelText, shiftDate, todayStr, usePanel, useMonitorData, pctFmt } from '../monitor/monitorKit'
+import { uploadUrl } from '../../utils/uploadUrl'
 
 const MONTHS = [tx('yanvar'), tx('fevral'), tx('mart'), tx('aprel'), tx('may'), tx('iyun'), tx('iyul'), tx('avgust'), tx('sentyabr'), tx('oktyabr'), tx('noyabr'), tx('dekabr')]
 const SHORT_DAYS = [tx('Ya'), tx('Du'), tx('Se'), tx('Ch'), tx('Pa'), tx('Ju'), tx('Sh')]
@@ -70,7 +71,7 @@ const Dashboard = () => {
 							<div className="flex flex-wrap items-center justify-between gap-5">
 								<div className="flex min-w-0 items-center gap-4">
 									<span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/15 text-2xl font-semibold ring-1 ring-white/30">
-										{u?.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${u.photo}`} alt="" className="h-full w-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} /> : <FiUser />}
+										{u?.photo ? <img src={`${uploadUrl(u.photo)}`} alt="" className="h-full w-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} /> : <FiUser />}
 									</span>
 									<div className="min-w-0">
 										<p className="text-xs uppercase tracking-widest text-cyan-200/80">{dateLabel}</p>
@@ -82,13 +83,13 @@ const Dashboard = () => {
 									</div>
 								</div>
 								<div className="min-w-[220px] rounded-2xl bg-white/10 p-4 ring-1 ring-white/20 backdrop-blur">
-									<p className="text-xs uppercase tracking-wide text-slate-300">Bugun</p>
+									<p className="text-xs uppercase tracking-wide text-slate-300">{tx("Bugun")}</p>
 									<span className={`mt-1.5 inline-block rounded-full px-3.5 py-1 text-sm font-medium ring-1 ${chip}`}>{label}{day?.status === 'late' ? tx(' · +{{n}} daq', { n: sum.lateBy }) : ''}</span>
 									<div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-										<div><p className="text-xs text-slate-300">Kirish</p><p className="font-semibold">{sum?.firstIn || '—'}</p></div>
-										<div><p className="text-xs text-slate-300">{sum?.insideNow ? 'Holat' : 'Chiqish'}</p><p className="font-semibold">{sum?.insideNow ? 'Ichkarida' : sum?.lastOut || '—'}</p></div>
-										<div><p className="text-xs text-slate-300">Maktabda</p><p className="font-semibold">{sum?.insideMinutes ? dur(sum.insideMinutes) : '—'}</p></div>
-										<div><p className="text-xs text-slate-300">Ish boshlanishi</p><p className="font-semibold">{data.workStartTime || day?.workStartTime || '—'}</p></div>
+										<div><p className="text-xs text-slate-300">{tx("Kirish")}</p><p className="font-semibold">{sum?.firstIn || '—'}</p></div>
+										<div><p className="text-xs text-slate-300">{sum?.insideNow ? tx("Holat") : tx("Chiqish")}</p><p className="font-semibold">{sum?.insideNow ? tx("Ichkarida") : sum?.lastOut || '—'}</p></div>
+										<div><p className="text-xs text-slate-300">{tx("Maktabda")}</p><p className="font-semibold">{sum?.insideMinutes ? dur(sum.insideMinutes) : '—'}</p></div>
+										<div><p className="text-xs text-slate-300">{tx("Ish boshlanishi")}</p><p className="font-semibold">{data.workStartTime || day?.workStartTime || '—'}</p></div>
 									</div>
 								</div>
 							</div>
@@ -96,20 +97,20 @@ const Dashboard = () => {
 
 						<div>
 							<div className="mb-3 flex items-center justify-between">
-								<h2 className="font-semibold text-slate-900">Mening davomatim <span className="text-sm font-normal text-slate-400">· oxirgi 30 kun</span></h2>
-								<Link to={myPath} className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">Kunma-kun ko'rish <FiArrowRight size={14} /></Link>
+								<h2 className="font-semibold text-slate-900">{tx("Mening davomatim")} <span className="text-sm font-normal text-slate-400">{tx("· oxirgi 30 kun")}</span></h2>
+								<Link to={myPath} className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">{tx("Kunma-kun ko'rish")} <FiArrowRight size={14} /></Link>
 							</div>
 							<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-								<Tile to={myPath} label="Davomat" value={st ? (st.schoolDays ? `${pctFmt(st.percent)}` : '—') : '—'} tone={st?.schoolDays ? levelText(st.percent) : 'text-slate-400'} percent={st?.schoolDays ? st.percent : undefined} sub={st ? (st.schoolDays ? tx("{{a}} / {{b}} o'quv kuni", { a: st.present, b: st.schoolDays }) : "Hali o'quv kunlari qayd etilmagan") : ''} />
-								<Tile to={myPath} label="Kech qolgan kunlar" value={st ? st.late : '—'} tone={st?.late ? 'text-orange-600' : 'text-slate-900'} sub={st ? tx('sababsiz kelmagan {{n}} kun', { n: st.absent }) + (st.excused ? tx(' · sababli {{n}}', { n: st.excused }) : '') : ''} />
-								<Tile to={myPath} label="O'rtacha kelish" value={st?.avgArrival || '—'} sub="ish boshlanishiga nisbatan" />
-								<Tile to={`${base}/entry-exit`} label="Jami ishlagan vaqt" value={st ? tx('{{n}} soat', { n: st.totalHours }) : '—'} sub={sum?.insideMinutes ? tx('bugun {{t}}', { t: dur(sum.insideMinutes) }) : undefined} />
+								<Tile to={myPath} label={tx("Davomat")} value={st ? (st.schoolDays ? `${pctFmt(st.percent)}` : '—') : '—'} tone={st?.schoolDays ? levelText(st.percent) : 'text-slate-400'} percent={st?.schoolDays ? st.percent : undefined} sub={st ? (st.schoolDays ? tx("{{a}} / {{b}} o'quv kuni", { a: st.present, b: st.schoolDays }) : tx("Hali o'quv kunlari qayd etilmagan")) : ''} />
+								<Tile to={myPath} label={tx("Kech qolgan kunlar")} value={st ? st.late : '—'} tone={st?.late ? 'text-orange-600' : 'text-slate-900'} sub={st ? tx('sababsiz kelmagan {{n}} kun', { n: st.absent }) + (st.excused ? tx(' · sababli {{n}}', { n: st.excused }) : '') : ''} />
+								<Tile to={myPath} label={tx("O'rtacha kelish")} value={st?.avgArrival || '—'} sub={tx("ish boshlanishiga nisbatan")} />
+								<Tile to={`${base}/entry-exit`} label={tx("Jami ishlagan vaqt")} value={st ? tx('{{n}} soat', { n: st.totalHours }) : '—'} sub={sum?.insideMinutes ? tx('bugun {{t}}', { t: dur(sum.insideMinutes) }) : undefined} />
 							</div>
 						</div>
 
 						<div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-							<Panel title="Oxirgi 14 kun" action={<Link to={myPath} className="text-sm text-blue-600 hover:underline">Batafsil →</Link>}>
-								{cells.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">Ma'lumot yo'q</p> : (
+							<Panel title={tx("Oxirgi 14 kun")} action={<Link to={myPath} className="text-sm text-blue-600 hover:underline">{tx("Batafsil →")}</Link>}>
+								{cells.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">{tx("Ma'lumot yo'q")}</p> : (
 									<>
 										<div className="grid grid-cols-7 gap-2 md:grid-cols-[repeat(14,minmax(0,1fr))]">
 											{cells.map(c => (
@@ -126,8 +127,8 @@ const Dashboard = () => {
 								)}
 							</Panel>
 
-							<Panel title="Bugungi kirish-chiqishlar" action={<Link to={`${base}/entry-exit`} className="text-sm text-blue-600 hover:underline">Hammasi →</Link>}>
-								{visits.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">Bugun hali kirish qayd etilmagan</p> : (
+							<Panel title={tx("Bugungi kirish-chiqishlar")} action={<Link to={`${base}/entry-exit`} className="text-sm text-blue-600 hover:underline">{tx("Hammasi →")}</Link>}>
+								{visits.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">{tx("Bugun hali kirish qayd etilmagan")}</p> : (
 									<ul className="space-y-2.5">
 										{visits.map(v => (
 											<li key={v._id || v.n} onClick={() => navigate(`${base}/entry-exit`)} className="flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 text-sm transition hover:bg-slate-100">
@@ -135,7 +136,7 @@ const Dashboard = () => {
 												<span className="font-semibold text-slate-900">{v.in || '—'}</span>
 												<span className="text-slate-300">→</span>
 												<span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-600"><FiLogOut size={14} /></span>
-												<span className="font-semibold text-slate-900">{v.out || (v.open ? 'ichkarida' : '—')}</span>
+												<span className="font-semibold text-slate-900">{v.out || (v.open ? tx("ichkarida") : '—')}</span>
 												{v.minutes ? <span className="ml-auto inline-flex items-center gap-1 text-xs text-slate-500"><FiClock size={12} />{dur(v.minutes)}</span> : null}
 											</li>
 										))}
@@ -145,15 +146,15 @@ const Dashboard = () => {
 						</div>
 
 						{classes.length === 0 ? (
-							<Panel title="Sinfim"><div className="flex items-start gap-3 py-2 text-sm text-slate-600"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><FiUser /></span><p>Sizga sinf rahbari sifatida sinf biriktirilmagan. Sinf biriktirilgach, shu yerda sinfingiz o'quvchilari va statistikasi paydo bo'ladi. Maktab admini sinf rahbarini "Sinflar" bo'limida belgilaydi.</p></div></Panel>
+							<Panel title={tx("Sinfim")}><div className="flex items-start gap-3 py-2 text-sm text-slate-600"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><FiUser /></span><p>{tx("Sizga sinf rahbari sifatida sinf biriktirilmagan. Sinf biriktirilgach, shu yerda sinfingiz o'quvchilari va statistikasi paydo bo'ladi. Maktab admini sinf rahbarini \"Sinflar\" bo'limida belgilaydi.")}</p></div></Panel>
 						) : classes.map(c => (
 							<section key={c._id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 								<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-									<div><h2 className="text-lg font-semibold text-slate-900">{tx('{{name}} sinfi', { name: c.name })}</h2><p className="text-xs text-slate-400">Bugungi davomat</p></div>
+									<div><h2 className="text-lg font-semibold text-slate-900">{tx('{{name}} sinfi', { name: c.name })}</h2><p className="text-xs text-slate-400">{tx("Bugungi davomat")}</p></div>
 									<div className="flex flex-wrap gap-2 text-sm">
-										<Link to={classLink(c)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 font-medium text-white hover:bg-slate-800">Sinf statistikasi <FiArrowRight size={14} /></Link>
-										<Link to={`${base}/late`} className="rounded-lg border border-slate-200 px-3.5 py-2 font-medium text-slate-700 hover:bg-slate-50">Kech qolganlar</Link>
-										<Link to={`${base}/risk`} className="rounded-lg border border-slate-200 px-3.5 py-2 font-medium text-slate-700 hover:bg-slate-50">Xavf guruhi</Link>
+										<Link to={classLink(c)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 font-medium text-white hover:bg-slate-800">{tx("Sinf statistikasi")} <FiArrowRight size={14} /></Link>
+										<Link to={`${base}/late`} className="rounded-lg border border-slate-200 px-3.5 py-2 font-medium text-slate-700 hover:bg-slate-50">{tx("Kech qolganlar")}</Link>
+										<Link to={`${base}/risk`} className="rounded-lg border border-slate-200 px-3.5 py-2 font-medium text-slate-700 hover:bg-slate-50">{tx("Xavf guruhi")}</Link>
 									</div>
 								</div>
 								<div className="grid grid-cols-1 gap-6 p-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
@@ -168,7 +169,7 @@ const Dashboard = () => {
 									</div>
 									<div>
 										<p className="mb-2 text-xs font-semibold text-slate-500">{tx('Bugun kelmaganlar ({{n}})', { n: c.absentTotal })}</p>
-										{c.absentList.length === 0 ? <p className="rounded-xl bg-emerald-50 px-4 py-6 text-center text-sm text-emerald-700">Hamma o'quvchi kelgan</p> : (
+										{c.absentList.length === 0 ? <p className="rounded-xl bg-emerald-50 px-4 py-6 text-center text-sm text-emerald-700">{tx("Hamma o'quvchi kelgan")}</p> : (
 											<ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
 												{c.absentList.map(s => <li key={s._id} className="border-b border-slate-50 py-2"><PersonLink kind="student" id={s._id} name={s.fullName} photo={s.photo} /></li>)}
 											</ul>

@@ -2,6 +2,8 @@ import axios from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiDownload, FiFilm, FiImage, FiX } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
+import PoseChips from './PoseChips'
+import { tx } from '../i18n'
 
 const api = (path, config = {}) => axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/${path}`, { ...config, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
 
@@ -17,6 +19,8 @@ export const EVIDENCE_KINDS = {
 	vision_empty: { label: "Sinf bo'sh qoldi", chip: 'bg-red-50 text-red-700' },
 	vision_surge: { label: 'Odamlar keskin oshdi', chip: 'bg-orange-50 text-orange-700' },
 	vision_overcrowd: { label: 'Ortiqcha odam', chip: 'bg-violet-50 text-violet-700' },
+	vision_restless: { label: 'Sinf notinch', chip: 'bg-amber-50 text-amber-700' },
+	vision_commotion: { label: 'Zalda tartibsizlik', chip: 'bg-rose-50 text-rose-700' },
 	vision_sample: { label: 'Avtomatik namuna', chip: 'bg-blue-50 text-blue-700' }
 }
 const kindOf = (k) => EVIDENCE_KINDS[k] || EVIDENCE_KINDS.motion
@@ -45,11 +49,11 @@ const Thumb = ({ item, onOpen }) => {
 	return (
 		<button onClick={() => onOpen(item)} className="group text-left rounded-xl overflow-hidden border border-gray-100 bg-white hover:shadow-md transition">
 			<div className="bg-slate-900 aspect-video flex items-center justify-center overflow-hidden relative">
-				{url ? <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" /> : <span className="text-xs text-slate-500">Yuklanmoqda...</span>}
+				{url ? <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" /> : <span className="text-xs text-slate-500">{tx("Yuklanmoqda...")}</span>}
 				{(n > 1 || item.hasClip) && (
 					<div className="absolute bottom-1.5 right-1.5 flex gap-1">
 						{n > 1 && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/65 text-white text-[10px]"><FiImage size={10} /> {n}</span>}
-						{item.hasClip && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/65 text-white text-[10px]"><FiFilm size={10} /> Lavha</span>}
+						{item.hasClip && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/65 text-white text-[10px]"><FiFilm size={10} /> {tx("Lavha")}</span>}
 					</div>
 				)}
 			</div>
@@ -78,9 +82,10 @@ const Row = ({ item, onOpen }) => {
 					{item.sinf && <span className="text-xs font-semibold text-gray-700">{item.sinf}</span>}
 				</div>
 				{item.detail && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.detail}</p>}
-				<p className="text-xs text-gray-400 mt-1">{timeOf(item.time)} · {item.camera}{n > 1 ? ` · ${n} rasm` : ''}{item.hasClip ? ' · lavha bor' : ''}</p>
+				<PoseChips pose={item.pose} className="mt-1" />
+				<p className="text-xs text-gray-400 mt-1">{timeOf(item.time)} · {item.camera}{n > 1 ? ` · ${n} rasm` : ''}{item.hasClip ? tx(" · lavha bor") : ''}</p>
 			</div>
-			<span className="hidden sm:inline-flex shrink-0 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 group-hover:bg-gray-50">Ko'rish</span>
+			<span className="hidden sm:inline-flex shrink-0 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 group-hover:bg-gray-50">{tx("Ko'rish")}</span>
 		</button>
 	)
 }
@@ -133,11 +138,12 @@ const Lightbox = ({ item, onClose, sinfLink, pos, total, onPrev, onNext }) => {
 						<p className="font-medium">{item.title || k.label}{total > 1 && <span className="ml-2 rounded-full bg-white/15 px-2 py-0.5 text-xs font-normal text-slate-200">{pos} / {total}</span>}</p>
 						<p className="text-sm text-slate-300">{timeOf(item.time)} · {item.sinf ? `${item.sinf} · ` : ''}{item.camera}{item.count !== null && item.count !== undefined ? ` · ${item.count} odam` : ''}</p>
 						{item.detail && <p className="text-sm text-slate-200 mt-1">{item.detail}</p>}
-						{sinfLink && item.sinfId && <Link to={sinfLink(item)} onClick={onClose} className="inline-block mt-2 text-sm font-medium text-cyan-300 hover:underline">{item.sinf} sinf sahifasiga o'tish →</Link>}
+						<PoseChips pose={item.pose} className="mt-1.5" />
+						{sinfLink && item.sinfId && <Link to={sinfLink(item)} onClick={onClose} className="inline-block mt-2 text-sm font-medium text-cyan-300 hover:underline">{tx("{{sinf}} sinf sahifasiga o'tish →", { sinf: item.sinf })}</Link>}
 					</div>
 					<div className="flex items-center gap-2 shrink-0">
-						{shown && <a href={shown} download={`kuzatuv-${item._id}${isClip ? '.webp' : '.jpg'}`} title="Yuklab olish" className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20"><FiDownload /></a>}
-						<button onClick={onClose} title="Yopish (Esc)" className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20"><FiX /></button>
+						{shown && <a href={shown} download={`kuzatuv-${item._id}${isClip ? '.webp' : '.jpg'}`} title={tx("Yuklab olish")} className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20"><FiDownload /></a>}
+						<button onClick={onClose} title={tx("Yopish (Esc)")} className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20"><FiX /></button>
 					</div>
 				</div>
 
@@ -152,21 +158,21 @@ const Lightbox = ({ item, onClose, sinfLink, pos, total, onPrev, onNext }) => {
 				<div className="relative rounded-xl bg-black flex items-center justify-center" style={{ minHeight: 200 }}
 						onTouchStart={e => { touch.current = e.touches[0].clientX }}
 						onTouchEnd={e => { if (touch.current === null) return; const dx = e.changedTouches[0].clientX - touch.current; touch.current = null; if (Math.abs(dx) > 60) (dx < 0 ? onNext : onPrev)?.() }}>
-					{onPrev && <button onClick={onPrev} title="Oldingisi (←)" aria-label="Oldingisi" className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white hover:bg-black/80"><FiChevronLeft size={22} /></button>}
-					{onNext && <button onClick={onNext} title="Keyingisi (→)" aria-label="Keyingisi" className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white hover:bg-black/80"><FiChevronRight size={22} /></button>}
-					{shown ? <img src={shown} alt="" className="w-full max-h-[75vh] object-contain rounded-xl" /> : <p className="text-sm text-slate-400 py-16">{(mode === 'clip' ? clip.failed : main.failed) ? "Yuklab bo'lmadi" : 'Yuklanmoqda...'}</p>}
+					{onPrev && <button onClick={onPrev} title={tx("Oldingisi (←)")} aria-label={tx("Oldingisi")} className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white hover:bg-black/80"><FiChevronLeft size={22} /></button>}
+					{onNext && <button onClick={onNext} title={tx("Keyingisi (→)")} aria-label={tx("Keyingisi")} className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white hover:bg-black/80"><FiChevronRight size={22} /></button>}
+					{shown ? <img src={shown} alt="" className="w-full max-h-[75vh] object-contain rounded-xl" /> : <p className="text-sm text-slate-400 py-16">{(mode === 'clip' ? clip.failed : main.failed) ? tx("Yuklab bo'lmadi") : tx("Yuklanmoqda...")}</p>}
 				</div>
 
 				{images.length > 1 && (
 					<div className="mt-3">
-						<p className="text-xs text-slate-400 mb-2">Lahza rasmlari ({images.length}): hodisadan oldin, hodisa lahzasi va keyin</p>
+						<p className="text-xs text-slate-400 mb-2">{tx("Lahza rasmlari ({{count}}): hodisadan oldin, hodisa lahzasi va keyin", { count: images.length })}</p>
 						<div className="flex gap-2 overflow-x-auto pb-1">
 							{images.map((im, i) => {
 								const active = mode === 'frame' && (pick === i || (pick === null && im.label === 'hodisa'))
 								return (
 									<button key={i} onClick={() => { setMode('frame'); setPick(i) }} className={`shrink-0 w-36 text-left rounded-lg overflow-hidden border-2 ${active ? 'border-blue-400' : 'border-transparent opacity-80 hover:opacity-100'}`}>
 										<div className="bg-slate-800 aspect-video flex items-center justify-center">{urls[i] ? <img src={urls[i]} alt="" className="w-full h-full object-cover" /> : <span className="text-[10px] text-slate-500">...</span>}</div>
-										<div className="bg-slate-900 px-2 py-1 text-[11px] text-slate-300"><span className="font-semibold text-white">{LABELS[im.label] || im.label}</span> · {clock(im.t)} · {im.count} odam</div>
+										<div className="bg-slate-900 px-2 py-1 text-[11px] text-slate-300"><span className="font-semibold text-white">{LABELS[im.label] || im.label}</span> · {clock(im.t)} · {tx("{{n}} odam", { n: im.count })}</div>
 									</button>
 								)
 							})}

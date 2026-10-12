@@ -11,3 +11,8 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+# server_proxy: har maktabning o'z kalitlari bilan sozlamasi (namunasi config.example.json)
+backend/server_proxy/config.json
+# desktop mijoz (Electron) build natijasi va federatsiya sinov jurnallari
+frontend/desktop/dist/
+backend/tools/federation-test/.pids.json

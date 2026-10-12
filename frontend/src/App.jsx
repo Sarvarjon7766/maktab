@@ -33,6 +33,7 @@ const AdminEmployeeAnalytics = lazy(() => import("./pages/admin/AdminEmployeeAna
 const AdminEntryExit = lazy(() => import("./pages/admin/AdminEntryExit"))
 const AdminFaceControl = lazy(() => import("./pages/admin/AdminFaceControl"))
 const AdminAdmins = lazy(() => import("./pages/admin/AdminAdmins"))
+const AdminClassControl = lazy(() => import("./pages/admin/AdminClassControl"))
 const AdminRegulation = lazy(() => import("./pages/admin/AdminRegulation"))
 const AdminReports = lazy(() => import("./pages/admin/AdminReports"))
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"))
@@ -166,6 +167,7 @@ const App = () => {
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
+<Route path="nazorat" element={<AdminClassControl />} />
             <Route path="classrooms/:sinfId" element={<AdminClassroomDetail />} />
             <Route path="admin" element={<AdminAdmins />} />
             <Route element={<SchoolStatsShell />}>
@@ -253,6 +255,7 @@ const App = () => {
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
+<Route path="nazorat" element={<AdminClassControl />} />
           <Route path="classrooms/:sinfId" element={<AdminClassroomDetail />} />
           <Route element={<SchoolStatsShell />}>
             <Route path="grades" element={<MonitorGrades />} />
@@ -295,6 +298,7 @@ const App = () => {
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
+<Route path="nazorat" element={<AdminClassControl />} />
           <Route path="classrooms/:sinfId" element={<AdminClassroomDetail />} />
           <Route element={<SchoolStatsShell />}>
             <Route path="grades" element={<MonitorGrades />} />

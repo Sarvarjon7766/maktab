@@ -1,4 +1,4 @@
-const path = require('path')
+const { signedUrl } = require('../utils/uploadsAuth')
 const adduserModel = require('../models/add.user.model')
 const deleteUserModel = require('../models/delete.user.model')
 const userModel = require('../models/user.model')
@@ -14,7 +14,7 @@ class EmployeeSyncService {
 			.map(entry => ({
 				employee_id: entry.hodimID,
 				name: entry.full_name,
-				photo_url: baseUrl + path.basename(entry.photo)
+				photo_url: signedUrl(baseUrl, entry.photo)
 			}))
 	}
 

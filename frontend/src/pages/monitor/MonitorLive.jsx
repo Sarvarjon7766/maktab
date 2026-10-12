@@ -4,6 +4,7 @@ import { FiArrowDown, FiArrowUp, FiMinus, FiRefreshCw } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartBox, Empty, KpiLink, Page, Panel, SchoolLink, Segmented, fmt, levelColor, levelText, pct, useMonitorData, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 
 const REFRESH_MS = 20000
 const SORTS = [
@@ -66,24 +67,24 @@ const MonitorLive = () => {
 		<Page>
 			<div className="flex flex-wrap items-center justify-between gap-3 mb-5">
 				<div className="flex items-center gap-3">
-					<span className="inline-flex items-center gap-2 rounded-full bg-green-50 border border-green-200 px-3 py-1.5 text-sm font-medium text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Jonli</span>
+					<span className="inline-flex items-center gap-2 rounded-full bg-green-50 border border-green-200 px-3 py-1.5 text-sm font-medium text-green-700"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> {tx("Jonli")}</span>
 					<span className="text-sm text-gray-500">{updatedAt ? `${updatedAt.toLocaleTimeString('uz-UZ')} da yangilandi (${seconds} soniya oldin)` : ''}</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<Segmented value={kind} onChange={setKind} options={[{ key: 'student', label: "O'quvchilar" }, { key: 'staff', label: 'Xodimlar' }]} />
 					<AutoSelect value={sort} onChange={e => setSort(e.target.value)} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
-						{SORTS.map(s => <option key={s.key} value={s.key}>Saralash: {s.label}</option>)}
+						{SORTS.map(s => <option key={s.key} value={s.key}>{tx("Saralash: {{label}}", { label: s.label })}</option>)}
 					</AutoSelect>
-					<button onClick={reload} title="Yangilash" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} /></button>
+					<button onClick={reload} title={tx("Yangilash")} className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={16} /></button>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
-				<KpiLink to={`/monitor/lists?kind=${kind}&status=came`} label="Umumiy davomat" value={`${avg}%`} detail={`${fmt(totals.came)} / ${fmt(totals.total)}`} color="bg-blue-50 text-blue-600" icon={<span className="text-sm font-bold">%</span>} />
-				<KpiLink to={`/monitor/lists?kind=${kind}&status=inside`} label="Hozir maktabda" value={totals.inside} detail="ichkarida turganlar" color="bg-green-50 text-green-600" icon={<span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />} />
-				<KpiLink to={`/monitor/lists?kind=${kind}&status=late`} label="Kech qolganlar" value={totals.late} color="bg-orange-50 text-orange-600" icon={<span className="text-sm font-bold">!</span>} />
-				<KpiLink to="/monitor/trend" label="Kechagi shu vaqtga nisbatan" value={`${totals.delta > 0 ? '+' : totals.delta < 0 ? '−' : ''}${fmt(Math.abs(totals.delta))}`} detail={data ? `${data.prevDate} bilan` : ''} color={totals.delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} icon={totals.delta >= 0 ? <FiArrowUp /> : <FiArrowDown />} />
-				<KpiLink to="/monitor/camera-health" label="Kameralar online" value={`${totals.camOn}/${totals.cam}`} color="bg-slate-100 text-slate-600" icon={<span className="text-sm font-bold">K</span>} />
+				<KpiLink to={`/monitor/lists?kind=${kind}&status=came`} label={tx("Umumiy davomat")} value={`${avg}%`} detail={`${fmt(totals.came)} / ${fmt(totals.total)}`} color="bg-blue-50 text-blue-600" icon={<span className="text-sm font-bold">%</span>} />
+				<KpiLink to={`/monitor/lists?kind=${kind}&status=inside`} label={tx("Hozir maktabda")} value={totals.inside} detail={tx("ichkarida turganlar")} color="bg-green-50 text-green-600" icon={<span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />} />
+				<KpiLink to={`/monitor/lists?kind=${kind}&status=late`} label={tx("Kech qolganlar")} value={totals.late} color="bg-orange-50 text-orange-600" icon={<span className="text-sm font-bold">!</span>} />
+				<KpiLink to="/monitor/trend" label={tx("Kechagi shu vaqtga nisbatan")} value={`${totals.delta > 0 ? '+' : totals.delta < 0 ? '−' : ''}${fmt(Math.abs(totals.delta))}`} detail={data ? `${data.prevDate} bilan` : ''} color={totals.delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} icon={totals.delta >= 0 ? <FiArrowUp /> : <FiArrowDown />} />
+				<KpiLink to="/monitor/camera-health" label={tx("Kameralar online")} value={`${totals.camOn}/${totals.cam}`} color="bg-slate-100 text-slate-600" icon={<span className="text-sm font-bold">K</span>} />
 			</div>
 
 			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
@@ -98,15 +99,15 @@ const MonitorLive = () => {
 								return (
 									<tr key={s._id} className={`border-b border-gray-50 last:border-0 hover:bg-blue-50/30 ${best ? 'bg-green-50/30' : worst ? 'bg-red-50/30' : ''}`}>
 										<td className="px-4 py-3"><span className={`inline-flex w-8 h-8 items-center justify-center rounded-full text-xs font-bold ${s.rank <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>{s.rank}</span></td>
-										<td className="px-4 py-3"><SchoolLink id={s._id} name={s.name} tab={kind === 'student' ? 'students' : 'staff'} /><p className="text-xs text-gray-500">{[s.region, s.district].filter(Boolean).join(', ')}</p>{best && <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-semibold">Eng yuqori</span>}{worst && <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold">Diqqat kerak</span>}</td>
+										<td className="px-4 py-3"><SchoolLink id={s._id} name={s.name} tab={kind === 'student' ? 'students' : 'staff'} /><p className="text-xs text-gray-500">{[s.region, s.district].filter(Boolean).join(', ')}</p>{best && <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-semibold">{tx("Eng yuqori")}</span>}{worst && <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold">{tx("Diqqat kerak")}</span>}</td>
 										<td className="px-4 py-3 min-w-[170px]">
-											<div className="flex items-center justify-between mb-1"><span className={`font-semibold ${levelText(s.percent)}`}>{pctFmt(s.percent)}</span><span className="text-xs text-gray-400">{s.percent >= avg ? '+' : '−'}{Math.abs(Math.round((s.percent - avg) * 10) / 10)} o'rtachadan</span></div>
+											<div className="flex items-center justify-between mb-1"><span className={`font-semibold ${levelText(s.percent)}`}>{pctFmt(s.percent)}</span><span className="text-xs text-gray-400">{s.percent >= avg ? '+' : '−'}{tx("{{n}} o'rtachadan", { n: Math.abs(Math.round((s.percent - avg) * 10) / 10) })}</span></div>
 											<div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={`h-full rounded-full ${levelColor(s.percent)}`} style={{ width: `${Math.min(s.percent, 100)}%` }} /></div>
 										</td>
 										<td className="px-4 py-3 whitespace-nowrap"><Link to={`/monitor/lists?kind=${kind}&status=came&school=${s._id}`} className="font-medium text-gray-900 hover:text-blue-600">{fmt(s.came)}</Link><span className="text-gray-400"> / {fmt(s.total)}</span></td>
 										<td className="px-4 py-3 font-medium text-blue-700">{fmt(s.inside)}</td>
 										<td className="px-4 py-3"><Link to={`/monitor/lists?kind=${kind}&status=late&school=${s._id}`} className={s.late ? 'text-orange-600 font-medium hover:underline' : 'text-gray-400'}>{fmt(s.late)}</Link></td>
-										<td className="px-4 py-3 whitespace-nowrap"><Delta value={s.delta} /><span className="text-xs text-gray-400 ml-1.5">({fmt(s.prevSameTime)} edi)</span></td>
+										<td className="px-4 py-3 whitespace-nowrap"><Delta value={s.delta} /><span className="text-xs text-gray-400 ml-1.5">{tx("({{n}} edi)", { n: fmt(s.prevSameTime) })}</span></td>
 										<td className="px-4 py-3"><Spark curve={s.curve} prev={s.prevCurve} total={s.total} hour={data?.nowHour ?? 8} /></td>
 										<td className="px-4 py-3 text-gray-700">{s.firstArrival >= 0 ? `${String(s.firstArrival).padStart(2, '0')}:00` : '—'}</td>
 										<td className="px-4 py-3 whitespace-nowrap"><span className={s.cameras.offline ? 'text-red-600 font-medium' : 'text-gray-700'}>{s.cameras.online}/{s.cameras.total}</span></td>
@@ -116,13 +117,13 @@ const MonitorLive = () => {
 						</tbody>
 					</table>
 				</div>
-				{loading && !data && <Empty text="Yuklanmoqda..." />}
-				{!loading && rows.length === 0 && !error && <Empty text="Maktablar topilmadi" />}
-				{error && <Empty text="Ma'lumotni yuklab bo'lmadi" />}
+				{loading && !data && <Empty text={tx("Yuklanmoqda...")} />}
+				{!loading && rows.length === 0 && !error && <Empty text={tx("Maktablar topilmadi")} />}
+				{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 			</div>
 
 			<div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-				<Panel title="Maktablar davomati yonma-yon">
+				<Panel title={tx("Maktablar davomati yonma-yon")}>
 					<ChartBox height={Math.max(220, barData.length * 34)}><ResponsiveContainer width="100%" height="100%">
 						<BarChart data={barData} layout="vertical" margin={{ left: 10, right: 30 }}>
 							<CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -130,17 +131,17 @@ const MonitorLive = () => {
 							<YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 11 }} />
 							<Tooltip formatter={v => `${v}%`} />
 							<ReferenceLine x={avg} stroke="#64748b" strokeDasharray="4 4" label={{ value: `o'rtacha ${avg}%`, position: 'top', fontSize: 10, fill: '#64748b' }} />
-							<Bar dataKey="Davomat" radius={[0, 5, 5, 0]} maxBarSize={20}>{barData.map(b => <Cell key={b.name} fill={b.Davomat >= 85 ? '#16a34a' : b.Davomat >= 60 ? '#f59e0b' : '#dc2626'} />)}</Bar>
+							<Bar isAnimationActive={false} dataKey="Davomat" radius={[0, 5, 5, 0]} maxBarSize={20}>{barData.map(b => <Cell key={b.name} fill={b.Davomat >= 85 ? '#16a34a' : b.Davomat >= 60 ? '#f59e0b' : '#dc2626'} />)}</Bar>
 						</BarChart>
 					</ResponsiveContainer></ChartBox>
 				</Panel>
-				<Panel title="Bugungi kirish dinamikasi, soat bo'yicha (%)">
+				<Panel title={tx("Bugungi kirish dinamikasi, soat bo'yicha (%)")}>
 					<ChartBox height={Math.max(220, barData.length * 34)}><ResponsiveContainer width="100%" height="100%">
 						<LineChart data={lineData} margin={{ left: -8, right: 12, top: 8 }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} />
 							<XAxis dataKey="soat" tick={{ fontSize: 11 }} /><YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
 							<Tooltip formatter={v => `${v}%`} /><Legend wrapperStyle={{ fontSize: 11 }} />
-							{lineSchools.map((s, i) => <Line key={s._id} type="monotone" dataKey={s.name} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={false} />)}
+							{lineSchools.map((s, i) => <Line isAnimationActive={false} key={s._id} type="monotone" dataKey={s.name} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={false} />)}
 						</LineChart>
 					</ResponsiveContainer></ChartBox>
 				</Panel>

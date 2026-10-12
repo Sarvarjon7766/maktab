@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { barColor, tone, useGradeRange } from './MonitorGradeKit'
 import { ChartBox, LoadState, Page, PageHeader, Panel, RangePicker, fmt, useMonitorData, usePanel, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 
 const GRADES = Array.from({ length: 11 }, (_, i) => i + 1)
 
@@ -28,14 +29,14 @@ const MonitorGrades = () => {
 
 			<LoadState loading={loading && !data} error={error} empty={data && data.grades.length === 0}>
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-					<Link to={`${base}/grades/all${qs}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-blue-200 hover:shadow-md transition"><p className="text-xs text-gray-500">Barcha sinflar o'rtacha davomati</p><p className="text-3xl font-bold text-gray-900 mt-1">{overall}%</p><p className="text-xs text-gray-400 mt-1">{fmt(data?.overallPresent)} ÷ {fmt(data?.overallPossible)} kun · {fmt(data?.classCount)} sinf · qanday hisoblangani →</p></Link>
+					<Link to={`${base}/grades/all${qs}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-blue-200 hover:shadow-md transition"><p className="text-xs text-gray-500">{tx("Barcha sinflar o'rtacha davomati")}</p><p className="text-3xl font-bold text-gray-900 mt-1">{overall}%</p><p className="text-xs text-gray-400 mt-1">{tx("{{a}} ÷ {{b}} kun · {{c}} sinf · qanday hisoblangani →", { a: fmt(data?.overallPresent), b: fmt(data?.overallPossible), c: fmt(data?.classCount) })}</p></Link>
 					{[['Eng yuqori davomatli daraja', best, 'text-green-600', 'hover:border-green-200'], ['Eng past davomatli daraja', worst, 'text-red-600', 'hover:border-red-200']].map(([label, g, cls, hov]) => (
-						g ? <Link key={label} to={`${base}/grades/${g.grade}${qs}`} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition ${hov}`}><p className="text-xs text-gray-500">{label}</p><p className={`text-3xl font-bold mt-1 ${cls}`}>{g.grade}-sinflar</p><p className="text-xs text-gray-400 mt-1">{pctFmt(g.percent)} · sinflarini ko'rish →</p></Link>
+						g ? <Link key={label} to={`${base}/grades/${g.grade}${qs}`} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition ${hov}`}><p className="text-xs text-gray-500">{label}</p><p className={`text-3xl font-bold mt-1 ${cls}`}>{tx("{{n}}-sinflar", { n: g.grade })}</p><p className="text-xs text-gray-400 mt-1">{pctFmt(g.percent)}{tx(" · sinflarini ko'rish →")}</p></Link>
 							: <div key={label} className="bg-white rounded-2xl border border-gray-100 p-5"><p className="text-xs text-gray-500">{label}</p><p className="text-3xl font-bold text-gray-300 mt-1">—</p></div>
 					))}
 				</div>
 
-				<Panel title="Sinf darajalari bo'yicha davomat (%)" className="mb-6" action={<span className="text-xs text-gray-400">Ustunni bossangiz, shu darajaning sahifasi ochiladi</span>}>
+				<Panel title={tx("Sinf darajalari bo'yicha davomat (%)")} className="mb-6" action={<span className="text-xs text-gray-400">{tx("Ustunni bossangiz, shu darajaning sahifasi ochiladi")}</span>}>
 					<ChartBox height={260}><ResponsiveContainer width="100%" height="100%">
 						<BarChart data={chart} margin={{ left: -12, right: 8 }} onClick={e => { const g = e?.activePayload?.[0]?.payload?.grade; if (g && byGrade.has(g)) navigate(`${base}/grades/${g}${qs}`) }}>
 							<CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis domain={[0, 100]} tick={{ fontSize: 11 }} /><Tooltip formatter={v => (v === null ? '—' : `${v}%`)} />
@@ -48,12 +49,12 @@ const MonitorGrades = () => {
 					{rows.map(r => {
 						const card = (
 							<>
-								<div className="flex items-start justify-between gap-2"><p className="font-semibold text-gray-900">{r.grade}-sinflar</p><span className={`text-xl font-bold ${tone(r.percent, overall)}`}>{r.percent === null ? '—' : `${pctFmt(r.percent)}`}</span></div>
-								<p className="text-xs text-gray-500 mt-1">{r.classes ? `${fmt(r.classes)} sinf · ${fmt(r.students)} o'quvchi` : "Sinf yo'q"}</p>
+								<div className="flex items-start justify-between gap-2"><p className="font-semibold text-gray-900">{tx("{{n}}-sinflar", { n: r.grade })}</p><span className={`text-xl font-bold ${tone(r.percent, overall)}`}>{r.percent === null ? '—' : `${pctFmt(r.percent)}`}</span></div>
+								<p className="text-xs text-gray-500 mt-1">{r.classes ? `${fmt(r.classes)} sinf · ${fmt(r.students)} o'quvchi` : tx("Sinf yo'q")}</p>
 								{r.percent !== null && (
 									<>
 										<div className="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-3"><div className="h-full rounded-full" style={{ width: `${pctFmt(r.percent)}`, background: barColor(r.percent, overall) }} /></div>
-										<p className="text-[11px] text-gray-400 mt-2">{fmt(r.present)} ÷ {fmt(r.possible)} kun · kech qolish {pctFmt(r.latePercent)}</p>
+										<p className="text-[11px] text-gray-400 mt-2">{tx("{{a}} ÷ {{b}} kun · kech qolish {{c}}", { a: fmt(r.present), b: fmt(r.possible), c: pctFmt(r.latePercent) })}</p>
 									</>
 								)}
 							</>

@@ -51,4 +51,32 @@ function apiLimiter(req, res, next) {
 	next()
 }
 
-module.exports = { corsOptions, securityHeaders, apiLimiter }
+// Login brute-force himoyasi: bir IP + login juftligi uchun muvaffaqiyatsiz urinishlar (standart 10 ta / 15 daqiqa).
+// Muvaffaqiyatli kirish hisobni tozalaydi. Xotirada saqlanadi (server qayta ishga tushsa nolga tushadi).
+const fails = new Map()
+const LOGIN_MAX = Math.max(3, Number(process.env.LOGIN_MAX_FAILS) || 10)
+const LOGIN_WINDOW = 15 * 60 * 1000
+setInterval(() => { const now = Date.now(); for (const [k, v] of fails) if (now > v.reset) fails.delete(k) }, 60000).unref()
+function loginLimiter(req, res, next) {
+	const key = `${req.ip || req.socket?.remoteAddress || ''}|${String(req.body?.username || '').toLowerCase().slice(0, 100)}`
+	const now = Date.now()
+	let f = fails.get(key)
+	if (f && now > f.reset) { fails.delete(key); f = null }
+	if (f && f.n >= LOGIN_MAX) {
+		res.setHeader('Retry-After', Math.ceil((f.reset - now) / 1000))
+		return res.status(429).json({ success: false, message: "Juda ko'p noto'g'ri urinish. 15 daqiqadan keyin qayta urinib ko'ring" })
+	}
+	const json = res.json.bind(res)
+	res.json = (body) => {
+		if (body && body.success === false) {
+			const cur = fails.get(key) || { n: 0, reset: now + LOGIN_WINDOW }
+			cur.n++
+			fails.set(key, cur)
+			if (fails.size > 20000) fails.delete(fails.keys().next().value)
+		} else if (body && body.success === true) fails.delete(key)
+		return json(body)
+	}
+	next()
+}
+
+module.exports = { corsOptions, securityHeaders, apiLimiter, loginLimiter }

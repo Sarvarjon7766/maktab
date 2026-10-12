@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiMaximize2, FiMinus, FiPlus, FiRefreshCw, FiX } from 'react-icons/fi'
 import { METRICS, NONE, colorFor, fmtPct } from './SchoolsMapPanel'
+import { tx } from '../i18n'
 
 // Tuman(lar) chegarasi va maktablar joylashuvi: fon xaritasiz, toza SVG chizma (internet kerak emas).
 // Bitta tuman: katta poligon. Bir nechta tuman (viloyat): har bir tuman o'z davomat rangida, tashqi kontur qalin chiziq.
@@ -190,8 +191,8 @@ const DistrictSchematic = ({ data, metric, onMetric, onOpenSchool, maxHeight = 5
 
 			{!data ? <div className="animate-pulse rounded-2xl bg-slate-100" style={{ height: full ? '100%' : 380 }} /> : !geo ? (
 				<div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
-					<p className="font-medium text-slate-700">Tuman chegarasi va maktab joylashuvi hali yo'q</p>
-					<p className="mt-1 max-w-md text-sm text-slate-500">Tuman chegarasini tizim egasi «Tumanlar» bo'limidan yuklaydi, maktab joylashuvini esa maktab admini «Sozlamalar»da belgilaydi.</p>
+					<p className="font-medium text-slate-700">{tx("Tuman chegarasi va maktab joylashuvi hali yo'q")}</p>
+					<p className="mt-1 max-w-md text-sm text-slate-500">{tx("Tuman chegarasini tizim egasi «Tumanlar» bo'limidan yuklaydi, maktab joylashuvini esa maktab admini «Sozlamalar»da belgilaydi.")}</p>
 				</div>
 			) : (
 				<div className={`relative overflow-hidden ${full ? 'h-full w-full' : 'rounded-2xl ring-1 ring-slate-200'}`} style={{ background: 'radial-gradient(120% 90% at 30% 10%, #f8fafc 0%, #eef2ff 55%, #e0ecff 100%)' }}>
@@ -199,7 +200,7 @@ const DistrictSchematic = ({ data, metric, onMetric, onOpenSchool, maxHeight = 5
 
 					<div className="pointer-events-none absolute left-3 top-3 z-10 rounded-xl bg-white/90 px-3.5 py-2.5 shadow-sm ring-1 ring-slate-200 backdrop-blur">
 						<p className="text-sm font-bold leading-tight text-slate-900">{title}</p>
-						<p className="mt-0.5 text-xs text-slate-500">{schools.length} maktab · o'quvchi davomati <b className="text-slate-800">{fmtPct(avgStudent)}</b>{missing.length > 0 && <span className="text-amber-600"> · {missing.length} tasi joylashuvsiz</span>}</p>
+						<p className="mt-0.5 text-xs text-slate-500">{tx("{{n}} maktab · o'quvchi davomati", { n: schools.length })} <b className="text-slate-800">{fmtPct(avgStudent)}</b>{missing.length > 0 && <span className="text-amber-600"> · {tx("{{n}} tasi joylashuvsiz", { n: missing.length })}</span>}</p>
 					</div>
 					<div className="pointer-events-none absolute right-3 top-3 z-10 hidden flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-white/90 px-3 py-2 text-[11px] text-slate-600 shadow-sm ring-1 ring-slate-200 backdrop-blur sm:flex">
 						{LEGEND.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{l}</span>)}
@@ -207,16 +208,16 @@ const DistrictSchematic = ({ data, metric, onMetric, onOpenSchool, maxHeight = 5
 
 					{/* yaqinlashtirish boshqaruvi */}
 					<div className="absolute right-3 top-16 z-10 flex flex-col overflow-hidden rounded-xl bg-white/95 shadow-md ring-1 ring-slate-200">
-						<button onClick={() => zoomCenter(1.8)} disabled={k >= MAX_ZOOM - 0.01} title="Yaqinlashtirish" aria-label="Yaqinlashtirish" className={ctl}><FiPlus size={17} /></button>
-						<button onClick={() => zoomCenter(1 / 1.8)} disabled={k <= 1.001} title="Uzoqlashtirish" aria-label="Uzoqlashtirish" className={`${ctl} border-t border-slate-100`}><FiMinus size={17} /></button>
-						<button onClick={() => animateTo({ x: 0, y: 0, w: VB_W })} disabled={k <= 1.001} title="To'liq ko'rinish" aria-label="To'liq ko'rinish" className={`${ctl} border-t border-slate-100`}><FiRefreshCw size={15} /></button>
-						{!fullProp && <button onClick={() => setExpanded(e => !e)} title={expanded ? 'Yopish (Esc)' : 'Butun ekranga'} aria-label="Butun ekran" className={`${ctl} border-t border-slate-100`}>{expanded ? <FiX size={16} /> : <FiMaximize2 size={15} />}</button>}
+						<button onClick={() => zoomCenter(1.8)} disabled={k >= MAX_ZOOM - 0.01} title={tx("Yaqinlashtirish")} aria-label={tx("Yaqinlashtirish")} className={ctl}><FiPlus size={17} /></button>
+						<button onClick={() => zoomCenter(1 / 1.8)} disabled={k <= 1.001} title={tx("Uzoqlashtirish")} aria-label={tx("Uzoqlashtirish")} className={`${ctl} border-t border-slate-100`}><FiMinus size={17} /></button>
+						<button onClick={() => animateTo({ x: 0, y: 0, w: VB_W })} disabled={k <= 1.001} title={tx("To'liq ko'rinish")} aria-label={tx("To'liq ko'rinish")} className={`${ctl} border-t border-slate-100`}><FiRefreshCw size={15} /></button>
+						{!fullProp && <button onClick={() => setExpanded(e => !e)} title={expanded ? tx("Yopish (Esc)") : tx("Butun ekranga")} aria-label={tx("Butun ekran")} className={`${ctl} border-t border-slate-100`}>{expanded ? <FiX size={16} /> : <FiMaximize2 size={15} />}</button>}
 					</div>
 					{k > 1.05 && <div className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-lg bg-white/90 px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">×{k.toFixed(1)}</div>}
-					{hint && <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 mx-auto w-fit -translate-y-1/2 rounded-xl bg-slate-800/85 px-4 py-2 text-sm text-white shadow-lg">Yaqinlashtirish uchun Ctrl + g'ildirak, yoki +/− tugmalari</div>}
+					{hint && <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 mx-auto w-fit -translate-y-1/2 rounded-xl bg-slate-800/85 px-4 py-2 text-sm text-white shadow-lg">{tx("Yaqinlashtirish uchun Ctrl + g'ildirak, yoki +/− tugmalari")}</div>}
 					{full && chips}
 
-					<svg ref={svgRef} viewBox={`${view.x} ${view.y} ${view.w} ${viewH}`} className="mx-auto block w-full select-none" style={{ ...(full ? { height: '100%' } : { maxHeight }), touchAction: 'none', cursor: 'grab' }} role="img" aria-label="Tuman chegarasi va maktablar"
+					<svg ref={svgRef} viewBox={`${view.x} ${view.y} ${view.w} ${viewH}`} className="mx-auto block w-full select-none" style={{ ...(full ? { height: '100%' } : { maxHeight }), touchAction: 'none', cursor: 'grab' }} role="img" aria-label={tx("Tuman chegarasi va maktablar")}
 						onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onDoubleClick={onDouble}>
 						<defs>
 							<linearGradient id="dsFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ffffff" /><stop offset="55%" stopColor="#dbeafe" /><stop offset="100%" stopColor="#bfdbfe" /></linearGradient>
@@ -298,15 +299,15 @@ const DistrictSchematic = ({ data, metric, onMetric, onOpenSchool, maxHeight = 5
 							{[["O'quvchilar", hover.studentPercent, `${hover.studentCame}/${hover.studentTotal}`], ['Xodimlar', hover.staffPercent, `${hover.staffCame}/${hover.staffTotal}`]].map(([l, p, t]) => (
 								<div key={l} className="mt-2"><p className="flex justify-between text-slate-500"><span>{l}</span><b className="text-slate-800">{t} · {fmtPct(p)}</b></p><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${p || 0}%`, background: colorFor(p, true) }} /></div></div>
 							))}
-							<p className="mt-2 flex justify-between text-slate-500"><span>Kech qolganlar</span><b className="text-slate-800">{hover.studentLate} o'quvchi</b></p>
-							<p className="mt-1 flex justify-between text-slate-500"><span>Kameralar</span><b className="text-slate-800">{hover.cameraOnline}/{hover.cameraTotal} online</b></p>
-							{onOpenSchool && <p className="mt-2 text-center text-[11px] font-medium text-blue-600">Bossangiz maktab sahifasi ochiladi</p>}
+							<p className="mt-2 flex justify-between text-slate-500"><span>{tx("Kech qolganlar")}</span><b className="text-slate-800">{tx("{{n}} o'quvchi", { n: hover.studentLate })}</b></p>
+							<p className="mt-1 flex justify-between text-slate-500"><span>{tx("Kameralar")}</span><b className="text-slate-800">{tx("{{a}}/{{b}} online", { a: hover.cameraOnline, b: hover.cameraTotal })}</b></p>
+							{onOpenSchool && <p className="mt-2 text-center text-[11px] font-medium text-blue-600">{tx("Bossangiz maktab sahifasi ochiladi")}</p>}
 						</div>
 					)}
 				</div>
 			)}
 
-			{!full && missing.length > 0 && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{missing.length} ta maktab chizmada yo'q (joylashuvi belgilanmagan): {missing.slice(0, 4).map(s => s.name).join(', ')}{missing.length > 4 ? ` va yana ${missing.length - 4} ta` : ''}. Maktab admini «Sozlamalar»da belgilaydi.</p>}
+			{!full && missing.length > 0 && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{tx("{{n}} ta maktab chizmada yo'q (joylashuvi belgilanmagan):", { n: missing.length })} {missing.slice(0, 4).map(s => s.name).join(', ')}{missing.length > 4 ? ' ' + tx("va yana {{n}} ta", { n: missing.length - 4 }) : ''}. {tx("Maktab admini «Sozlamalar»da belgilaydi.")}</p>}
 		</div>
 	)
 }

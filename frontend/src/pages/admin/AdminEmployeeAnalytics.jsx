@@ -20,6 +20,7 @@ import {
 import KpiCard from '../../components/KpiCard'
 import { formatShortDateFromDateString, formatUzTime, getTashkentHourMinute } from '../../utils/formatDate'
 import { exportEmployeeExcel } from '../../utils/exportAttendance'
+import { uploadUrl } from '../../utils/uploadUrl'
 
 const pad = n => String(n).padStart(2, '0')
 const toLocalStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -71,7 +72,7 @@ const ArrivalTooltipContent = ({ active, payload }) => {
 		<div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-sm">
 			<p className="text-gray-500 mb-1">{p.label}</p>
 			<p className="font-semibold text-gray-900">{p.timeLabel}</p>
-			{p.late && <p className="text-xs text-rose-600 mt-0.5">Kechikkan</p>}
+			{p.late && <p className="text-xs text-rose-600 mt-0.5">{tx("Kechikkan")}</p>}
 		</div>
 	)
 }
@@ -187,12 +188,12 @@ const AdminEmployeeAnalytics = () => {
 
 	const statusBadge = (record) => {
 		if (record.arrivalTime && record.status === 'ishda')
-			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Ishda</span>
+			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">{tx("Ishda")}</span>
 		if (record.arrivalTime && record.status === 'tashqarida')
-			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Tashqarida</span>
+			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{tx("Tashqarida")}</span>
 		if (record.arrivalTime)
-			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Kelgan</span>
-		return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">Kelmadi</span>
+			return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">{tx("Kelgan")}</span>
+		return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{tx("Kelmadi")}</span>
 	}
 
 	const handleExport = () => {
@@ -229,14 +230,14 @@ const AdminEmployeeAnalytics = () => {
 
 	if (notFound) {
 		return (
-			<div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-3">
+			<div className="min-h-full flex flex-col items-center justify-center bg-gray-50 gap-3">
 				<FiUserX size={48} className="text-gray-300" />
-				<p className="text-gray-500 font-medium">Xodim topilmadi</p>
+				<p className="text-gray-500 font-medium">{tx("Xodim topilmadi")}</p>
 				<button
 					onClick={() => navigate(-1)}
 					className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
 				>
-					Orqaga
+					{tx("Orqaga")}
 				</button>
 			</div>
 		)
@@ -244,7 +245,7 @@ const AdminEmployeeAnalytics = () => {
 
 	if (loading && !employee) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+			<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
 				<div className="animate-pulse space-y-4">
 					<div className="h-28 bg-white rounded-2xl border border-gray-100" />
 					<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -257,20 +258,20 @@ const AdminEmployeeAnalytics = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+		<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
 			{/* Sarlavha */}
 			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 mb-6">
 				<button
 					onClick={() => navigate(-1)}
 					className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition mb-4"
 				>
-					<FiArrowLeft size={16} /> Orqaga
+					<FiArrowLeft size={16} /> {tx("Orqaga")}
 				</button>
 				<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 					{employee?.photo ? (
 						<img
 							className="h-16 w-16 rounded-full object-cover shrink-0"
-							src={`${BASE_URL}/uploads/${employee.photo}`}
+							src={`${uploadUrl(employee.photo)}`}
 							alt={employee?.fullName}
 						/>
 					) : (
@@ -284,7 +285,7 @@ const AdminEmployeeAnalytics = () => {
 							{employee?.position || '—'} · {employee?.sinf?.name || '—'}
 						</p>
 						<div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-400">
-							{publicId(employee?.hodimID) && <span>ID: {publicId(employee.hodimID)}</span>}
+							{publicId(employee?.hodimID) && <span>{tx("ID: {{id}}", { id: publicId(employee.hodimID) })}</span>}
 							{employee?.phone_personal && (
 								<span className="flex items-center gap-1"><FiPhone size={11} /> {employee.phone_personal}</span>
 							)}
@@ -315,7 +316,7 @@ const AdminEmployeeAnalytics = () => {
 					onClick={handleExport}
 					className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-800 transition shadow-sm"
 				>
-					<FiDownload size={16} /> Excel yuklab olish
+					<FiDownload size={16} /> {tx("Excel yuklab olish")}
 				</button>
 			</div>
 
@@ -327,24 +328,24 @@ const AdminEmployeeAnalytics = () => {
 				<>
 					{/* KPI qatori */}
 					<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-						<KpiCard onClick={goTable} icon={<FiCalendar size={16} />} label="Jami kun" value={stats.totalDays} tone="blue" />
-						<KpiCard onClick={goTable} icon={<FiUserCheck size={16} />} label="Kelgan kunlar" value={stats.presentDays} total={stats.totalDays} tone="good" />
-						<KpiCard onClick={goTable} icon={<FiUserX size={16} />} label="Kelmagan kunlar" value={stats.absentDays} total={stats.totalDays} tone="critical" />
-						<KpiCard onClick={goTable} icon={<FiClock size={16} />} label="O'rtacha ish soati" value={`${stats.averageHours} soat`} tone="blue" />
+						<KpiCard onClick={goTable} icon={<FiCalendar size={16} />} label={tx("Jami kun")} value={stats.totalDays} tone="blue" />
+						<KpiCard onClick={goTable} icon={<FiUserCheck size={16} />} label={tx("Kelgan kunlar")} value={stats.presentDays} total={stats.totalDays} tone="good" />
+						<KpiCard onClick={goTable} icon={<FiUserX size={16} />} label={tx("Kelmagan kunlar")} value={stats.absentDays} total={stats.totalDays} tone="critical" />
+						<KpiCard onClick={goTable} icon={<FiClock size={16} />} label={tx("O'rtacha ish soati")} value={`${stats.averageHours} soat`} tone="blue" />
 					</div>
 
 					{history.length === 0 ? (
 						<div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 flex flex-col items-center justify-center text-gray-400">
 							<FiCalendar size={40} className="mb-3" />
-							<p className="text-base font-medium text-gray-600">Bu davrda ma'lumot yo'q</p>
+							<p className="text-base font-medium text-gray-600">{tx("Bu davrda ma'lumot yo'q")}</p>
 						</div>
 					) : (
 						<>
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 								{/* Davomat trendi */}
 								<div onClick={goTable} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:shadow-md transition">
-									<h2 className="text-base font-semibold text-gray-800 mb-1">Davomat trendi</h2>
-									<p className="text-sm text-gray-500 mb-4">Tanlangan davrda kunlik holat</p>
+									<h2 className="text-base font-semibold text-gray-800 mb-1">{tx("Davomat trendi")}</h2>
+									<p className="text-sm text-gray-500 mb-4">{tx("Tanlangan davrda kunlik holat")}</p>
 									<ResponsiveContainer width="100%" height={220}>
 										<BarChart data={trendData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
 											<CartesianGrid stroke={GRID} vertical={false} strokeWidth={1} />
@@ -365,18 +366,18 @@ const AdminEmployeeAnalytics = () => {
 										</BarChart>
 									</ResponsiveContainer>
 									<div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GOOD }} /> Keldi</span>
-										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: WARNING }} /> Tashqarida</span>
-										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CRITICAL }} /> Kelmadi</span>
+										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GOOD }} /> {tx("Keldi")}</span>
+										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: WARNING }} /> {tx("Tashqarida")}</span>
+										<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CRITICAL }} /> {tx("Kelmadi")}</span>
 									</div>
 								</div>
 
 								{/* Kelish vaqti tarqalishi */}
 								<div onClick={goTable} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:shadow-md transition">
-									<h2 className="text-base font-semibold text-gray-800 mb-1">Kelish vaqti</h2>
-									<p className="text-sm text-gray-500 mb-4">Ish boshlanishi (09:00) ga nisbatan</p>
+									<h2 className="text-base font-semibold text-gray-800 mb-1">{tx("Kelish vaqti")}</h2>
+									<p className="text-sm text-gray-500 mb-4">{tx("Ish boshlanishi (09:00) ga nisbatan")}</p>
 									{arrivalData.length === 0 ? (
-										<p className="text-sm text-gray-400 py-16 text-center">Kelish ma'lumotlari yo'q</p>
+										<p className="text-sm text-gray-400 py-16 text-center">{tx("Kelish ma'lumotlari yo'q")}</p>
 									) : (
 										<ResponsiveContainer width="100%" height={220}>
 											<BarChart data={arrivalData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
@@ -420,15 +421,15 @@ const AdminEmployeeAnalytics = () => {
 									<table className="min-w-full">
 										<thead className="bg-gray-50">
 											<tr>
-												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sana</th>
-												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Holat</th>
+												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{tx("Sana")}</th>
+												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{tx("Holat")}</th>
 												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-													<span className="flex items-center gap-1"><FiClock size={12} /> Kirish</span>
+													<span className="flex items-center gap-1"><FiClock size={12} /> {tx("Kirish")}</span>
 												</th>
 												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-													<span className="flex items-center gap-1"><FiClock size={12} /> Chiqish</span>
+													<span className="flex items-center gap-1"><FiClock size={12} /> {tx("Chiqish")}</span>
 												</th>
-												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ish vaqti</th>
+												<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{tx("Ish vaqti")}</th>
 											</tr>
 										</thead>
 										<tbody className="divide-y divide-gray-100">

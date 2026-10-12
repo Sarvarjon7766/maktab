@@ -16,7 +16,8 @@ const reply = (fn) => async (req, res) => {
 	}
 }
 router.get('/', reply(() => DistrictService.list()))
-router.get('/geo', reply(async () => ({ success: true, geojson: await DistrictService.features() })))
+// Chegaralar kamdan-kam o'zgaradi (600 KB): brauzer 5 daqiqa keshlasin
+router.get('/geo', (req, res, next) => { res.setHeader('Cache-Control', 'private, max-age=300'); next() }, reply(async () => ({ success: true, geojson: await DistrictService.features() })))
 router.post('/import-bundled', reply(() => DistrictService.importBundled()))
 router.post('/', reply(req => DistrictService.create(req.body || {})))
 router.put('/:id', reply(req => DistrictService.update(req.params.id, req.body || {})))

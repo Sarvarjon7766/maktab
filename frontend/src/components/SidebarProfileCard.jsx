@@ -2,6 +2,8 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { FiUser } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
+import { uploadUrl } from '../utils/uploadUrl'
+import { tx } from '../i18n'
 
 const SidebarProfileCard = ({ collapsed = false, onNavigate }) => {
 	const location = useLocation()
@@ -30,13 +32,13 @@ const SidebarProfileCard = ({ collapsed = false, onNavigate }) => {
 			>
 				<div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--org-accent)] to-[var(--org-primary)] flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden">
 					{user?.photo
-						? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} alt={user.fullName} className="w-full h-full object-cover" />
+						? <img src={`${uploadUrl(user.photo)}`} alt={user.fullName} className="w-full h-full object-cover" />
 						: initials || <FiUser size={16} />
 					}
 				</div>
 				<div className={`min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[180px] flex-1 opacity-100'}`}>
-					<p className="text-sm font-semibold text-white truncate">{user?.fullName || 'Profil'}</p>
-					<p className="text-xs text-white/70 truncate">{user?.position || 'Mening profilim'}</p>
+					<p className="text-sm font-semibold text-white truncate">{user?.fullName || tx("Profil")}</p>
+					<p className="text-xs text-white/70 truncate">{user?.position || tx("Mening profilim")}</p>
 				</div>
 			</Link>
 		</div>

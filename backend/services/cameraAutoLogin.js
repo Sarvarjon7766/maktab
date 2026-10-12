@@ -2,8 +2,7 @@
 const { Builder, By, Key } = require("selenium-webdriver")
 const chrome = require("selenium-webdriver/chrome")
 
-// chromedriver ni yuklash
-require("chromedriver")
+// Chrome drayveri: selenium-webdriver ichidagi Selenium Manager o'zi topadi/yuklaydi (alohida chromedriver paketi kerak emas)
 
 async function cameraAutoLogin({ ip, username, password }) {
 	let driver

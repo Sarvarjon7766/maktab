@@ -4,6 +4,7 @@ import { FiDownload, FiPlus, FiSearch } from 'react-icons/fi'
 import { EXCUSE, ExcuseChip, Page, PageHeader, PersonLink, RangePicker, SchoolLink, SchoolSelect, Segmented, exportXlsx, fmt, todayStr, useMonitorData, usePanel } from './monitorKit'
 import SearchableSelect from '../../components/SearchableSelect'
 import { FaUmbrellaBeach } from 'react-icons/fa'
+import { tx } from '../../i18n'
 
 // O'quvchilar sabablari (sinf rahbari kiritadi) — xodimlar sabablaridan farqli turlar
 const S_TYPES = {
@@ -66,15 +67,15 @@ const MonitorLeaves = () => {
 			<PageHeader onReload={reload} loading={loading}>
 				<Segmented value={kind} onChange={switchKind} options={[{ key: 'staff', label: `Xodimlar · ${fmt(counts.staff)}` }, { key: 'student', label: `O'quvchilar · ${fmt(counts.student)}` }]} />
 				{!scoped && <SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={setSchoolId} />}
-				{(base === '/user' || base === '/admin') && <Link to={addTo} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800"><FiPlus size={15} /> Sabab qo'shish</Link>}
-				<button onClick={download} disabled={!rows.length} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> Excel</button>
+				{(base === '/user' || base === '/admin') && <Link to={addTo} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800"><FiPlus size={15} /> {tx("Sabab qo'shish")}</Link>}
+				<button onClick={download} disabled={!rows.length} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"><FiDownload size={15} /> {tx("Excel")}</button>
 			</PageHeader>
-			<p className="mb-4 text-sm text-gray-500">{isStudent ? "Darsga kelmagan, ammo sababi sinf rahbari tomonidan kiritilgan o'quvchilar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi." : "Ta'til, xizmat safari, kasallik kabi sabab bilan ishga kelmagan xodimlar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi."} Sabab qo'shish yoki yopish uchun «Sabab qo'shish» tugmasi orqali {isStudent ? 'Kirish-chiqish' : 'Izohlar'} bo'limiga o'ting.</p>
-			<div className="mb-5 flex flex-wrap items-center gap-3"><RangePicker {...range} onChange={setRange} />{!isToday && <button onClick={() => setRange({ from: today, to: today })} className="text-sm text-blue-600 hover:underline">Faqat bugun</button>}</div>
+			<p className="mb-4 text-sm text-gray-500">{isStudent ? tx("Darsga kelmagan, ammo sababi sinf rahbari tomonidan kiritilgan o'quvchilar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi.") : tx("Ta'til, xizmat safari, kasallik kabi sabab bilan ishga kelmagan xodimlar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi.")} {tx("Sabab qo'shish yoki yopish uchun «Sabab qo'shish» tugmasi orqali {{section}} bo'limiga o'ting.", { section: isStudent ? tx("Kirish-chiqish") : tx("Izohlar") })}</p>
+			<div className="mb-5 flex flex-wrap items-center gap-3"><RangePicker {...range} onChange={setRange} />{!isToday && <button onClick={() => setRange({ from: today, to: today })} className="text-sm text-blue-600 hover:underline">{tx("Faqat bugun")}</button>}</div>
 
 			<div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-5">
 				<button onClick={() => { setType(''); setState('') }} className={`text-left rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${type === '' ? 'border-slate-900 ring-1 ring-slate-900' : 'border-gray-100'}`}>
-					<p className="text-xs text-gray-500">{isToday ? 'Bugun sababli kelmagan' : 'Jami (davrda)'}</p><p className="mt-1 text-3xl font-bold text-gray-900">{fmt(all.length)}</p><p className="mt-1 text-xs text-gray-400">hozir faol: {fmt(activeCount)}</p>
+					<p className="text-xs text-gray-500">{isToday ? tx("Bugun sababli kelmagan") : tx("Jami (davrda)")}</p><p className="mt-1 text-3xl font-bold text-gray-900">{fmt(all.length)}</p><p className="mt-1 text-xs text-gray-400">{tx("hozir faol: {{n}}", { n: fmt(activeCount) })}</p>
 				</button>
 				{Object.entries(typeDefs).map(([key, e]) => (
 					<button key={key} onClick={() => setType(type === key ? '' : key)} className={`text-left rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${type === key ? 'border-slate-900 ring-1 ring-slate-900' : 'border-gray-100'}`}>
@@ -86,9 +87,9 @@ const MonitorLeaves = () => {
 
 			<div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
 				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
-					<h2 className="font-semibold text-gray-900">{isStudent ? "O'quvchilar" : 'Xodimlar'} ro'yxati ({fmt(rows.length)})</h2>
+					<h2 className="font-semibold text-gray-900">{tx("{{who}} ro'yxati ({{n}})", { who: isStudent ? tx("O'quvchilar") : tx("Xodimlar"), n: fmt(rows.length) })}</h2>
 					<div className="flex flex-wrap items-center gap-2">
-						{isStudent && <SearchableSelect variant="outline" icon={false} searchFrom={2} className="min-w-[150px] max-w-[220px]" searchPlaceholder="Sinf qidirish..." value={sinf} onChange={setSinf} options={[{ value: '', label: 'Barcha sinflar' }, ...sinfs.map(s => ({ value: s, label: s }))]} />}
+						{isStudent && <SearchableSelect variant="outline" icon={false} searchFrom={2} className="min-w-[150px] max-w-[220px]" searchPlaceholder={tx("Sinf qidirish...")} value={sinf} onChange={setSinf} options={[{ value: '', label: 'Barcha sinflar' }, ...sinfs.map(s => ({ value: s, label: s }))]} />}
 						<SearchableSelect variant="outline" icon={false} searchFrom={99} className="min-w-[150px] max-w-[200px]" value={state} onChange={setState} options={[{ value: '', label: 'Barcha holat' }, { value: 'active', label: 'Hozir faol' }, { value: 'done', label: 'Yakunlangan' }]} />
 						<div className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} /><input value={q} onChange={e => setQ(e.target.value)} placeholder={`${isStudent ? "O'quvchi" : 'Xodim'}${isStudent ? '' : ', lavozim'} yoki izoh`} className="h-10 w-60 rounded-lg border border-gray-200 pl-9 pr-3 text-sm text-black" /></div>
 					</div>
@@ -105,15 +106,15 @@ const MonitorLeaves = () => {
 									{isStudent && <td className="px-5 py-3 text-gray-700">{r.sinf || '—'}</td>}
 									{!scoped && <td className="px-5 py-3"><SchoolLink id={r.schoolId} name={r.schoolName} className="text-sm" /></td>}
 									<td className="px-5 py-3">{isStudent ? <StudentChip type={r.type} /> : <ExcuseChip type={r.type} />}</td>
-									<td className="max-w-[260px] px-5 py-3 text-gray-600"><span className="line-clamp-2" title={r.comment}>{r.comment || '—'}</span>{r.createdBy && <span className="block text-[11px] text-gray-400">qo'shgan: {r.createdBy}</span>}</td>
-									<td className="whitespace-nowrap px-5 py-3 text-gray-700">{r.startDate} → {r.endDate || 'muddatsiz'}</td>
+									<td className="max-w-[260px] px-5 py-3 text-gray-600"><span className="line-clamp-2" title={r.comment}>{r.comment || '—'}</span>{r.createdBy && <span className="block text-[11px] text-gray-400">{tx("qo'shgan: {{name}}", { name: r.createdBy })}</span>}</td>
+									<td className="whitespace-nowrap px-5 py-3 text-gray-700">{r.startDate} → {r.endDate || tx("muddatsiz")}</td>
 									<td className="px-5 py-3 font-medium text-gray-900">{r.days}</td>
-									<td className="px-5 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${r.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{r.active ? 'Hozir faol' : 'Yakunlangan'}</span></td>
+									<td className="px-5 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${r.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{r.active ? tx("Hozir faol") : tx("Yakunlangan")}</span></td>
 								</tr>
 							))}
-							{!loading && rows.length === 0 && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500"><FaUmbrellaBeach className="mx-auto mb-3 text-gray-300" size={30} />{all.length ? 'Filtrga mos yozuv topilmadi' : isToday ? `Bugun sababli kelmagan ${noun} yo'q` : `Bu davrda sababli kelmagan ${noun} yo'q`}</td></tr>}
-							{loading && !data && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500">Yuklanmoqda...</td></tr>}
-							{error && <tr><td colSpan={8} className="px-5 py-14 text-center text-red-600">Ma'lumotni yuklab bo'lmadi</td></tr>}
+							{!loading && rows.length === 0 && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500"><FaUmbrellaBeach className="mx-auto mb-3 text-gray-300" size={30} />{all.length ? tx("Filtrga mos yozuv topilmadi") : isToday ? `Bugun sababli kelmagan ${noun} yo'q` : `Bu davrda sababli kelmagan ${noun} yo'q`}</td></tr>}
+							{loading && !data && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500">{tx("Yuklanmoqda...")}</td></tr>}
+							{error && <tr><td colSpan={8} className="px-5 py-14 text-center text-red-600">{tx("Ma'lumotni yuklab bo'lmadi")}</td></tr>}
 						</tbody>
 					</table>
 				</div>

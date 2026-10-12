@@ -7,6 +7,7 @@ import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx-js-style'
 import { buildTabelWorkbook, buildTabelPdf } from '../utils/tabelExport'
 import SearchableSelect from './SearchableSelect'
+import { tx } from '../i18n'
 
 // Tabel (davomat jadvali) yuklab olish paneli — AdminAttandance.jsx'dagi
 // boshqaruvlardan ajratib olingan, AdminReports.jsx ham qayta ishlatadi.
@@ -93,13 +94,13 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 						onClick={() => setTabelPersonType('staff')}
 						className={`px-3 py-1.5 rounded-md font-medium transition-colors ${tabelPersonType === 'staff' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
 					>
-						Xodimlar
+						{tx("Xodimlar")}
 					</button>
 					<button
 						onClick={() => setTabelPersonType('student')}
 						className={`px-3 py-1.5 rounded-md font-medium transition-colors ${tabelPersonType === 'student' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
 					>
-						O'quvchilar
+						{tx("O'quvchilar")}
 					</button>
 				</div>
 				{tabelPersonType === 'student' && (
@@ -107,7 +108,7 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 						variant="outline"
 						icon={false}
 						className="min-w-[160px] max-w-[260px]"
-						searchPlaceholder="Sinf qidirish..."
+						searchPlaceholder={tx("Sinf qidirish...")}
 						value={tabelSinfId}
 						onChange={setTabelSinfId}
 						options={[{ value: 'all', label: 'Barcha sinflar' }, ...sinfs.map(sinf => ({ value: sinf._id, label: sinf.name }))]}
@@ -129,7 +130,7 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 							<FaRegCalendarAlt className="h-4 w-4 text-gray-400" />
 						</div>
 					</div>
-					<span className="text-gray-500">dan</span>
+					<span className="text-gray-500">{tx("dan")}</span>
 					<div className="relative min-w-[130px]">
 						<input
 							type="date"
@@ -142,7 +143,7 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 							<FaRegCalendarAlt className="h-4 w-4 text-gray-400" />
 						</div>
 					</div>
-					<span className="text-gray-500">gacha</span>
+					<span className="text-gray-500">{tx("gacha")}</span>
 				</div>
 
 				<div className="flex gap-2">
@@ -159,7 +160,7 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 						) : (
 							<>
 								<FaFileExcel className="mr-2" />
-								Excel
+								{tx("Excel")}
 							</>
 						)}
 					</button>
@@ -176,7 +177,7 @@ const TabelExportPanel = ({ sinfs = [] }) => {
 						) : (
 							<>
 								<FaFilePdf className="mr-2" />
-								PDF
+								{tx("PDF")}
 							</>
 						)}
 					</button>

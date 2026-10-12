@@ -53,7 +53,7 @@ const PlatformNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 					</div>
 					{!sidebarOpen && (
 						<span className="font-bold transition-opacity">
-							<BrandLogo className="w-7 h-7 shrink-0" /> School Supervision <span className="text-slate-400 font-normal">· Platforma</span>
+							<BrandLogo className="w-7 h-7 shrink-0" /> {tx("School Supervision")} <span className="text-slate-400 font-normal">{tx("· Platforma")}</span>
 						</span>
 					)}
 				</div>
@@ -79,7 +79,7 @@ const PlatformNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 								className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
 							>
 								<FiLogOut className="inline mr-2" />
-								Chiqish
+								{tx("Chiqish")}
 							</button>
 						</div>
 					)}

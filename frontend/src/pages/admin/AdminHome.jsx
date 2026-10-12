@@ -19,6 +19,8 @@ import {
 	YAxis,
 } from 'recharts'
 import { toast } from 'react-toastify'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 // dataviz skill: sequential = bitta hue (ko'k), status holatlar uchun
 // alohida (fixed) status-palette ishlatiladi — hech qachon aralashtirilmaydi
@@ -42,7 +44,7 @@ const TrendTooltip = ({ active, payload, label }) => {
 			<div className="flex items-center gap-2">
 				<span className="inline-block w-3 h-0.5 rounded" style={{ backgroundColor: BLUE }} />
 				<span className="font-semibold text-gray-900">{payload[0].value}</span>
-				<span className="text-gray-500">keldi</span>
+				<span className="text-gray-500">{tx("keldi")}</span>
 			</div>
 		</div>
 	)
@@ -54,7 +56,7 @@ const DeptTooltip = ({ active, payload }) => {
 	return (
 		<div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-sm">
 			<p className="text-gray-700 font-medium mb-1">{d.name}</p>
-			<p><span className="font-semibold text-gray-900">{d.rate}%</span> <span className="text-gray-500">({d.present}/{d.total} xodim)</span></p>
+			<p><span className="font-semibold text-gray-900">{d.rate}%</span> <span className="text-gray-500">{tx("({{present}}/{{total}} xodim)", { present: d.present, total: d.total })}</span></p>
 		</div>
 	)
 }
@@ -69,7 +71,7 @@ const CardSkeleton = ({ className = '' }) => (
 const Avatar = ({ photo, fullName, size = 'h-9 w-9' }) => (
 	photo ? (
 		<img
-			src={`${import.meta.env.VITE_BASE_URL}/uploads/${photo}`}
+			src={`${uploadUrl(photo)}`}
 			alt={fullName || ''}
 			className={`${size} rounded-full object-cover shrink-0 border border-gray-100`}
 		/>
@@ -124,7 +126,7 @@ const AdminHome = () => {
 			if (!exportDailySnapshotExcel(res.data.users, statusLabel)) {
 				toast.error("Eksport uchun ma'lumot yo'q")
 			}
-		} catch (err) {
+		} catch {
 			toast.error("Eksport qilishda xatolik")
 		} finally {
 			setExporting(false)
@@ -133,7 +135,7 @@ const AdminHome = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+			<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 					{[1, 2, 3, 4].map(i => <CardSkeleton key={i} className="h-36" />)}
 				</div>
@@ -147,8 +149,8 @@ const AdminHome = () => {
 
 	if (!stats) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gray-50">
-				<p className="text-gray-500">Ma'lumot topilmadi</p>
+			<div className="min-h-full flex items-center justify-center bg-gray-50">
+				<p className="text-gray-500">{tx("Ma'lumot topilmadi")}</p>
 			</div>
 		)
 	}
@@ -161,16 +163,15 @@ const AdminHome = () => {
 	const deptData = bySinf.slice(0, 8) // token ceiling — 8 tadan ortig'i ko'rsatilmaydi
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+		<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
 			<div>
 				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-gray-900">Boshqaruv paneli</h1>
-						<p className="text-sm text-gray-500 mt-0.5">
+						<p className="text-sm text-gray-500">
 							{formatUzDate(new Date())}
 							<span className="inline-flex items-center gap-1.5 ml-3 text-emerald-600 font-medium">
 								<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-								Hozir ishda: {Math.max(today.keldi - today.ketdi, 0)} / {today.total}
+								{tx("Hozir ishda: {{now}} / {{total}}", { now: Math.max(today.keldi - today.ketdi, 0), total: today.total })}
 							</span>
 						</p>
 					</div>
@@ -180,14 +181,14 @@ const AdminHome = () => {
 							className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm"
 						>
 							<FiFileText size={16} />
-							Hisobotlar
+							{tx("Hisobotlar")}
 						</Link>
 						<Link
 							to={`/${roleBase}/analytics`}
 							className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm"
 						>
 							<FiBarChart2 size={16} />
-							Batafsil tahlil
+							{tx("Batafsil tahlil")}
 						</Link>
 						<button
 							onClick={exportToExcel}
@@ -195,24 +196,24 @@ const AdminHome = () => {
 							className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition shadow-sm disabled:opacity-60"
 						>
 							<FiDownload size={16} />
-							{exporting ? "Tayyorlanmoqda..." : "Bugungi Excel"}
+							{exporting ? tx("Tayyorlanmoqda...") : tx("Bugungi Excel")}
 						</button>
 					</div>
 				</div>
 
 				{/* KPI qatori */}
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					<KpiCard to={`/${roleBase}/attandance`} icon={<FiUserCheck size={16} />} label="Keldi" value={today.keldi} total={today.total} tone="good" />
-					<KpiCard to={`/${roleBase}/entry-exit`} icon={<FiLogOut size={16} />} label="Ketdi" value={today.ketdi} total={today.total} tone="rose" />
-					<KpiCard to={`/${roleBase}/late`} icon={<FiClock size={16} />} label="Kechikdi" value={today.kechikdi} total={today.total} tone="warning" />
-					<KpiCard to={`/${roleBase}/attandance`} icon={<FiUserX size={16} />} label="Kelmadi" value={today.kelmagan} total={today.total} tone="critical" />
+					<KpiCard to={`/${roleBase}/attandance`} icon={<FiUserCheck size={16} />} label={tx("Keldi")} value={today.keldi} total={today.total} tone="good" />
+					<KpiCard to={`/${roleBase}/entry-exit`} icon={<FiLogOut size={16} />} label={tx("Ketdi")} value={today.ketdi} total={today.total} tone="rose" />
+					<KpiCard to={`/${roleBase}/late`} icon={<FiClock size={16} />} label={tx("Kechikdi")} value={today.kechikdi} total={today.total} tone="warning" />
+					<KpiCard to={`/${roleBase}/attandance`} icon={<FiUserX size={16} />} label={tx("Kelmadi")} value={today.kelmagan} total={today.total} tone="critical" />
 				</div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 					{/* Trend chart — oxirgi 14 kun, bitta seriya (kelgan xodimlar soni) */}
 					<div onClick={() => navigate(`/${roleBase}/analytics`)} className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:shadow-md transition">
-						<h2 className="text-base font-semibold text-gray-800 mb-1">Davomat trendi</h2>
-						<p className="text-sm text-gray-500 mb-4">Oxirgi 14 kunda kelgan xodimlar soni</p>
+						<h2 className="text-base font-semibold text-gray-800 mb-1">{tx("Davomat trendi")}</h2>
+						<p className="text-sm text-gray-500 mb-4">{tx("Oxirgi 14 kunda kelgan xodimlar soni")}</p>
 						<ResponsiveContainer width="100%" height={260}>
 							<AreaChart data={trendData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
 								<CartesianGrid stroke={GRID} vertical={false} strokeWidth={1} />
@@ -246,10 +247,10 @@ const AdminHome = () => {
 
 					{/* Sinflar bo'yicha bugungi davomat foizi */}
 					<div onClick={() => navigate(`/${roleBase}/sinf`)} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:shadow-md transition">
-						<h2 className="text-base font-semibold text-gray-800 mb-1">Sinflar bo'yicha</h2>
-						<p className="text-sm text-gray-500 mb-4">Bugungi davomat foizi</p>
+						<h2 className="text-base font-semibold text-gray-800 mb-1">{tx("Sinflar bo'yicha")}</h2>
+						<p className="text-sm text-gray-500 mb-4">{tx("Bugungi davomat foizi")}</p>
 						{deptData.length === 0 ? (
-							<p className="text-sm text-gray-400 py-10 text-center">Sinf ma'lumotlari yo'q</p>
+							<p className="text-sm text-gray-400 py-10 text-center">{tx("Sinf ma'lumotlari yo'q")}</p>
 						) : (
 							<ResponsiveContainer width="100%" height={Math.max(deptData.length * 42, 120)}>
 								<BarChart
@@ -286,22 +287,22 @@ const AdminHome = () => {
 				{/* So'nggi hodisalar — jonli oqim (AdminAnalytics.jsx bilan bir xil useLiveFeed hook) */}
 				<div className="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
 					<div className="flex items-center justify-between mb-1">
-						<h2 className="text-base font-semibold text-gray-800">So'nggi hodisalar</h2>
+						<h2 className="text-base font-semibold text-gray-800">{tx("So'nggi hodisalar")}</h2>
 						<span className="text-xs text-gray-400 flex items-center gap-1.5">
 							<span className="relative flex h-2 w-2">
 								<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
 								<span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
 							</span>
-							yangilanmoqda...
+							{tx("yangilanmoqda...")}
 						</span>
 					</div>
-					<p className="text-sm text-gray-500 mb-4">Tizim bo'yicha oxirgi kirish/chiqishlar</p>
+					<p className="text-sm text-gray-500 mb-4">{tx("Tizim bo'yicha oxirgi kirish/chiqishlar")}</p>
 					{liveLoading && liveEvents.length === 0 ? (
-						<div className="py-10 text-center text-sm text-gray-400">Yuklanmoqda...</div>
+						<div className="py-10 text-center text-sm text-gray-400">{tx("Yuklanmoqda...")}</div>
 					) : liveEvents.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-10 text-gray-400">
 							<FiUsers size={32} className="mb-2" />
-							<p className="text-sm">Hozircha hodisalar yo'q</p>
+							<p className="text-sm">{tx("Hozircha hodisalar yo'q")}</p>
 						</div>
 					) : (
 						<ul className="divide-y divide-gray-100">
@@ -310,13 +311,13 @@ const AdminHome = () => {
 									<Avatar photo={e.photo} fullName={e.fullName} />
 									<div className="min-w-0 flex-1">
 										<p className="text-sm font-medium text-gray-900 truncate">{e.fullName}</p>
-										<p className="text-xs text-gray-500 truncate">{e.sinf || "Sinfsiz"}{e.position ? ` · ${e.position}` : ''}</p>
+										<p className="text-xs text-gray-500 truncate">{e.sinf || tx("Sinfsiz")}{e.position ? ` · ${e.position}` : ''}</p>
 									</div>
 									<span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
 										e.type === 'entry' ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'
 									}`}>
 										{e.type === 'entry' ? <FiLogIn size={12} /> : <FiLogOut size={12} />}
-										{e.type === 'entry' ? 'Kirdi' : 'Chiqdi'}
+										{e.type === 'entry' ? tx("Kirdi") : tx("Chiqdi")}
 									</span>
 									<span className="shrink-0 text-xs font-mono text-gray-500 w-12 text-right">
 										{formatUzTime(new Date(e.time))}
@@ -329,7 +330,7 @@ const AdminHome = () => {
 						to={`/${roleBase}/analytics`}
 						className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
 					>
-						Barchasini ko'rish →
+						{tx("Barchasini ko'rish →")}
 					</Link>
 				</div>
 			</div>

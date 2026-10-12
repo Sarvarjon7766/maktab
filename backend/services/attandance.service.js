@@ -264,6 +264,7 @@ class AttandanceService {
 	}
 
 	async getUser(schoolId) {
+		const { signedUrl } = require('../utils/uploadsAuth')
 		try {
 			const BASE_URL = process.env.CAMERA_PHOTO_URL || `http://localhost:${process.env.PORT || 5000}/uploads/`
 
@@ -274,7 +275,7 @@ class AttandanceService {
 			// photo maydonini to'ldirish
 			users = users.map(u => ({
 				...u,
-				photo: u.photo ? `${BASE_URL}${u.photo}` : null
+				photo: u.photo ? signedUrl(BASE_URL, u.photo) : null
 			}))
 
 			if (users.length > 0) {

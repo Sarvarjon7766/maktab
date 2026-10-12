@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, LoadState, Page, PageHeader, Panel, RangePicker, Table, Td, Tr, fmt, shiftDate, todayStr, useMonitorData, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 
 const MAX = 6
 
@@ -33,11 +34,11 @@ const MonitorCompare = () => {
 
 	return (
 		<Page>
-			<PageHeader title="Maktablarni solishtirish" subtitle={`Davr: ${range.from} — ${range.to} · ${MAX} tagacha maktab tanlang`} onReload={reload} loading={loading} />
+			<PageHeader title={tx("Maktablarni solishtirish")} subtitle={`Davr: ${range.from} — ${range.to} · ${MAX} tagacha maktab tanlang`} onReload={reload} loading={loading} />
 			<div className="mb-6"><RangePicker {...range} onChange={setRange} /></div>
 
 			<LoadState loading={loading && !data} error={error}>
-				<Panel title="Maktablarni tanlang" subtitle={`Tanlandi: ${selected.length}/${MAX}`} className="mb-6">
+				<Panel title={tx("Maktablarni tanlang")} subtitle={`Tanlandi: ${selected.length}/${MAX}`} className="mb-6">
 					<div className="flex flex-wrap gap-2">
 						{all.map(s => (
 							<button key={s._id} onClick={() => toggle(s._id)}
@@ -46,8 +47,8 @@ const MonitorCompare = () => {
 					</div>
 				</Panel>
 
-				{picked.length === 0 ? <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">Solishtirish uchun kamida bitta maktab tanlang</div> : <>
-					<Panel title="Davomat foizi" className="mb-6">
+				{picked.length === 0 ? <div className="rounded-xl bg-white border border-gray-100 p-10 text-center text-gray-500">{tx("Solishtirish uchun kamida bitta maktab tanlang")}</div> : <>
+					<Panel title={tx("Davomat foizi")} className="mb-6">
 						<ChartBox height={300}><ResponsiveContainer width="100%" height="100%">
 							<BarChart data={chart} margin={{ left: -8, right: 12 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -57,7 +58,7 @@ const MonitorCompare = () => {
 							</BarChart>
 						</ResponsiveContainer></ChartBox>
 					</Panel>
-					<Panel title="Yonma-yon jadval">
+					<Panel title={tx("Yonma-yon jadval")}>
 						<Table head={['Ko\'rsatkich', ...picked.map(s => ({ label: s.name, right: true }))]}>
 							{rows.map(([label, fn]) => (
 								<Tr key={label}><Td className="font-medium text-gray-900">{label}</Td>{picked.map(s => <Td key={s._id} right>{fn(s)}</Td>)}</Tr>

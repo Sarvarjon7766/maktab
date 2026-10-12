@@ -42,8 +42,8 @@ const PlatformHikAccounts = () => {
 		<div className="p-4 md:p-6 space-y-6">
 			<div className="flex flex-wrap items-center justify-end gap-3">
 				<div className="flex flex-wrap gap-2">
-					<Link to="/platform/hik-cameras" className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">Oddiy kameralarni bog'lash →</Link>
-					<Link to="/platform/hik-facecontrol" className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">FaceControl kameralarni bog'lash →</Link>
+					<Link to="/platform/hik-cameras" className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("Oddiy kameralarni bog'lash →")}</Link>
+					<Link to="/platform/hik-facecontrol" className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50">{tx("FaceControl kameralarni bog'lash →")}</Link>
 				</div>
 			</div>
 
@@ -99,19 +99,19 @@ const Accounts = ({ accounts, loading, onChanged }) => {
 	return (
 		<section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
 			<div className="flex items-center justify-end gap-2 mb-4">
-				<button onClick={() => open('new')} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"><FiPlus size={14} /> Akkaunt qo'shish</button>
+				<button onClick={() => open('new')} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"><FiPlus size={14} /> {tx("Akkaunt qo'shish")}</button>
 			</div>
 
-			{loading ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : accounts.length === 0 && editing !== 'new'
-				? <p className="text-sm text-gray-500">Hali akkaunt qo'shilmagan. "Akkaunt qo'shish" ni bosing yoki maktab yaratayotganda kalitlarni kiriting</p>
+			{loading ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : accounts.length === 0 && editing !== 'new'
+				? <p className="text-sm text-gray-500">{tx("Hali akkaunt qo'shilmagan. \"Akkaunt qo'shish\" ni bosing yoki maktab yaratayotganda kalitlarni kiriting")}</p>
 				: <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
 					{accounts.map(a => (
 						<div key={a._id} {...cardNav(navigate, `/platform/school-cameras?account=${a._id}&view=cameras`, 'rounded-xl border border-gray-100 p-4 transition hover:border-blue-300 hover:shadow-md')}>
 							<div className="flex items-start justify-between gap-2">
 								<div className="min-w-0"><p className="font-medium text-gray-900 truncate">{a.name}</p><p className="text-xs text-gray-500 font-mono mt-0.5">{a.appKeyHint}</p></div>
 								<div className="flex gap-1 shrink-0">
-									<button onClick={() => open(a)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100" title="Tahrirlash"><FiEdit2 size={14} /></button>
-									<button onClick={() => remove(a)} disabled={!!busy} className="p-2 rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-50" title="O'chirish"><FiTrash2 size={14} /></button>
+									<button onClick={() => open(a)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100" title={tx("Tahrirlash")}><FiEdit2 size={14} /></button>
+									<button onClick={() => remove(a)} disabled={!!busy} className="p-2 rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-50" title={tx("O'chirish")}><FiTrash2 size={14} /></button>
 								</div>
 							</div>
 							<div className="grid grid-cols-3 gap-2 mt-3 text-center">
@@ -121,8 +121,8 @@ const Accounts = ({ accounts, loading, onChanged }) => {
 							</div>
 							{a.lastSyncError ? <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mt-3">{a.lastSyncError}</p> : <p className="text-xs text-gray-400 mt-3">{tx('Oxirgi sinxronlash: {{when}}', { when: ago(a.lastSyncAt) })}</p>}
 							<div className="flex gap-2 mt-3">
-								<button onClick={() => sync(a)} disabled={!!busy} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiRefreshCw size={12} className={busy === `sync-${a._id}` ? 'animate-spin' : ''} /> Yangilash</button>
-								<button onClick={() => test(a)} disabled={!!busy} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50">{busy === `test-${a._id}` ? 'Tekshirilmoqda...' : 'Ulanishni tekshirish'}</button>
+								<button onClick={() => sync(a)} disabled={!!busy} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiRefreshCw size={12} className={busy === `sync-${a._id}` ? 'animate-spin' : ''} /> {tx("Yangilash")}</button>
+								<button onClick={() => test(a)} disabled={!!busy} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50">{busy === `test-${a._id}` ? tx("Tekshirilmoqda...") : tx("Ulanishni tekshirish")}</button>
 							</div>
 						</div>
 					))}
@@ -130,15 +130,15 @@ const Accounts = ({ accounts, loading, onChanged }) => {
 
 			{editing && (
 				<form onSubmit={save} className="mt-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-					<p className="md:col-span-2 font-medium text-gray-800">{editing === 'new' ? "Yangi akkaunt" : tx('"{{name}}" ni tahrirlash', { name: editing.name })}</p>
-					<div><label className="text-xs text-gray-500">Nomi</label><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Masalan: Kattaqo'rg'on maktablari" /></div>
-					<div><label className="text-xs text-gray-500">Server</label><input className={inputCls} value={form.server} onChange={e => setForm({ ...form, server: e.target.value })} /></div>
-					<div><label className="text-xs text-gray-500">API Key (AK){editing !== 'new' && " — bo'sh qoldirsangiz o'zgarmaydi"}</label><input className={inputCls} autoComplete="off" value={form.appKey} onChange={e => setForm({ ...form, appKey: e.target.value })} /></div>
-					<div><label className="text-xs text-gray-500">API Secret (SK){editing !== 'new' && " — bo'sh qoldirsangiz o'zgarmaydi"}</label><input type="password" className={inputCls} autoComplete="new-password" value={form.secretKey} onChange={e => setForm({ ...form, secretKey: e.target.value })} /></div>
-					<div className="md:col-span-2"><label className="text-xs text-gray-500">Video shifrlash kodi (ixtiyoriy)</label><input type="password" className={inputCls} autoComplete="new-password" value={form.encryptionCode} onChange={e => setForm({ ...form, encryptionCode: e.target.value })} /></div>
+					<p className="md:col-span-2 font-medium text-gray-800">{editing === 'new' ? tx("Yangi akkaunt") : tx('"{{name}}" ni tahrirlash', { name: editing.name })}</p>
+					<div><label className="text-xs text-gray-500">{tx("Nomi")}</label><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={tx("Masalan: Kattaqo'rg'on maktablari")} /></div>
+					<div><label className="text-xs text-gray-500">{tx("Server")}</label><input className={inputCls} value={form.server} onChange={e => setForm({ ...form, server: e.target.value })} /></div>
+					<div><label className="text-xs text-gray-500">{tx("API Key (AK)")}{editing !== 'new' && tx(" — bo'sh qoldirsangiz o'zgarmaydi")}</label><input className={inputCls} autoComplete="off" value={form.appKey} onChange={e => setForm({ ...form, appKey: e.target.value })} /></div>
+					<div><label className="text-xs text-gray-500">{tx("API Secret (SK)")}{editing !== 'new' && tx(" — bo'sh qoldirsangiz o'zgarmaydi")}</label><input type="password" className={inputCls} autoComplete="new-password" value={form.secretKey} onChange={e => setForm({ ...form, secretKey: e.target.value })} /></div>
+					<div className="md:col-span-2"><label className="text-xs text-gray-500">{tx("Video shifrlash kodi (ixtiyoriy)")}</label><input type="password" className={inputCls} autoComplete="new-password" value={form.encryptionCode} onChange={e => setForm({ ...form, encryptionCode: e.target.value })} /></div>
 					<div className="md:col-span-2 flex justify-end gap-2">
-						<button type="button" onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-white">Bekor qilish</button>
-						<button type="submit" disabled={!!busy} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{busy === 'save' ? 'Saqlanmoqda...' : 'Saqlash va kameralarni olish'}</button>
+						<button type="button" onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-white">{tx("Bekor qilish")}</button>
+						<button type="submit" disabled={!!busy} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{busy === 'save' ? tx("Saqlanmoqda...") : tx("Saqlash va kameralarni olish")}</button>
 					</div>
 				</form>
 			)}

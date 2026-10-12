@@ -10,7 +10,7 @@ const STALE_MS = 30 * 60 * 1000
 
 // Kalit faqat yo'l (pathname) + ma'lum so'rov parametrlaridan tuziladi (tartiblangan): ?_=1 kabi ixtiyoriy
 // parametrlar keshni aylanib o'tmasin va keshni to'ldirib yubormasin
-const KEY_PARAMS = ['date', 'from', 'to', 'schoolId', 'sinfId', 'district', 'kind', 'status', 'grade', 'page', 'limit', 'q', 'minStreak', 'group', 'type']
+const KEY_PARAMS = ['date', 'from', 'to', 'schoolId', 'sinfId', 'district', 'kind', 'status', 'grade', 'page', 'limit', 'q', 'minStreak', 'group', 'type', 'sort', 'pageSize', 'all']
 const urlKey = (req) => {
 	const path = String(req.originalUrl || req.url || '').split('?')[0]
 	const query = req.query || {}
@@ -50,4 +50,20 @@ const cached = (ttlMs, fn, keyOf = (req) => `${urlKey(req)}|${scopeKey()}`) => (
 	return entry.p
 }
 
-module.exports = { cached, byUrlAndSchool: (req) => `${urlKey(req)}|${req.user?.school || ''}|${scopeKey()}` }
+// Jonli ma'lumot uchun qisqa kesh: eskirgan natija HECH QACHON qaytarilmaydi (cached'dan farqi), faqat TTL ichida bir xil so'rovlar
+// bitta hisob-kitobni baham ko'radi (bir maktabning bir nechta ochiq sahifasi bazani ortiqcha yuklamasin)
+const liveStore = new Map()
+const fresh = (ttlMs, fn, keyOf) => (req, ...rest) => {
+	const key = keyOf(req)
+	const now = Date.now()
+	const hit = liveStore.get(key)
+	if (hit && now - hit.t < ttlMs) return hit.p
+	const p = Promise.resolve(fn(req, ...rest))
+	const entry = { t: now, p }
+	p.catch(() => { if (liveStore.get(key) === entry) liveStore.delete(key) })
+	liveStore.set(key, entry)
+	if (liveStore.size > 500) for (const [k, v] of liveStore) { if (now - v.t >= ttlMs) liveStore.delete(k) }
+	return p
+}
+
+module.exports = { cached, fresh, byUrlAndSchool: (req) => `${urlKey(req)}|${req.user?.school || ''}|${scopeKey()}` }

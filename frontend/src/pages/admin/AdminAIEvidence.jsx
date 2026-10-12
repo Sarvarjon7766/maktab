@@ -4,7 +4,10 @@ import { FiAlertTriangle, FiCheckCircle, FiChevronLeft, FiChevronRight, FiClock,
 import { useSearchParams, Link } from 'react-router-dom'
 import { authHeaders } from '../../components/HikCameraList'
 import { EvidenceGallery } from '../../components/EvidenceViewer'
+import { ALERT_KINDS } from '../../utils/vision'
 import { useBlobUrl } from '../../components/useBlobUrl'
+import { setVisibleInterval } from '../../utils/poll'
+import { tx } from '../../i18n'
 
 const norm = (t) => String(t || '').toLowerCase().replace(/['‘’ʻʼ`´]/g, '')
 const BASE = import.meta.env.VITE_BASE_URL
@@ -35,20 +38,20 @@ const ClassCard = ({ c, onOpen }) => {
 	return (
 		<div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col">
 			<div onClick={c.total ? () => onOpen(c) : undefined} className={`aspect-video bg-slate-900 flex items-center justify-center ${c.total ? 'cursor-pointer' : ''}`}>
-				{url ? <img src={url} alt="" className="w-full h-full object-cover" /> : <span className="text-xs text-slate-500 flex flex-col items-center gap-1"><FiVideo size={20} />{c.total ? '...' : "Hali lahza yo'q"}</span>}
+				{url ? <img src={url} alt="" className="w-full h-full object-cover" /> : <span className="text-xs text-slate-500 flex flex-col items-center gap-1"><FiVideo size={20} />{c.total ? '...' : tx("Hali lahza yo'q")}</span>}
 			</div>
 			<div className="p-4 flex-1 flex flex-col gap-2">
 				<div className="flex items-center justify-between gap-2">
-					<Link to={`../classrooms/${c.sinfId}`} className="font-semibold text-gray-900 text-lg hover:text-blue-600" title="Sinf sahifasi">{c.sinf} <span className="text-xs font-medium text-blue-600">sahifa →</span></Link>
-					<span className={`inline-flex items-center gap-1.5 text-xs ${c.online ? 'text-green-600' : 'text-gray-400'}`}><span className={`w-2 h-2 rounded-full ${c.online ? 'bg-green-500' : 'bg-gray-300'}`} />{c.online ? 'Kamera online' : c.cameras.length ? 'Kamera offline' : 'Kamerasiz'}</span>
+					<Link to={`../classrooms/${c.sinfId}`} className="font-semibold text-gray-900 text-lg hover:text-blue-600" title={tx("Sinf sahifasi")}>{c.sinf} <span className="text-xs font-medium text-blue-600">{tx("sahifa →")}</span></Link>
+					<span className={`inline-flex items-center gap-1.5 text-xs ${c.online ? 'text-green-600' : 'text-gray-400'}`}><span className={`w-2 h-2 rounded-full ${c.online ? 'bg-green-500' : 'bg-gray-300'}`} />{c.online ? tx("Kamera online") : c.cameras.length ? tx("Kamera offline") : tx("Kamerasiz")}</span>
 				</div>
 				<p className="text-xs text-gray-500">{c.cameras.join(', ') || '—'}</p>
 				<div className="flex flex-wrap items-center gap-2 text-xs">
-					<span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{c.total} ta lahza</span>
-					{c.alerts > 0 ? <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700">{c.alerts} ta muhim hodisa</span> : <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700">Muhim hodisa yo'q</span>}
+					<span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{tx("{{n}} ta lahza", { n: c.total })}</span>
+					{c.alerts > 0 ? <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700">{tx("{{n}} ta muhim hodisa", { n: c.alerts })}</span> : <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700">{tx("Muhim hodisa yo'q")}</span>}
 				</div>
-				{c.last && <p className="text-[11px] text-gray-400">Oxirgisi: {hm(c.last.time)} · {c.last.detail || c.last.title}</p>}
-				<button onClick={() => onOpen(c)} disabled={!c.total} className="mt-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiGrid size={14} /> Batafsil ko'rish</button>
+				{c.last && <p className="text-[11px] text-gray-400">{tx("Oxirgisi: {{time}} · {{detail}}", { time: hm(c.last.time), detail: c.last.detail || c.last.title })}</p>}
+				<button onClick={() => onOpen(c)} disabled={!c.total} className="mt-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiGrid size={14} /> {tx("Batafsil ko'rish")}</button>
 			</div>
 		</div>
 	)
@@ -70,24 +73,24 @@ const ClassMoments = ({ cls, date, onClose }) => {
 		return () => window.removeEventListener('keydown', onKey)
 	}, [onClose])
 	const by = data?.byKind || {}
-	const alerts = ['vision_empty', 'vision_surge', 'vision_overcrowd'].reduce((a, k) => a + (by[k] || 0), 0)
+	const alerts = ALERT_KINDS.reduce((a, k) => a + (by[k] || 0), 0)
 	const tabs = [['all', 'Hammasi', alerts + (by.vision_sample || 0)], ['alerts', 'Muhim hodisalar', alerts], ['samples', 'Avtomatik namunalar', by.vision_sample || 0]]
 	return (
 		<div className="fixed inset-0 z-[70] bg-black/50 flex items-start justify-center p-3 md:p-8 overflow-y-auto" onClick={onClose}>
 			<div className="w-full max-w-6xl bg-slate-50 rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
 				<div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-200">
-					<div><h2 className="text-lg font-semibold text-gray-900">{cls.sinf}: kuzatuv lahzalari</h2><p className="text-xs text-gray-500">{date} · kadrni bossangiz oldin/hodisa/keyin rasmlari va lavha ochiladi</p></div>
-					<button onClick={onClose} title="Yopish (Esc)" className="p-2.5 rounded-lg hover:bg-gray-200 text-gray-600"><FiX /></button>
+					<div><h2 className="text-lg font-semibold text-gray-900">{tx("{{sinf}}: kuzatuv lahzalari", { sinf: cls.sinf })}</h2><p className="text-xs text-gray-500">{tx("{{date}} · kadrni bossangiz oldin/hodisa/keyin rasmlari va lavha ochiladi", { date })}</p></div>
+					<button onClick={onClose} title={tx("Yopish (Esc)")} className="p-2.5 rounded-lg hover:bg-gray-200 text-gray-600"><FiX /></button>
 				</div>
 				<div className="p-5 space-y-4">
 					<div className="flex flex-wrap gap-2">
 						{tabs.map(([k, label, n]) => <button key={k} onClick={() => { setGroup(k); setPage(1) }} className={`px-4 py-2 rounded-xl text-sm border transition ${group === k ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{label} <span className="opacity-70">· {n}</span></button>)}
 					</div>
-					{!data ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : <EvidenceGallery items={data.items} cols="grid-cols-2 md:grid-cols-3 xl:grid-cols-4" empty="Bu tanlov bo'yicha lahza yo'q" sinfLink={(it) => `../classrooms/${it.sinfId}`} />}
+					{!data ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : <EvidenceGallery items={data.items} cols="grid-cols-2 md:grid-cols-3 xl:grid-cols-4" empty={tx("Bu tanlov bo'yicha lahza yo'q")} sinfLink={(it) => `../classrooms/${it.sinfId}`} />}
 					{data && data.pages > 1 && (
 						<div className="flex items-center justify-center gap-3">
 							<button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="p-2 rounded-lg border border-gray-200 bg-white disabled:opacity-40"><FiChevronLeft /></button>
-							<span className="text-sm text-gray-600">{page} / {data.pages} · jami {data.total}</span>
+							<span className="text-sm text-gray-600">{tx("{{page}} / {{pages}} · jami {{total}}", { page, pages: data.pages, total: data.total })}</span>
 							<button disabled={page >= data.pages} onClick={() => setPage(p => p + 1)} className="p-2 rounded-lg border border-gray-200 bg-white disabled:opacity-40"><FiChevronRight /></button>
 						</div>
 					)}
@@ -122,7 +125,7 @@ const AdminAIEvidence = () => {
 		setLoading(true)
 		load()
 		if (date !== today()) return
-		const t = setInterval(load, 60000)
+		const t = setVisibleInterval(load, 60000)
 		return () => clearInterval(t)
 	}, [load, date])
 
@@ -137,48 +140,48 @@ const AdminAIEvidence = () => {
 	const alerts = data?.alerts || []
 	const classes = (data?.classes || []).filter(c => !q.trim() || norm(`${c.sinf} ${(c.cameras || []).join(' ')}`).includes(norm(q.trim())))
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6 space-y-6">
+		<div className="min-h-full bg-slate-50 p-4 md:p-6 space-y-6">
 			<div className="flex flex-wrap items-center justify-end gap-3">
 				<div className="flex items-center gap-2">
 					<input type="date" value={date} max={today()} onChange={e => e.target.value && setDate(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
-					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={14} /> Yangilash</button>
+					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={14} /> {tx("Yangilash")}</button>
 				</div>
 			</div>
 
-			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">Ma'lumotni yuklab bo'lmadi</div>}
+			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Ma'lumotni yuklab bo'lmadi")}</div>}
 
 			<div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-				<Tile onClick={() => scrollToId('ai-alerts')} icon={<FiAlertTriangle size={18} />} label="Muhim hodisalar" value={t?.alerts ?? '—'} hint={t?.alerts ? "Pastda ko'ring" : 'Bugun tinch'} tone={t?.alerts ? 'text-red-600' : 'text-green-600'} ring={t?.alerts ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'} />
-				<Tile onClick={() => setShowAllSamples(true)} icon={<FiGrid size={18} />} label="Avtomatik namunalar" value={t?.samples ?? '—'} hint="Har 30 daqiqada" ring="bg-blue-50 text-blue-600" />
-				<Tile onClick={() => scrollToId('ai-classes')} icon={<FiVideo size={18} />} label="Kuzatilayotgan sinflar" value={t?.classes ?? '—'} hint="Kamera biriktirilgan" ring="bg-violet-50 text-violet-600" />
-				<Tile onClick={() => scrollToId('ai-classes')} icon={<FiClock size={18} />} label="Oxirgi tahlil" value={t ? ago(t.lastAt) : '—'} hint={t?.lastAt ? hm(t.lastAt) : "Hali o'lchov yo'q"} ring="bg-amber-50 text-amber-600" />
+				<Tile onClick={() => scrollToId('ai-alerts')} icon={<FiAlertTriangle size={18} />} label={tx("Muhim hodisalar")} value={t?.alerts ?? '—'} hint={t?.alerts ? tx("Pastda ko'ring") : tx("Bugun tinch")} tone={t?.alerts ? 'text-red-600' : 'text-green-600'} ring={t?.alerts ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'} />
+				<Tile onClick={() => setShowAllSamples(true)} icon={<FiGrid size={18} />} label={tx("Avtomatik namunalar")} value={t?.samples ?? '—'} hint={tx("Har 30 daqiqada")} ring="bg-blue-50 text-blue-600" />
+				<Tile onClick={() => scrollToId('ai-classes')} icon={<FiVideo size={18} />} label={tx("Kuzatilayotgan sinflar")} value={t?.classes ?? '—'} hint={tx("Kamera biriktirilgan")} ring="bg-violet-50 text-violet-600" />
+				<Tile onClick={() => scrollToId('ai-classes')} icon={<FiClock size={18} />} label={tx("Oxirgi tahlil")} value={t ? ago(t.lastAt) : '—'} hint={t?.lastAt ? hm(t.lastAt) : tx("Hali o'lchov yo'q")} ring="bg-amber-50 text-amber-600" />
 			</div>
 
 			<section id="ai-alerts" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 scroll-mt-4">
 				<div className="flex items-center justify-between gap-3 mb-4">
-					<h2 className="font-semibold text-gray-900">Muhim hodisalar</h2>
-					{(t?.alerts || 0) > alerts.length && <button onClick={() => setShowAllAlerts(true)} className="text-sm font-medium text-blue-600 hover:underline">Barchasini ko'rish ({t.alerts}) →</button>}
+					<h2 className="font-semibold text-gray-900">{tx("Muhim hodisalar")}</h2>
+					{(t?.alerts || 0) > alerts.length && <button onClick={() => setShowAllAlerts(true)} className="text-sm font-medium text-blue-600 hover:underline">{tx("Barchasini ko'rish ({{n}}) →", { n: t.alerts })}</button>}
 				</div>
 				{alerts.length === 0 ? (
-					<div className="flex items-center gap-3 rounded-xl bg-green-50 px-4 py-4 text-sm text-green-800"><FiCheckCircle size={20} /><div><p className="font-medium">Bu kunda muhim hodisa aniqlanmadi</p><p className="text-green-700/80 text-xs">Bo'sh qolgan sinf, odamlar keskin oshishi yoki ortiqcha odam bo'lsa, shu yerda kadr bilan chiqadi</p></div></div>
+					<div className="flex items-center gap-3 rounded-xl bg-green-50 px-4 py-4 text-sm text-green-800"><FiCheckCircle size={20} /><div><p className="font-medium">{tx("Bu kunda muhim hodisa aniqlanmadi")}</p><p className="text-green-700/80 text-xs">{tx("Bo'sh qolgan sinf, odamlar keskin oshishi yoki ortiqcha odam bo'lsa, shu yerda kadr bilan chiqadi")}</p></div></div>
 				) : <EvidenceGallery items={alerts} variant="list" sinfLink={(it) => `../classrooms/${it.sinfId}`} />}
 			</section>
 
 			<section id="ai-classes" className="scroll-mt-4">
 				<div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-									<h2 className="font-semibold text-gray-900">Sinflar bo'yicha kuzatuv</h2>
+									<h2 className="font-semibold text-gray-900">{tx("Sinflar bo'yicha kuzatuv")}</h2>
 									{!!data?.classes?.length && (
 										<div className="relative w-full max-w-xs">
 											<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-											<input value={q} onChange={e => setQ(e.target.value)} placeholder="Sinf yoki kamera bo'yicha qidirish" className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+											<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Sinf yoki kamera bo'yicha qidirish")} className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
 										</div>
 									)}
 								</div>
-								{loading && !data ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : data?.classes?.length ? (classes.length === 0 ? <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-sm text-gray-500">Qidiruv bo'yicha sinf topilmadi</div> :
+								{loading && !data ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : data?.classes?.length ? (classes.length === 0 ? <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-sm text-gray-500">{tx("Qidiruv bo'yicha sinf topilmadi")}</div> :
 									<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">{classes.map(c => <ClassCard key={String(c.sinfId)} c={c} onOpen={setOpen} />)}</div>)
  				 : (
 					<div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-sm text-gray-500">
-						Hali birorta sinfda aqlli kuzatuv yoqilmagan. <b>Kameralar</b> sahifasida kamerani sinfga biriktiring: kuzatuv o'zi yoqiladi.
+						{tx("Hali birorta sinfda aqlli kuzatuv yoqilmagan.")} <b>{tx("Kameralar")}</b> {tx("sahifasida kamerani sinfga biriktiring: kuzatuv o'zi yoqiladi.")}
 					</div>
 				)}
 			</section>

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { FiCheck, FiPhone, FiUpload, FiUser, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import SearchableSelect from '../../components/SearchableSelect'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 	const token = localStorage.getItem('token')
@@ -28,7 +30,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 				parentName: student.parentName || '',
 				parentPhone: student.parentPhone || '',
 			})
-			if (student.photo) setImagePreview(`${import.meta.env.VITE_BASE_URL}/uploads/${student.photo}`)
+			if (student.photo) setImagePreview(`${uploadUrl(student.photo)}`)
 		}
 	}, [student])
 
@@ -105,7 +107,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 			<div className="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
 				<div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-200 flex justify-between items-center">
 					<h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-						<FiUser className="text-blue-500" /> O'quvchini tahrirlash
+						<FiUser className="text-blue-500" /> {tx("O'quvchini tahrirlash")}
 					</h2>
 					<button
 						onClick={onClose}
@@ -124,7 +126,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 									{imagePreview ? (
 										<img
 											src={imagePreview}
-											alt="Preview"
+											alt={tx("Preview")}
 											className="h-full w-full rounded-full object-cover border-4 border-white shadow-lg"
 										/>
 									) : (
@@ -134,7 +136,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 									)}
 								</div>
 								<label className={`cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm w-full justify-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-									<FiUpload size={18} /> Rasmni almashtirish
+									<FiUpload size={18} /> {tx("Rasmni almashtirish")}
 									<input
 										type="file"
 										accept=".jpg,.jpeg,.png"
@@ -148,14 +150,14 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 							<div className="flex-1 space-y-4">
 								<div className="bg-gray-50 p-4 rounded-lg space-y-4">
 									<h3 className="text-lg font-medium text-gray-800 mb-2 flex items-center gap-2">
-										<FiUser className="text-blue-500" /> O'quvchi ma'lumotlari
+										<FiUser className="text-blue-500" /> {tx("O'quvchi ma'lumotlari")}
 									</h3>
 									<input
 										type="text"
 										name="fullName"
 										value={studentData.fullName}
 										onChange={handleInputChange}
-										placeholder="To'liq ism sharifi*"
+										placeholder={tx("To'liq ism sharifi*")}
 										required
 										className="w-full px-4 py-2.5 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 									/>
@@ -163,8 +165,8 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 										variant="outline"
 										icon={false}
 										className="w-full"
-										searchPlaceholder="Sinf qidirish..."
-										placeholder="Sinfni tanlang*"
+										searchPlaceholder={tx("Sinf qidirish...")}
+										placeholder={tx("Sinfni tanlang*")}
 										value={studentData.sinf}
 										onChange={v => setStudentData({ ...studentData, sinf: v })}
 										options={[{ value: '', label: 'Sinfni tanlang*' }, ...sinfs.map(sinf => ({ value: sinf._id, label: sinf.name }))]}
@@ -183,23 +185,23 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 											onChange={handleInputChange}
 											className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 										>
-											<option value="">Jinsi</option>
-											<option value="erkak">O'g'il bola</option>
-											<option value="ayol">Qiz bola</option>
+											<option value="">{tx("Jinsi")}</option>
+											<option value="erkak">{tx("O'g'il bola")}</option>
+											<option value="ayol">{tx("Qiz bola")}</option>
 										</select>
 									</div>
 								</div>
 
 								<div className="bg-gray-50 p-4 rounded-lg space-y-4">
 									<h3 className="text-lg font-medium text-gray-800 mb-2 flex items-center gap-2">
-										<FiPhone className="text-blue-500" /> Ota-ona bilan aloqa
+										<FiPhone className="text-blue-500" /> {tx("Ota-ona bilan aloqa")}
 									</h3>
 									<input
 										type="text"
 										name="parentName"
 										value={studentData.parentName}
 										onChange={handleInputChange}
-										placeholder="Ota-onasining ismi"
+										placeholder={tx("Ota-onasining ismi")}
 										className="w-full px-4 py-2.5 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 									/>
 									<input
@@ -207,7 +209,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 										name="parentPhone"
 										value={studentData.parentPhone}
 										onChange={handleInputChange}
-										placeholder="Ota-ona telefon raqami"
+										placeholder={tx("Ota-ona telefon raqami")}
 										className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 									/>
 								</div>
@@ -221,7 +223,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 								className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
 								disabled={loading}
 							>
-								Bekor qilish
+								{tx("Bekor qilish")}
 							</button>
 							<button
 								type="submit"
@@ -231,11 +233,11 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 								{loading ? (
 									<>
 										<div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-										Saqlanmoqda...
+										{tx("Saqlanmoqda...")}
 									</>
 								) : (
 									<>
-										<FiCheck /> Saqlash
+										<FiCheck /> {tx("Saqlash")}
 									</>
 								)}
 							</button>

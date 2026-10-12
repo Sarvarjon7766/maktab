@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FiCrosshair, FiExternalLink, FiLink, FiMapPin, FiSave, FiTrash2 } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import MapView from './MapView'
+import { tx } from '../i18n'
 
 // Token har so'rovda joriy qiymatdan olinadi (mount paytida qotib qolmasin)
 const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` })
@@ -77,39 +78,39 @@ const SchoolLocationCard = () => {
 		<section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
-					<h2 className="flex items-center gap-2 font-semibold text-slate-900"><FiMapPin className="text-slate-400" /> Maktab joylashuvi</h2>
-					<p className="mt-1 text-sm text-slate-500">Google Maps havolasini qo'ying yoki xaritada maktab turgan joyni bosing. Shu asosida maktabingiz {info.district ? `${info.district} tumani ` : ''}xaritasida davomat statistikasi bilan ko'rinadi.</p>
+					<h2 className="flex items-center gap-2 font-semibold text-slate-900"><FiMapPin className="text-slate-400" /> {tx("Maktab joylashuvi")}</h2>
+					<p className="mt-1 text-sm text-slate-500">{info.district ? tx("Google Maps havolasini qo'ying yoki xaritada maktab turgan joyni bosing. Shu asosida maktabingiz {{district}} tumani xaritasida davomat statistikasi bilan ko'rinadi.", { district: info.district }) : tx("Google Maps havolasini qo'ying yoki xaritada maktab turgan joyni bosing. Shu asosida maktabingiz xaritasida davomat statistikasi bilan ko'rinadi.")}</p>
 				</div>
-				<span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${saved ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>{saved ? 'Belgilangan' : 'Belgilanmagan'}</span>
+				<span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${saved ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>{saved ? tx("Belgilangan") : tx("Belgilanmagan")}</span>
 			</div>
 
 			<div className="mt-4 rounded-xl bg-slate-50 p-3">
-				<label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600"><FiLink size={13} /> Google Maps havolasi</label>
+				<label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600"><FiLink size={13} /> {tx("Google Maps havolasi")}</label>
 				<div className="flex gap-2">
 					<input value={link} onChange={e => setLink(e.target.value)} onPaste={e => { const t = e.clipboardData.getData('text'); if (t) { setLink(t); setTimeout(() => fromLink(t), 0) } }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); fromLink() } }} placeholder="https://www.google.com/maps/... yoki 39.7259, 67.2918" className={input} />
-					<button type="button" onClick={() => fromLink()} disabled={parsing || !link.trim()} className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{parsing ? 'Aniqlanmoqda...' : 'Aniqlash'}</button>
+					<button type="button" onClick={() => fromLink()} disabled={parsing || !link.trim()} className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{parsing ? tx("Aniqlanmoqda...") : tx("Aniqlash")}</button>
 				</div>
-				<p className="mt-1.5 text-[11px] text-slate-400">Google Maps'da maktabni oching → «Ulashish» yoki manzil satridagi havolani nusxalab shu yerga qo'ying. Koordinata (kenglik va uzunlik) o'zi aniqlanadi.</p>
+				<p className="mt-1.5 text-[11px] text-slate-400">{tx("Google Maps'da maktabni oching → «Ulashish» yoki manzil satridagi havolani nusxalab shu yerga qo'ying. Koordinata (kenglik va uzunlik) o'zi aniqlanadi.")}</p>
 			</div>
 
 			<div className="mt-4">
 				<MapView geojson={geo} pick={pick} onPick={onPick} focus={focus} height={360} />
-				{!info.districtBoundary && <p className="mt-2 text-xs text-slate-400">Tuman chegarasi yuklanmagan: xaritadan baribir nuqta belgilashingiz mumkin.</p>}
+				{!info.districtBoundary && <p className="mt-2 text-xs text-slate-400">{tx("Tuman chegarasi yuklanmagan: xaritadan baribir nuqta belgilashingiz mumkin.")}</p>}
 			</div>
 
-			{warn && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Belgilangan nuqta {info.district} tumani chegarasidan tashqarida ko'rinyapti. Saqlandi, lekin to'g'riligini tekshiring.</p>}
+			{warn && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{tx("Belgilangan nuqta {{district}} tumani chegarasidan tashqarida ko'rinyapti. Saqlandi, lekin to'g'riligini tekshiring.", { district: info.district })}</p>}
 
 			<div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_2fr]">
-				<label className="text-xs text-slate-500">Kenglik (lat)<input value={lat} onChange={e => setLat(e.target.value)} inputMode="decimal" placeholder="39.7600" className={`${input} mt-1`} /></label>
-				<label className="text-xs text-slate-500">Uzunlik (lng)<input value={lng} onChange={e => setLng(e.target.value)} inputMode="decimal" placeholder="67.2700" className={`${input} mt-1`} /></label>
-				<label className="text-xs text-slate-500">Manzil (ixtiyoriy)<input value={address} onChange={e => setAddress(e.target.value)} maxLength={200} placeholder="Ko'cha, mahalla" className={`${input} mt-1`} /></label>
+				<label className="text-xs text-slate-500">{tx("Kenglik (lat)")}<input value={lat} onChange={e => setLat(e.target.value)} inputMode="decimal" placeholder="39.7600" className={`${input} mt-1`} /></label>
+				<label className="text-xs text-slate-500">{tx("Uzunlik (lng)")}<input value={lng} onChange={e => setLng(e.target.value)} inputMode="decimal" placeholder="67.2700" className={`${input} mt-1`} /></label>
+				<label className="text-xs text-slate-500">{tx("Manzil (ixtiyoriy)")}<input value={address} onChange={e => setAddress(e.target.value)} maxLength={200} placeholder={tx("Ko'cha, mahalla")} className={`${input} mt-1`} /></label>
 			</div>
 
 			<div className="mt-4 flex flex-wrap items-center gap-2">
-				<button type="button" onClick={here} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiCrosshair size={15} /> Mening joylashuvim</button>
-				<button type="button" onClick={save} disabled={busy || !pick || !dirty} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"><FiSave size={15} /> {busy ? 'Saqlanmoqda...' : 'Joylashuvni saqlash'}</button>
-				{pick && <a href={`https://www.google.com/maps?q=${pick.lat},${pick.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-blue-600 hover:bg-blue-50"><FiExternalLink size={14} /> Google Maps'da ochish</a>}
-				{saved && <button type="button" onClick={clear} className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-rose-600 hover:bg-rose-50"><FiTrash2 size={14} /> O'chirish</button>}
+				<button type="button" onClick={here} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><FiCrosshair size={15} /> {tx("Mening joylashuvim")}</button>
+				<button type="button" onClick={save} disabled={busy || !pick || !dirty} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"><FiSave size={15} /> {busy ? tx("Saqlanmoqda...") : tx("Joylashuvni saqlash")}</button>
+				{pick && <a href={`https://www.google.com/maps?q=${pick.lat},${pick.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-blue-600 hover:bg-blue-50"><FiExternalLink size={14} /> {tx("Google Maps'da ochish")}</a>}
+				{saved && <button type="button" onClick={clear} className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-rose-600 hover:bg-rose-50"><FiTrash2 size={14} /> {tx("O'chirish")}</button>}
 			</div>
 		</section>
 	)

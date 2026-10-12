@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { FiAlertTriangle, FiCheckCircle, FiDownload, FiFileText, FiUpload, FiX, FiXCircle } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import * as XLSX from 'xlsx-js-style'
+import { tx } from '../../i18n'
 
 // Backend (user.service.js -> bulkImportFromExcel) ustunlarni QATʼIY
 // joylashuv emas, 1-qatordagi SARLAVHA NOMI bo'yicha aniqlaydi — shu
@@ -92,7 +93,7 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 			<div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
 				<div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-200 flex justify-between items-center">
 					<h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-						<FiFileText className="text-blue-500" /> Excel'dan xodimlarni ommaviy qo'shish
+						<FiFileText className="text-blue-500" /> {tx("Excel'dan xodimlarni ommaviy qo'shish")}
 					</h2>
 					<button
 						onClick={onClose}
@@ -106,25 +107,23 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 				<div className="p-6 space-y-5">
 					<div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900 space-y-2">
 						<p>
-							Xodimlarni bir vaqtning o'zida ko'plab qo'shish uchun quyidagi shablonni yuklab oling,
-							to'ldiring va qayta shu yerga yuklang.
+							{tx("Xodimlarni bir vaqtning o'zida ko'plab qo'shish uchun quyidagi shablonni yuklab oling, to'ldiring va qayta shu yerga yuklang.")}
 						</p>
 						<p className="text-blue-700">
-							Rasmni Excel orqali qo'shib bo'lmaydi — xodimlar rasmsiz qo'shiladi, keyinchalik har birini
-							tahrirlashda rasm yuklasangiz bo'ldi.
+							{tx("Rasmni Excel orqali qo'shib bo'lmaydi — xodimlar rasmsiz qo'shiladi, keyinchalik har birini tahrirlashda rasm yuklasangiz bo'ldi.")}
 						</p>
 						<button
 							onClick={downloadTemplate}
 							className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition"
 						>
-							<FiDownload size={16} /> Shablonni yuklab olish
+							<FiDownload size={16} /> {tx("Shablonni yuklab olish")}
 						</button>
 					</div>
 
 					<div className="text-xs text-gray-500 space-y-1">
-						<p><strong>Majburiy ustunlar (sarlavha nomi bo'yicha topiladi):</strong> F.I.Sh, Lavozimi, Login, Parol</p>
-						<p><strong>Ixtiyoriy:</strong> Sinf (aniq mavjud nom bilan), Rol ("Xodim" yoki "Rahbar"), Shaxsiy telefon, Ish telefoni, JSHR</p>
-						<p>Parol bo'sh qoldirilsa, avtomatik xavfsiz parol beriladi. Ustunlar tartibi muhim emas — faqat 1-qatordagi sarlavha nomlari to'g'ri bo'lsa yetarli.</p>
+						<p><strong>{tx("Majburiy ustunlar (sarlavha nomi bo'yicha topiladi):")}</strong> {tx("F.I.Sh, Lavozimi, Login, Parol")}</p>
+						<p><strong>{tx("Ixtiyoriy:")}</strong> {tx("Sinf (aniq mavjud nom bilan), Rol (\"Xodim\" yoki \"Rahbar\"), Shaxsiy telefon, Ish telefoni, JSHR")}</p>
+						<p>{tx("Parol bo'sh qoldirilsa, avtomatik xavfsiz parol beriladi. Ustunlar tartibi muhim emas — faqat 1-qatordagi sarlavha nomlari to'g'ri bo'lsa yetarli.")}</p>
 					</div>
 
 					{!result && (
@@ -143,7 +142,7 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 								className="cursor-pointer inline-flex flex-col items-center gap-2 text-gray-600"
 							>
 								<FiUpload size={28} className="text-blue-500" />
-								<span className="text-sm font-medium">{selectedFile ? selectedFile.name : "To'ldirilgan .xlsx faylni tanlang"}</span>
+								<span className="text-sm font-medium">{selectedFile ? selectedFile.name : tx("To'ldirilgan .xlsx faylni tanlang")}</span>
 							</label>
 						</div>
 					)}
@@ -153,11 +152,11 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 							<div className="flex gap-3">
 								<div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-3 text-center">
 									<p className="text-2xl font-bold text-green-700">{result.successCount}</p>
-									<p className="text-xs text-green-700">muvaffaqiyatli qo'shildi</p>
+									<p className="text-xs text-green-700">{tx("muvaffaqiyatli qo'shildi")}</p>
 								</div>
 								<div className="flex-1 bg-red-50 border border-red-200 rounded-xl p-3 text-center">
 									<p className="text-2xl font-bold text-red-700">{result.failCount}</p>
-									<p className="text-xs text-red-700">qatorda muammo</p>
+									<p className="text-xs text-red-700">{tx("qatorda muammo")}</p>
 								</div>
 							</div>
 
@@ -170,7 +169,7 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 											<FiXCircle className="text-red-500 shrink-0 mt-0.5" size={16} />
 										)}
 										<div className="min-w-0">
-											<p className="font-medium text-gray-800">{r.row}-qator — {r.fullName}</p>
+											<p className="font-medium text-gray-800">{tx("{{n}}-qator", { n: r.row })} — {r.fullName}</p>
 											{r.message && (
 												<p className={`text-xs mt-0.5 flex items-start gap-1 ${r.success ? 'text-amber-600' : 'text-red-600'}`}>
 													{r.success && <FiAlertTriangle className="shrink-0 mt-0.5" size={12} />}
@@ -179,7 +178,7 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 											)}
 											{r.generatedPassword && (
 												<p className="text-xs mt-0.5 text-blue-700">
-													Avtomatik parol: <code className="bg-blue-50 px-1.5 py-0.5 rounded font-mono">{r.generatedPassword}</code>
+													{tx("Avtomatik parol:")} <code className="bg-blue-50 px-1.5 py-0.5 rounded font-mono">{r.generatedPassword}</code>
 												</p>
 											)}
 										</div>
@@ -197,13 +196,13 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 								onClick={reset}
 								className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
 							>
-								Yana bir fayl yuklash
+								{tx("Yana bir fayl yuklash")}
 							</button>
 							<button
 								onClick={onClose}
 								className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
 							>
-								Yopish
+								{tx("Yopish")}
 							</button>
 						</>
 					) : (
@@ -213,14 +212,14 @@ const AdminUserImportExcel = ({ onClose, onImported }) => {
 								className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
 								disabled={uploading}
 							>
-								Bekor qilish
+								{tx("Bekor qilish")}
 							</button>
 							<button
 								onClick={handleUpload}
 								disabled={!selectedFile || uploading}
 								className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
 							>
-								{uploading ? "Yuklanmoqda..." : "Yuklash"}
+								{uploading ? tx("Yuklanmoqda...") : tx("Yuklash")}
 							</button>
 						</>
 					)}

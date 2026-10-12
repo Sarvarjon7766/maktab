@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { OutletBoundary } from '../components/ErrorBoundary'
 import AdminNavbar from '../components/AdminNavbar'
 import AdminSidebar from '../components/AdminSidebar'
+import { OutletBoundary } from '../components/ErrorBoundary'
 
 const AdminLayout = () => {
 	const navigate = useNavigate()
@@ -59,7 +59,7 @@ const AdminLayout = () => {
 						onToggleSidebar={() => setSidebarOpen(p => !p)}
 					/>
 
-					<main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
+					<main className="school-admin-surfaces flex-1 overflow-y-auto overflow-x-hidden min-w-0">
 						<OutletBoundary />
 					</main>
 				</div>

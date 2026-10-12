@@ -3,6 +3,7 @@ import AutoSelect from '../../components/AutoSelect'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, LoadState, Page, PageHeader, Panel, RangePicker, KpiLink, Table, Td, Tr, WEEKDAYS, exportXlsx, fmt, shiftDate, todayStr, useMonitorData, usePanel, pctFmt } from './monitorKit'
 import { FaCalendarCheck, FaChartLine, FaTrophy } from 'react-icons/fa'
+import { tx } from '../../i18n'
 
 const MonitorTrend = () => {
 	const { scoped } = usePanel()
@@ -31,25 +32,25 @@ const MonitorTrend = () => {
 
 	return (
 		<Page>
-			<PageHeader title="Kunlik dinamika" subtitle="Tanlangan davr bo'yicha kunma-kun davomat" onReload={reload} loading={loading}>
+			<PageHeader title={tx("Kunlik dinamika")} subtitle={tx("Tanlangan davr bo'yicha kunma-kun davomat")} onReload={reload} loading={loading}>
 				{!scoped && <AutoSelect value={schoolId} onChange={e => setSchoolId(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white max-w-[240px]">
-					<option value="">Barcha maktablar</option>
+					<option value="">{tx("Barcha maktablar")}</option>
 					{(overview?.schools || []).map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
 				</AutoSelect>}
-				<button onClick={download} disabled={!days.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<button onClick={download} disabled={!days.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
 			<div className="mb-6"><RangePicker {...range} onChange={setRange} /></div>
 
 			<LoadState loading={loading && !data} error={error}>
 				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-					<KpiLink icon={<FaCalendarCheck />} label="O'quv kunlari" value={schoolDays.length} detail={`${days.length} kunlik davrda`} />
-					<KpiLink to={scoped ? undefined : '/monitor/students'} icon={<FaChartLine />} color="bg-amber-50 text-amber-600" label="O'rtacha o'quvchi davomati" value={`${avg('studentPercent')}%`} detail={`Jami ${fmt(data?.studentTotal)} o'quvchi`} />
-					<KpiLink to={scoped ? undefined : '/monitor/staff'} icon={<FaChartLine />} color="bg-violet-50 text-violet-600" label="O'rtacha xodim davomati" value={`${avg('staffPercent')}%`} detail={`Jami ${fmt(data?.staffTotal)} xodim`} />
-					<KpiLink to={!scoped && best ? `/monitor/lists?kind=student&date=${best.dateString}${schoolId ? `&school=${schoolId}` : ''}` : undefined} icon={<FaTrophy />} color="bg-green-50 text-green-600" label="Eng yaxshi kun" value={best ? `${pctFmt(best.studentPercent)}` : '—'} detail={best ? `${best.dateString} · eng past: ${pctFmt(worst.studentPercent)} (${worst.dateString})` : ''} />
+					<KpiLink icon={<FaCalendarCheck />} label={tx("O'quv kunlari")} value={schoolDays.length} detail={`${days.length} kunlik davrda`} />
+					<KpiLink to={scoped ? undefined : '/monitor/students'} icon={<FaChartLine />} color="bg-amber-50 text-amber-600" label={tx("O'rtacha o'quvchi davomati")} value={`${avg('studentPercent')}%`} detail={`Jami ${fmt(data?.studentTotal)} o'quvchi`} />
+					<KpiLink to={scoped ? undefined : '/monitor/staff'} icon={<FaChartLine />} color="bg-violet-50 text-violet-600" label={tx("O'rtacha xodim davomati")} value={`${avg('staffPercent')}%`} detail={`Jami ${fmt(data?.staffTotal)} xodim`} />
+					<KpiLink to={!scoped && best ? `/monitor/lists?kind=student&date=${best.dateString}${schoolId ? `&school=${schoolId}` : ''}` : undefined} icon={<FaTrophy />} color="bg-green-50 text-green-600" label={tx("Eng yaxshi kun")} value={best ? `${pctFmt(best.studentPercent)}` : '—'} detail={best ? `${best.dateString} · eng past: ${pctFmt(worst.studentPercent)} (${worst.dateString})` : ''} />
 				</div>
 
 				<div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-					<Panel title="O'quvchilar davomati (%)" subtitle="Kunlar bo'yicha">
+					<Panel title={tx("O'quvchilar davomati (%)")} subtitle={tx("Kunlar bo'yicha")}>
 						<ChartBox><ResponsiveContainer width="100%" height="100%">
 							<AreaChart data={days} margin={{ left: -12, right: 8 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -59,7 +60,7 @@ const MonitorTrend = () => {
 							</AreaChart>
 						</ResponsiveContainer></ChartBox>
 					</Panel>
-					<Panel title="Xodimlar davomati (%)" subtitle="Kunlar bo'yicha">
+					<Panel title={tx("Xodimlar davomati (%)")} subtitle={tx("Kunlar bo'yicha")}>
 						<ChartBox><ResponsiveContainer width="100%" height="100%">
 							<AreaChart data={days} margin={{ left: -12, right: 8 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -69,7 +70,7 @@ const MonitorTrend = () => {
 							</AreaChart>
 						</ResponsiveContainer></ChartBox>
 					</Panel>
-					<Panel title="Kelganlar soni" subtitle="O'quvchi va xodimlar">
+					<Panel title={tx("Kelganlar soni")} subtitle={tx("O'quvchi va xodimlar")}>
 						<ChartBox><ResponsiveContainer width="100%" height="100%">
 							<BarChart data={days} margin={{ left: -12, right: 8 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -80,7 +81,7 @@ const MonitorTrend = () => {
 							</BarChart>
 						</ResponsiveContainer></ChartBox>
 					</Panel>
-					<Panel title="Hafta kunlari bo'yicha o'rtacha davomat" subtitle="Qaysi kunlari davomat pastroq">
+					<Panel title={tx("Hafta kunlari bo'yicha o'rtacha davomat")} subtitle={tx("Qaysi kunlari davomat pastroq")}>
 						<ChartBox><ResponsiveContainer width="100%" height="100%">
 							<BarChart data={byWeekday} margin={{ left: -12, right: 8 }}>
 								<CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -93,11 +94,11 @@ const MonitorTrend = () => {
 					</Panel>
 				</div>
 
-				<Panel title="Kunlik jadval">
+				<Panel title={tx("Kunlik jadval")}>
 					<Table head={['Sana', 'Hafta kuni', { label: "O'quvchi kelgan", right: true }, { label: "O'quvchi %", right: true }, { label: 'Xodim kelgan', right: true }, { label: 'Xodim %', right: true }]}>
 						{[...days].reverse().map(d => (
 							<Tr key={d.dateString}>
-								<Td className="whitespace-nowrap">{d.dateString}</Td><Td>{WEEKDAYS[d.weekday]}{!d.school && <span className="ml-2 text-xs text-gray-400">dam olish / ma'lumot yo'q</span>}</Td>
+								<Td className="whitespace-nowrap">{d.dateString}</Td><Td>{WEEKDAYS[d.weekday]}{!d.school && <span className="ml-2 text-xs text-gray-400">{tx("dam olish / ma'lumot yo'q")}</span>}</Td>
 								<Td right>{fmt(d.studentCame)}</Td><Td right>{pctFmt(d.studentPercent)}</Td><Td right>{fmt(d.staffCame)}</Td><Td right>{pctFmt(d.staffPercent)}</Td>
 							</Tr>
 						))}

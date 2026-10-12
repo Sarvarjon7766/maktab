@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { FiKey, FiLock, FiUpload, FiUser, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import SearchableSelect from '../../components/SearchableSelect'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 	const token = localStorage.getItem('token')
@@ -54,7 +56,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 				syncToCamera: !user.photo
 			})
 			setOriginalUserData(user)
-			if (user.photo) setImagePreview(`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`)
+			if (user.photo) setImagePreview(`${uploadUrl(user.photo)}`)
 		}
 	}, [user])
 
@@ -167,7 +169,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 	const removeImage = () => {
 		setImageFile(null)
 		if (originalUserData?.photo) {
-			setImagePreview(`${import.meta.env.VITE_BASE_URL}/uploads/${originalUserData.photo}`)
+			setImagePreview(`${uploadUrl(originalUserData.photo)}`)
 		} else {
 			setImagePreview(null)
 		}
@@ -194,7 +196,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 				isEdit: originalUserData.isEdit || false,
 				syncToCamera: !originalUserData.photo
 			})
-			if (originalUserData.photo) setImagePreview(`${import.meta.env.VITE_BASE_URL}/uploads/${originalUserData.photo}`)
+			if (originalUserData.photo) setImagePreview(`${uploadUrl(originalUserData.photo)}`)
 			else setImagePreview(null)
 		}
 		setImageFile(null)
@@ -266,7 +268,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 				{/* Header */}
 				<div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-200 flex justify-between items-center">
 					<h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-						<FiUser className="text-blue-500" /> Xodimni tahrirlash
+						<FiUser className="text-blue-500" /> {tx("Xodimni tahrirlash")}
 					</h2>
 					<button
 						onClick={() => { onClose(); resetForm() }}
@@ -288,7 +290,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 										<div className="relative group">
 											<img
 												src={imagePreview}
-												alt="Preview"
+												alt={tx("Preview")}
 												className="h-full w-full rounded-full object-cover border-4 border-white shadow-lg"
 											/>
 											<button
@@ -309,25 +311,25 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 
 								{/* Rasm talablari haqida ma'lumot */}
 								<div className="w-full mb-4 bg-gray-50 rounded-lg p-4">
-									<h4 className="font-medium text-gray-700 mb-2">Rasm talablari:</h4>
+									<h4 className="font-medium text-gray-700 mb-2">{tx("Rasm talablari:")}</h4>
 									<ul className="text-xs text-gray-600 space-y-1">
 										<li className={`flex items-center ${imageValidation.size ? 'text-green-600' : 'text-red-600'}`}>
 											<div className={`w-2 h-2 rounded-full mr-2 ${imageValidation.size ? 'bg-green-500' : 'bg-red-500'}`}></div>
-											Hajmi: 200KB dan kichik
+											{tx("Hajmi: 200KB dan kichik")}
 										</li>
 										<li className={`flex items-center ${imageValidation.format ? 'text-green-600' : 'text-red-600'}`}>
 											<div className={`w-2 h-2 rounded-full mr-2 ${imageValidation.format ? 'bg-green-500' : 'bg-red-500'}`}></div>
-											Format: JPG yoki PNG
+											{tx("Format: JPG yoki PNG")}
 										</li>
 										<li className={`flex items-center ${imageValidation.dimensions ? 'text-green-600' : 'text-red-600'}`}>
 											<div className={`w-2 h-2 rounded-full mr-2 ${imageValidation.dimensions ? 'bg-green-500' : 'bg-red-500'}`}></div>
-											O'lchami: 100x100px - 1920x1080px
+											{tx("O'lchami: 100x100px - 1920x1080px")}
 										</li>
 									</ul>
 								</div>
 
 								<label className={`cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm w-full justify-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-									<FiUpload size={18} /> Rasm yangilash
+									<FiUpload size={18} /> {tx("Rasm yangilash")}
 									<input
 										type="file"
 										accept="image/jpeg,image/jpg,image/png"
@@ -336,17 +338,17 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 										disabled={loading}
 									/>
 								</label>
-								<p className="text-xs text-gray-500 mt-2 text-center">200KB gacha (JPG, PNG)</p>
+								<p className="text-xs text-gray-500 mt-2 text-center">{tx("200KB gacha (JPG, PNG)")}</p>
 
 								{/* Yuklangan rasm haqida ma'lumot */}
 								{imageFile && (
 									<div className="mt-4 w-full bg-blue-50 rounded-lg p-3">
-										<p className="text-sm font-medium text-blue-700">Yangi rasm:</p>
+										<p className="text-sm font-medium text-blue-700">{tx("Yangi rasm:")}</p>
 										<p className="text-xs text-blue-600 mt-1">
-											Nomi: {imageFile.name.length > 20 ? imageFile.name.substring(0, 20) + '...' : imageFile.name}
+											{tx("Nomi: {{name}}", { name: imageFile.name.length > 20 ? imageFile.name.substring(0, 20) + '...' : imageFile.name })}
 										</p>
 										<p className="text-xs text-blue-600">
-											Hajmi: {(imageFile.size / 1024).toFixed(2)} KB
+											{tx("Hajmi: {{size}} KB", { size: (imageFile.size / 1024).toFixed(2) })}
 										</p>
 									</div>
 								)}
@@ -364,12 +366,12 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 										<div className={`block w-12 h-6 rounded-full ${userData.syncToCamera ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
 										<div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${userData.syncToCamera ? "transform translate-x-6" : ""}`}></div>
 									</div>
-									<span className="text-sm font-medium text-gray-700">Kameraga ham yubor</span>
+									<span className="text-sm font-medium text-gray-700">{tx("Kameraga ham yubor")}</span>
 								</label>
 								<p className="text-xs text-gray-500 mt-1 text-center">
 									{userData.syncToCamera
-										? "Bu xodimning hali rasmi yo'q edi — shuning uchun standart holatda belgilangan: saqlaganda rasm kamera terminaliga yuboriladi"
-										: "Belgilansa, joriy rasm kamera terminaliga qayta yuboriladi"}
+										? tx("Bu xodimning hali rasmi yo'q edi — shuning uchun standart holatda belgilangan: saqlaganda rasm kamera terminaliga yuboriladi")
+										: tx("Belgilansa, joriy rasm kamera terminaliga qayta yuboriladi")}
 								</p>
 							</div>
 
@@ -379,7 +381,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 								<div className="space-y-4">
 									<div className="bg-gray-50 p-4 rounded-lg space-y-4">
 										<h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-											<FiUser className="text-blue-500" /> Asosiy ma'lumotlar
+											<FiUser className="text-blue-500" /> {tx("Asosiy ma'lumotlar")}
 										</h3>
 										<div className="flex flex-col gap-4">
 											<input
@@ -387,7 +389,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 												name="fullName"
 												value={userData.fullName}
 												onChange={handleInputChange}
-												placeholder="To'liq ism sharifingiz*"
+												placeholder={tx("To'liq ism sharifingiz*")}
 												required
 												className="w-full px-4 py-2.5 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 											/>
@@ -396,7 +398,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 												name="position"
 												value={userData.position}
 												onChange={handleInputChange}
-												placeholder="Lavozimi*"
+												placeholder={tx("Lavozimi*")}
 												required
 												className="w-full px-4 py-2.5 border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 											/>
@@ -406,7 +408,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 												name="phone_personal"
 												value={userData.phone_personal}
 												onChange={handleInputChange}
-												placeholder="Shaxsiy telefon"
+												placeholder={tx("Shaxsiy telefon")}
 												className="w-full px-4 py-2.5 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 											/>
 											<input
@@ -414,7 +416,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 												name="phone_work"
 												value={userData.phone_work}
 												onChange={handleInputChange}
-												placeholder="Ish telefoni"
+												placeholder={tx("Ish telefoni")}
 												className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 											/>
 											<div>
@@ -423,14 +425,14 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 													name="jshr"
 													value={userData.jshr}
 													onChange={handleInputChange}
-													placeholder="JSHR (ixtiyoriy, 14 xonali)"
+													placeholder={tx("JSHR (ixtiyoriy, 14 xonali)")}
 													inputMode="numeric"
 													maxLength={14}
 													pattern="\d{14}"
-													title="JSHR 14 xonali raqamdan iborat bo'lishi kerak"
+													title={tx("JSHR 14 xonali raqamdan iborat bo'lishi kerak")}
 													className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 												/>
-												<p className="text-xs text-gray-400 mt-1">Faqat super admin va admin ko'radi</p>
+												<p className="text-xs text-gray-400 mt-1">{tx("Faqat super admin va admin ko'radi")}</p>
 											</div>
 										</div>
 									</div>
@@ -440,7 +442,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 								<div className="space-y-4">
 									<div className="bg-gray-50 p-4 rounded-lg space-y-4">
 										<h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-											<FiKey className="text-blue-500" /> Kirish ma'lumotlari
+											<FiKey className="text-blue-500" /> {tx("Kirish ma'lumotlari")}
 										</h3>
 										<div className="flex flex-col gap-4">
 											<input
@@ -448,7 +450,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 												name="username"
 												value={userData.username}
 												onChange={handleInputChange}
-												placeholder="Foydalanuvchi nomi*"
+												placeholder={tx("Foydalanuvchi nomi*")}
 												required
 												className="w-full px-4 py-2.5 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 											/>
@@ -458,7 +460,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 													name="password"
 													value={userData.password}
 													onChange={handleInputChange}
-													placeholder="Parol (faqat o'zgartirish uchun)"
+													placeholder={tx("Parol (faqat o'zgartirish uchun)")}
 													className="w-full px-4 py-2.5 pl-10 border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 												/>
 												<FiKey className="absolute left-3 top-3.5 text-gray-400" size={18} />
@@ -466,8 +468,8 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 											<SearchableSelect
 												value={userData.sinf || ""}
 												onChange={(val) => handleInputChange({ target: { name: 'sinf', value: val } })}
-												placeholder="Sinfsiz (ixtiyoriy)"
-												searchPlaceholder="Sinf qidirish..."
+												placeholder={tx("Sinfsiz (ixtiyoriy)")}
+												searchPlaceholder={tx("Sinf qidirish...")}
 												options={[{ value: '', label: "Sinfsiz (sinfga biriktirilmagan)" }, ...sinfs.map(dept => ({ value: dept._id, label: dept.name }))]}
 											/>
 										</div>
@@ -485,7 +487,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 								className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
 								disabled={loading}
 							>
-								Bekor qilish
+								{tx("Bekor qilish")}
 							</button>
 							<button
 								type="submit"
@@ -498,9 +500,9 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 											<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
 											<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 										</svg>
-										Saqlanmoqda...
+										{tx("Saqlanmoqda...")}
 									</>
-								) : "Saqlash"}
+								) : tx("Saqlash")}
 							</button>
 						</div>
 					</form>

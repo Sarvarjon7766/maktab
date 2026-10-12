@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { FiChevronRight, FiSearch, FiUser, FiUsers } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { uploadUrl } from '../../utils/uploadUrl'
 import { tx } from '../../i18n'
 
 const UserSinf = () => {
@@ -41,7 +42,7 @@ const UserSinf = () => {
 			if (res.data.success) {
 				setUsers(res.data.users)
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Server bilan aloqa xatosi")
 		}
 	}
@@ -58,7 +59,7 @@ const UserSinf = () => {
 		(sinf.head && sinf.head.fullName.toLowerCase().includes(searchTerm.toLowerCase())))
 
 	return (
-		<div className="min-h-screen bg-gray-50 p-3 md:p-4 lg:p-6">
+		<div className="min-h-full bg-gray-50 p-3 md:p-4 lg:p-6">
 			<div className="w-full">
 				{/* Header Section */}
 				<div className="mb-6">
@@ -74,7 +75,7 @@ const UserSinf = () => {
 								</div>
 								<input
 									type="text"
-									placeholder="Sinf qidirish..."
+									placeholder={tx("Sinf qidirish...")}
 									className="block w-full sm:w-64 pl-10 pr-4 text-sm text-black py-2.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,12 +104,12 @@ const UserSinf = () => {
 							<FiUsers className="text-blue-500 text-xl md:text-2xl" />
 						</div>
 						<h3 className="text-lg font-medium text-gray-800 mb-2">
-							{searchTerm ? "Natija topilmadi" : "Sinflar mavjud emas"}
+							{searchTerm ? tx("Natija topilmadi") : tx("Sinflar mavjud emas")}
 						</h3>
 						<p className="text-gray-500 text-sm max-w-md mx-auto">
 							{searchTerm
 								? `"${searchTerm}" bo'yicha hech qanday sinf topilmadi`
-								: "Hozircha tizimda birorta ham sinf mavjud emas"}
+								: tx("Hozircha tizimda birorta ham sinf mavjud emas")}
 						</p>
 					</motion.div>
 				) : (
@@ -125,13 +126,13 @@ const UserSinf = () => {
 										<thead className="bg-gray-50">
 											<tr>
 												<th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-													Sinf nomi
+													{tx("Sinf nomi")}
 												</th>
 												<th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-													Xodimlar soni
+													{tx("Xodimlar soni")}
 												</th>
 												<th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-													Sinf rahbari
+													{tx("Sinf rahbari")}
 												</th>
 												<th className="px-4 py-3 w-10"></th>
 											</tr>
@@ -154,7 +155,7 @@ const UserSinf = () => {
 
 													<td className="px-4 py-3">
 														<span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-															{users.filter((u) => u.sinf?._id === sinf._id).length} ta
+															{tx("{{n}} ta", { n: users.filter((u) => u.sinf?._id === sinf._id).length })}
 														</span>
 													</td>
 
@@ -164,7 +165,7 @@ const UserSinf = () => {
 																<div className="flex-shrink-0 h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center mr-2 overflow-hidden">
 																	{sinf.head.photo ? (
 																		<img
-																			src={`${import.meta.env.VITE_BASE_URL}/uploads/${sinf.head.photo}`}
+																			src={`${uploadUrl(sinf.head.photo)}`}
 																			alt={sinf.head.fullName}
 																			className="h-full w-full object-cover"
 																		/>
@@ -176,12 +177,12 @@ const UserSinf = () => {
 																	<div className="text-sm font-medium text-gray-900">
 																		{sinf.head.fullName}
 																	</div>
-																	<div className="text-xs text-gray-500">Sinf rahbari</div>
+																	<div className="text-xs text-gray-500">{tx("Sinf rahbari")}</div>
 																</div>
 															</div>
 														) : (
 															<span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-																Tayinlanmagan
+																{tx("Tayinlanmagan")}
 															</span>
 														)}
 													</td>
@@ -216,7 +217,7 @@ const UserSinf = () => {
 												<h3 className="text-sm font-semibold text-gray-900">{sinf.name}</h3>
 												<div className="flex items-center mt-1">
 													<span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-														{users.filter((u) => u.sinf?._id === sinf._id).length} xodim
+														{tx("{{n}} xodim", { n: users.filter((u) => u.sinf?._id === sinf._id).length })}
 													</span>
 												</div>
 											</div>
@@ -226,20 +227,20 @@ const UserSinf = () => {
 
 									<div className="space-y-3">
 										<div>
-											<p className="text-xs text-gray-500 mb-1">Tavsifi</p>
+											<p className="text-xs text-gray-500 mb-1">{tx("Tavsifi")}</p>
 											<p className="text-sm text-gray-700 line-clamp-2">
-												{sinf.description || "Tavsif mavjud emas"}
+												{sinf.description || tx("Tavsif mavjud emas")}
 											</p>
 										</div>
 
 										<div>
-											<p className="text-xs text-gray-500 mb-1">Sinf rahbari</p>
+											<p className="text-xs text-gray-500 mb-1">{tx("Sinf rahbari")}</p>
 											{sinf.head ? (
 												<div className="flex items-center">
 													<div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center mr-2 overflow-hidden">
 														{sinf.head.photo ? (
 															<img
-																src={`${import.meta.env.VITE_BASE_URL}/uploads/${sinf.head.photo}`}
+																src={`${uploadUrl(sinf.head.photo)}`}
 																alt={sinf.head.fullName}
 																className="h-full w-full object-cover"
 															/>
@@ -255,7 +256,7 @@ const UserSinf = () => {
 												</div>
 											) : (
 												<span className="px-2 py-1 inline-flex text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-													Tayinlanmagan
+													{tx("Tayinlanmagan")}
 												</span>
 											)}
 										</div>

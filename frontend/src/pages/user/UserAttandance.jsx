@@ -11,6 +11,8 @@ import PersonLink from '../../components/PersonLink'
 import { typeColor, typeLabel } from '../../components/GlobalCommentModal'
 import SearchableSelect from '../../components/SearchableSelect'
 import { getTashkentDateString } from '../../utils/formatDate'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -308,7 +310,7 @@ const UserStaffAttendance = () => {
 								<div className="flex-shrink-0 h-12 w-12 rounded-full bg-[var(--org-primary)]/10 flex items-center justify-center text-[var(--org-primary)] font-bold">
 									{user.photo ? (
 										<img
-											src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+											src={`${uploadUrl(user.photo)}`}
 											alt={user.fullName}
 											className="h-full w-full rounded-full object-cover"
 											onError={(e) => {
@@ -353,7 +355,7 @@ const UserStaffAttendance = () => {
 						<div className="grid grid-cols-2 gap-3 text-xs">
 							{/* Telefon */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Telefon:</span>
+								<span className="text-gray-500">{tx("Telefon:")}</span>
 								<p className="font-medium mt-1">
 									{user.phone_personal || user.phone_work
 										? `${user.phone_personal || ''}${user.phone_personal && user.phone_work ? ' / ' : ''}${user.phone_work || ''}`
@@ -363,35 +365,35 @@ const UserStaffAttendance = () => {
 
 							{/* Dastlabki kirish vaqti */}
 							<div>
-								<span className="text-gray-500">Dastlabki kirish:</span>
+								<span className="text-gray-500">{tx("Dastlabki kirish:")}</span>
 								<p className="font-medium text-black mt-1">{user.firstEntryTime}</p>
 							</div>
 
 							{/* Kirish vaqti */}
 							<div>
-								<span className="text-gray-500">Kirish vaqti:</span>
+								<span className="text-gray-500">{tx("Kirish vaqti:")}</span>
 								<p className="font-medium text-black mt-1">{user.entryTime}</p>
 							</div>
 
 							{/* Chiqish vaqti */}
 							<div>
-								<span className="text-gray-500">Chiqish vaqti:</span>
+								<span className="text-gray-500">{tx("Chiqish vaqti:")}</span>
 								<p className="font-medium text-black mt-1">{user.exitTime}</p>
 							</div>
 
 							{/* Kechikish (agar mavjud bo'lsa) */}
 							{user.isLate && (
 								<div className="col-span-2">
-									<span className="text-gray-500">Kechikish:</span>
+									<span className="text-gray-500">{tx("Kechikish:")}</span>
 									<p className="font-medium text-black mt-1">
-										{user.lateMinutes} daqiqa
+										{tx("{{n}} daqiqa", { n: user.lateMinutes })}
 									</p>
 								</div>
 							)}
 
 							{/* Izoh */}
 							<div className="col-span-2">
-								<span className="text-gray-500">Izoh:</span>
+								<span className="text-gray-500">{tx("Izoh:")}</span>
 								{commentMap[user._id] && user.attendanceStatus === 'kelmagan' ? (
 									<p className="mt-1">
 										<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${typeColor(commentMap[user._id].type)}`}>
@@ -405,7 +407,7 @@ const UserStaffAttendance = () => {
 											<button
 												onClick={() => openCommentModal(user)}
 												className="ml-2 text-gray-400 hover:text-[var(--org-primary)] flex-shrink-0 mt-1"
-												title="Komentariya qo'shish"
+												title={tx("Komentariya qo'shish")}
 											>
 												<FaRegCommentDots size={14} />
 											</button>
@@ -434,28 +436,28 @@ const UserStaffAttendance = () => {
 									№
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px] sticky left-[80px] bg-gray-50 z-20">
-									Xodim
+									{tx("Xodim")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[150px]">
-									Lavozim
+									{tx("Lavozim")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[150px]">
-									Telefon
+									{tx("Telefon")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[110px]">
-									Dastlabki kirish
+									{tx("Dastlabki kirish")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">
-									Kirish
+									{tx("Kirish")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">
-									Chiqish
+									{tx("Chiqish")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px]">
-									Izoh
+									{tx("Izoh")}
 								</th>
 								<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">
-									Holat
+									{tx("Holat")}
 								</th>
 							</tr>
 						</thead>
@@ -481,7 +483,7 @@ const UserStaffAttendance = () => {
 											<div className="flex-shrink-0 h-16 w-16 rounded-full bg-[var(--org-primary)]/10 flex items-center justify-center text-[var(--org-primary)] font-bold">
 												{user.photo ? (
 													<img
-														src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+														src={`${uploadUrl(user.photo)}`}
 														alt={user.fullName}
 														className="h-full w-full rounded-full object-cover"
 														onError={(e) => {
@@ -532,7 +534,7 @@ const UserStaffAttendance = () => {
 														<button
 															onClick={() => openCommentModal(user)}
 															className="ml-2 text-gray-400 hover:text-[var(--org-primary)] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-															title="Komentariya qo'shish"
+															title={tx("Komentariya qo'shish")}
 														>
 															<FaRegCommentDots size={14} />
 														</button>
@@ -566,7 +568,7 @@ const UserStaffAttendance = () => {
 				{/* Table footer */}
 				<div className="flex-shrink-0 bg-gray-50 px-6 py-3 border-t">
 					<p className="text-sm text-gray-600">
-						Jami: {filteredUsers.length} ta xodim
+						{tx("Jami: {{n}} ta xodim", { n: filteredUsers.length })}
 					</p>
 				</div>
 			</div>
@@ -580,7 +582,7 @@ const UserStaffAttendance = () => {
 				<KpiCard
 					compact
 					icon={<FaUserCheck size={14} />}
-					label="Ishda"
+					label={tx("Ishda")}
 					value={stats.ishda.count}
 					total={stats.total}
 					tone="good"
@@ -590,7 +592,7 @@ const UserStaffAttendance = () => {
 				<KpiCard
 					compact
 					icon={<FaUserSlash size={14} />}
-					label="Tashqarida"
+					label={tx("Tashqarida")}
 					value={stats.tashqarida.count}
 					total={stats.total}
 					tone="blue"
@@ -600,7 +602,7 @@ const UserStaffAttendance = () => {
 				<KpiCard
 					compact
 					icon={<FaClock size={14} />}
-					label="Kechikkan"
+					label={tx("Kechikkan")}
 					value={stats.kechikkan.count}
 					total={stats.total}
 					tone="warning"
@@ -610,7 +612,7 @@ const UserStaffAttendance = () => {
 				<KpiCard
 					compact
 					icon={<FaUserTimes size={14} />}
-					label="Kelmagan"
+					label={tx("Kelmagan")}
 					value={stats.kelmagan.count}
 					total={stats.total}
 					tone="critical"
@@ -641,7 +643,7 @@ const UserStaffAttendance = () => {
 										</div>
 										<input
 											type="text"
-											placeholder="Xodimlarni qidirish..."
+											placeholder={tx("Xodimlarni qidirish...")}
 											className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--org-primary)] focus:border-transparent text-sm text-black"
 											value={searchTerm}
 											onChange={(e) => setSearchTerm(e.target.value)}
@@ -664,7 +666,7 @@ const UserStaffAttendance = () => {
 														...departments.map(dept => ({ value: dept._id, label: dept.name })),
 														{ value: 'no-dept', label: "Sinfsiz" },
 													]}
-													searchPlaceholder="Sinf qidirish..."
+													searchPlaceholder={tx("Sinf qidirish...")}
 													triggerClassName="w-full flex items-center gap-2 px-1 py-1 text-sm text-left"
 												/>
 											</div>
@@ -673,7 +675,7 @@ const UserStaffAttendance = () => {
 													type="button"
 													onClick={() => setSelectedDepartment('all')}
 													className="shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-md transition-colors"
-													title="Sinf filtrini tozalash"
+													title={tx("Sinf filtrini tozalash")}
 												>
 													<FiX size={14} />
 												</button>
@@ -690,17 +692,17 @@ const UserStaffAttendance = () => {
 												value={selectedStatus}
 												onChange={(e) => setSelectedStatus(e.target.value)}
 											>
-												<option value="all">Barcha holat</option>
-												<option value="ishda">Ishda</option>
-												<option value="kelmagan">Kelmagan</option>
-												<option value="tashqarida">Tashqarida</option>
+												<option value="all">{tx("Barcha holat")}</option>
+												<option value="ishda">{tx("Ishda")}</option>
+												<option value="kelmagan">{tx("Kelmagan")}</option>
+												<option value="tashqarida">{tx("Tashqarida")}</option>
 											</AutoSelect>
 											{selectedStatus !== 'all' && (
 												<button
 													type="button"
 													onClick={() => setSelectedStatus('all')}
 													className="shrink-0 p-1 text-gray-400 hover:text-red-500 rounded-md transition-colors"
-													title="Holat filtrini tozalash"
+													title={tx("Holat filtrini tozalash")}
 												>
 													<FiX size={14} />
 												</button>
@@ -717,14 +719,14 @@ const UserStaffAttendance = () => {
 											}}
 											disabled={refreshing}
 											className="bg-[var(--org-primary)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm w-full h-full transition-colors duration-200 font-medium"
-											title="Maʼlumotlarni yangilash"
+											title={tx("Maʼlumotlarni yangilash")}
 										>
 											{refreshing ? (
 												<PulseLoader size={6} color="white" />
 											) : (
 												<>
 													<FiRefreshCw size={16} />
-													<span>Yangilash</span>
+													<span>{tx("Yangilash")}</span>
 												</>
 											)}
 										</button>
@@ -747,9 +749,9 @@ const UserStaffAttendance = () => {
 									<div className="mx-auto h-24 w-24 text-gray-400 mb-4">
 										<FaUserTimes className="w-full h-full" />
 									</div>
-									<h3 className="text-lg font-medium text-gray-900">Xodimlar topilmadi</h3>
+									<h3 className="text-lg font-medium text-gray-900">{tx("Xodimlar topilmadi")}</h3>
 									<p className="text-base text-gray-500 mt-2">
-										{searchTerm ? "Qidiruv bo'yicha xodim topilmadi" : "Tizimda xodimlar mavjud emas"}
+										{searchTerm ? tx("Qidiruv bo'yicha xodim topilmadi") : tx("Tizimda xodimlar mavjud emas")}
 									</p>
 								</div>
 							</div>
@@ -775,7 +777,7 @@ const UserStaffAttendance = () => {
 							<div className="p-6">
 								<div className="flex justify-between items-center mb-4">
 									<h3 className="text-lg font-bold text-gray-800">
-										Chiqish sababi
+										{tx("Chiqish sababi")}
 									</h3>
 									<button
 										onClick={() => setCommentModalOpen(false)}
@@ -789,21 +791,21 @@ const UserStaffAttendance = () => {
 									rows={4}
 									value={commentText}
 									onChange={(e) => setCommentText(e.target.value)}
-									placeholder="Komentariya yozing..."
+									placeholder={tx("Komentariya yozing...")}
 								/>
 								<div className="flex justify-end gap-3">
 									<button
 										className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors duration-200"
 										onClick={() => setCommentModalOpen(false)}
 									>
-										Bekor qilish
+										{tx("Bekor qilish")}
 									</button>
 									<button
 										className="px-4 py-2 bg-[var(--org-primary)] text-white rounded-lg hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
 										onClick={handleCommentSubmit}
 										disabled={submitting}
 									>
-										{submitting ? "Saqlanmoqda..." : "Saqlash"}
+										{submitting ? tx("Saqlanmoqda...") : tx("Saqlash")}
 									</button>
 								</div>
 							</div>

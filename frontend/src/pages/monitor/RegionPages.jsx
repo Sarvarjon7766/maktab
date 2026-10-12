@@ -1,10 +1,10 @@
 import { FiActivity, FiAlertOctagon, FiAlertTriangle, FiArrowRight, FiBarChart2, FiCheckCircle, FiChevronDown, FiInfo, FiList, FiRefreshCw, FiUserX, FiVideo, FiWifiOff } from 'react-icons/fi'
 import { FaChalkboardTeacher, FaClock, FaDoorOpen, FaFire, FaLandmark, FaMapMarkerAlt, FaMedal, FaSchool, FaUmbrellaBeach, FaUserGraduate, FaUsers, FaVideo } from 'react-icons/fa'
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ChartBox, Chips, DateField, Empty, LoadState, Page, PageHeader, Panel, RangePicker, SearchBox, StatCard, Table, Td, Tr, WEEKDAYS, exportXlsx, fmt, levelColor, levelText, matchText, pct, shiftDate, todayStr, useMonitorData, KpiLink, SelectBox, pctFmt } from './monitorKit'
-import { intlLocale, tx } from '../../i18n'
+import { ChartBox, Chips, DateField, Empty, LoadState, Page, PageHeader, Panel, RangePicker, SearchBox, StatCard, Table, Td, Tr, WEEKDAYS, fmt, levelText, matchText, shiftDate, todayStr, useMonitorData, KpiLink, SelectBox, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 // tumanlar kesimida jamlanadi. Qatordagi tumanni bossangiz, tuman sahifasi ochiladi (maktab, xodim, o'quvchigacha chuqurlashish).
 const hub = (name, tab) => `/monitor/districts/${encodeURIComponent(name)}${tab ? `?tab=${tab}` : ''}`
 // Tooltip kartasi va gradient ustunlar (chartlar uchun umumiy)
@@ -48,7 +48,7 @@ const DistrictRow = ({ x, rank, chart, columns, tab, max }) => {
 			<div className="flex items-center gap-3 pr-3">
 				<button onClick={() => setOpen(o => !o)} className="flex min-w-0 flex-1 items-center gap-4 px-4 py-3.5 text-left transition hover:bg-slate-50" aria-expanded={open}>
 					{rank != null && <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${rank === 1 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>{rank}</span>}
-					<div className="w-40 shrink-0 sm:w-48"><p className="truncate font-semibold text-slate-900">{x.district}</p><p className="text-xs text-slate-400">{x.schools} maktab</p></div>
+					<div className="w-40 shrink-0 sm:w-48"><p className="truncate font-semibold text-slate-900">{x.district}</p><p className="text-xs text-slate-400">{tx("{{n}} maktab", { n: x.schools })}</p></div>
 					{chart && (
 						<div className="min-w-0 flex-1">
 							<div className="mb-1 flex items-baseline justify-between gap-2"><span className="text-lg font-extrabold leading-none" style={{ color }}>{raw === null || raw === undefined ? '—' : `${fmt(raw)}${chart.unit || ''}`}</span></div>
@@ -128,21 +128,21 @@ const RegionPage = ({ title, subtitle, metric, range = false, date = false, kpis
 											</BarChart>
 										</ResponsiveContainer>
 									</ChartBox>}
-								{cd.length > cdv.length && cdv.length > 0 && <p className="mt-2 px-1 text-xs text-slate-400">{cd.length - cdv.length} ta tumanda {bad ? tx("muammo yo'q") : tx("hodisa yo'q")}, grafikda ko'rsatilmagan</p>}
+								{cd.length > cdv.length && cdv.length > 0 && <p className="mt-2 px-1 text-xs text-slate-400">{tx("{{n}} ta tumanda", { n: cd.length - cdv.length })} {bad ? tx("muammo yo'q") : tx("hodisa yo'q")}{tx(", grafikda ko'rsatilmagan")}</p>}
 								</Panel>
 								<div className="space-y-3">
 									<p className="px-1 text-sm font-semibold text-slate-700">{tx("Diqqat")}</p>
 									{bad && worst && <Link to={hub(worst.name, tab)} className="block rounded-2xl border border-red-200 bg-red-50/70 p-4 transition hover:shadow-md"><p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-700"><FiAlertTriangle size={13} /> {chart.worstLabel || tx("Eng ko'p")}</p><p className="mt-1 text-lg font-bold text-slate-900">{worst.name}</p><p className="text-sm text-slate-600">{fmt(worst.raw)}{unit}</p></Link>}
-									{bad && clean.length > 0 && <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4"><p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700"><FiCheckCircle size={13} /> {tx("Muammosiz tumanlar")}</p><p className="mt-1 text-lg font-bold text-slate-900">{clean.length} ta</p><p className="text-sm text-slate-600">{clean.slice(0, 3).map(c => c.name).join(', ')}{clean.length > 3 ? tx(" va boshqalar") : ''}</p></div>}
+									{bad && clean.length > 0 && <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4"><p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700"><FiCheckCircle size={13} /> {tx("Muammosiz tumanlar")}</p><p className="mt-1 text-lg font-bold text-slate-900">{tx("{{n}} ta", { n: clean.length })}</p><p className="text-sm text-slate-600">{clean.slice(0, 3).map(c => c.name).join(', ')}{clean.length > 3 ? tx(" va boshqalar") : ''}</p></div>}
 									{!bad && best && <Link to={hub(best.name, tab)} className={`block rounded-2xl border p-4 transition hover:shadow-md ${plain ? 'border-blue-200 bg-blue-50/70' : 'border-emerald-200 bg-emerald-50/70'}`}><p className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${plain ? 'text-blue-700' : 'text-emerald-700'}`}><FiCheckCircle size={13} /> {plain ? tx("Eng ko'p") : tx("Eng yuqori")}</p><p className="mt-1 text-lg font-bold text-slate-900">{best.name}</p><p className="text-sm text-slate-600">{fmt(best.raw)}{unit}</p></Link>}
 									{!bad && worst && <Link to={hub(worst.name, tab)} className={`block rounded-2xl border p-4 transition hover:shadow-md ${plain ? 'border-slate-200 bg-white' : 'border-red-200 bg-red-50/70'}`}><p className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${plain ? 'text-slate-500' : 'text-red-700'}`}><FiAlertTriangle size={13} /> {plain ? tx("Eng kam") : tx("Eng past")}</p><p className="mt-1 text-lg font-bold text-slate-900">{worst.name}</p><p className="text-sm text-slate-600">{fmt(worst.raw)}{unit}</p></Link>}
-									{!plain && <div className={`rounded-2xl border p-4 ${alertRows.length ? 'border-amber-200 bg-amber-50/70' : 'border-slate-200 bg-white'}`}><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tx("Holat")}</p><p className="mt-1 text-sm text-slate-700">{alertRows.length ? <><b className="text-red-600">{alertRows.length} ta tumanda</b> {bad ? tx("muammo bor") : tx("ko'rsatkich past")}: {alertRows.slice(0, 3).map(a => a.name).join(', ')}{alertRows.length > 3 ? tx(" va boshqalar") : ''}.</> : bad ? tx("Hamma tumanda muammo yo'q.") : tx("Hamma tumanda ko'rsatkich me'yorda.")}</p></div>}
+									{!plain && <div className={`rounded-2xl border p-4 ${alertRows.length ? 'border-amber-200 bg-amber-50/70' : 'border-slate-200 bg-white'}`}><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tx("Holat")}</p><p className="mt-1 text-sm text-slate-700">{alertRows.length ? <><b className="text-red-600">{tx("{{n}} ta tumanda", { n: alertRows.length })}</b> {bad ? tx("muammo bor") : tx("ko'rsatkich past")}: {alertRows.slice(0, 3).map(a => a.name).join(', ')}{alertRows.length > 3 ? tx(" va boshqalar") : ''}.</> : bad ? tx("Hamma tumanda muammo yo'q.") : tx("Hamma tumanda ko'rsatkich me'yorda.")}</p></div>}
 								</div>
 							</div>
 						)}
 
 						<div className="mb-3 flex flex-wrap items-center gap-2">
-							<h2 className="text-sm font-semibold text-slate-700">{tx("Tumanlar reytingi")} <span className="font-normal text-slate-400">· {list.length} ta</span></h2>
+							<h2 className="text-sm font-semibold text-slate-700">{tx("Tumanlar reytingi")} <span className="font-normal text-slate-400">· {tx("{{n}} ta", { n: list.length })}</span></h2>
 							{rows.length > 5 && (
 								<div className="ml-auto flex flex-wrap items-center gap-2">
 									<SearchBox value={q} onChange={setQ} placeholder={tx("Tuman qidirish")} />
@@ -259,7 +259,7 @@ export const RegionTrend = () => {
 	const toggle = (n) => setOff(s => { const x = new Set(s); if (x.has(n)) x.delete(n); else x.add(n); return x })
 	return (
 		<Page>
-			<Head icon={<FiActivity />} title={tx("Kunlik dinamika: viloyat va tumanlar")} subtitle={<>Davomat foizi kunma-kun · {range.from} — {range.to}</>} onReload={reload} loading={loading}><RangePicker from={range.from} to={range.to} onChange={setRange} /></Head>
+			<Head icon={<FiActivity />} title={tx("Kunlik dinamika: viloyat va tumanlar")} subtitle={<>{tx("Davomat foizi kunma-kun · {{from}} — {{to}}", { from: range.from, to: range.to })}</>} onReload={reload} loading={loading}><RangePicker from={range.from} to={range.to} onChange={setRange} /></Head>
 			<LoadState loading={loading && !data} error={error}>
 				{data && (
 					<>
@@ -306,7 +306,7 @@ export const RegionGrades = () => {
 	const chart = (data?.byGrade || []).map(g => ({ name: `${g.grade}-sinf`, Davomat: g.percent }))
 	return (
 		<Page>
-			<Head icon={<FiBarChart2 />} title={tx("Umumiy statistika: viloyat va tumanlar")} subtitle={<>Sinf darajalari bo'yicha davomat · {range.from} — {range.to}</>} onReload={reload} loading={loading}><RangePicker from={range.from} to={range.to} onChange={setRange} /></Head>
+			<Head icon={<FiBarChart2 />} title={tx("Umumiy statistika: viloyat va tumanlar")} subtitle={<>{tx("Sinf darajalari bo'yicha davomat · {{from}} — {{to}}", { from: range.from, to: range.to })}</>} onReload={reload} loading={loading}><RangePicker from={range.from} to={range.to} onChange={setRange} /></Head>
 			<LoadState loading={loading && !data} error={error}>
 				{data && (
 					<>
@@ -324,7 +324,7 @@ export const RegionGrades = () => {
 						<Panel title={tx("Tumanlar × sinf darajalari")} action={<div className="flex flex-wrap items-center gap-3">{rows.length > 5 && <SearchBox value={gq} onChange={setGq} placeholder={tx("Tuman qidirish")} />}<span className="text-xs text-slate-400">{tx("Katak: davomat %. Tumanni bossangiz, tuman sahifasi ochiladi")}</span></div>}>
 							<div className="overflow-x-auto">
 								<table className="w-full text-sm">
-									<thead><tr className="text-left text-xs uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">{tx("Tuman")}</th>{grades.map(g => <th key={g} className="px-2 py-2.5 text-center">{g}-sinf</th>)}<th className="px-3 py-2.5 text-center">{tx("Umumiy")}</th></tr></thead>
+									<thead><tr className="text-left text-xs uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">{tx("Tuman")}</th>{grades.map(g => <th key={g} className="px-2 py-2.5 text-center">{tx("{{n}}-sinf", { n: g })}</th>)}<th className="px-3 py-2.5 text-center">{tx("Umumiy")}</th></tr></thead>
 									<tbody>
 										{rows.filter(x => matchText(gq, x.district)).map(x => (
 											<tr key={x.district} className="border-t border-slate-100">

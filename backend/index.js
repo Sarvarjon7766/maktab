@@ -33,19 +33,38 @@ const PORT = process.env.PORT || 5000
 const connectMainDB = require('./config/db')
 const mongoose = require('mongoose')
 
-// CORS cheklovi olib tashlandi — barcha manzillardan so'rovga ruxsat
-// beriladi (dev/LAN muhitida turli portlar/mobil ilova bilan ishlash
-// qulayligi uchun). DIQQAT: tizim ochiq internetga chiqarilsa (public
-// domen/HTTPS), bu qaytadan FRONTEND_URL asosida cheklanishi kerak.
-app.use(cors())
+// Xavfsizlik qatlami (middlewares/security.js): CORS ruxsat ro'yxati (NODE_ENV=production da faqat FRONTEND_URL),
+// xavfsizlik sarlavhalari, IP bo'yicha so'rov cheklovi va login brute-force himoyasi. Developmentda hamma manzil ruxsat.
+const { corsOptions, securityHeaders, apiLimiter, loginLimiter } = require('./middlewares/security')
+app.use(cors(corsOptions))
+app.use(securityHeaders)
+app.use('/api', apiLimiter)
+// Salomatlik va tezlik ko'rsatkichlari (tizim qotayotganini aniqlash uchun): event loop kechikishi, xotira, rahbarlik, so'rovlar
+const { monitorEventLoopDelay } = require('perf_hooks')
+const loopDelay = monitorEventLoopDelay({ resolution: 20 })
+loopDelay.enable()
+const reqStats = { total: 0, slow: 0, slowest: { ms: 0, url: '' } }
+app.use('/api', (req, res, next) => {
+  const t = process.hrtime.bigint()
+  res.on('finish', () => {
+    const ms = Number(process.hrtime.bigint() - t) / 1e6
+    reqStats.total++
+    const cloudBound = /\/hik\/cameras\/[^/]+\/(live|snapshot|capture)/.test(req.originalUrl)
+    if (ms > (cloudBound ? 5000 : 1000)) { reqStats.slow++; console.log(`Sekin so'rov (${Math.round(ms)} ms): ${req.method} ${req.originalUrl.split('?')[0]}`) }
+    if (ms > reqStats.slowest.ms) reqStats.slowest = { ms: Math.round(ms), url: req.originalUrl.split('?')[0] }
+  })
+  next()
+})
 app.use(require('compression')())
-app.use(express.json())
+app.use(express.json({ limit: '2mb' }))
 app.use(require('./utils/i18n').langMiddleware)
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '1h', setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff') }))
+// Rasmlar faqat tizimga kirgan foydalanuvchiga, maktab proxy tokeniga yoki imzolangan havolaga beriladi (utils/uploadsAuth.js)
+app.use('/uploads', require('./utils/uploadsAuth').uploadsGuard, express.static(path.join(__dirname, 'uploads'), { maxAge: '1h', setHeaders: (res) => { res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Cache-Control', 'private, max-age=3600') } }))
 
 
 const { userrouter, sinfrouter, graderouter, schoolstatsrouter, viewerstatsrouter, eventroute, camerarouter, commentrouter, employeesyncrouter, settingsrouter, schoolrouter, schoolmerouter, studentrouter, platformsettingsrouter, monitorrouter, hikrouter, monitoruserrouter, parentrouter, reportcenterrouter, districtrouter } = require('./routes/index')
+app.use('/api/user/auth', loginLimiter)
 app.use('/api/user', userrouter)
 if (!isRegion) app.use('/api/sinf', sinfrouter)
 if (!isRegion) app.use('/api/grades', graderouter)
@@ -79,6 +98,17 @@ if (isRegion) {
   app.use('/api/federation/v1', require('./routes/federation.route')) // tuman: viloyat uchun faqat o'qish API
   app.use('/api/federation-keys', require('./routes/federation.keys.route')) // tuman superadmini: kalitlarni boshqarish
 }
+
+app.get('/api/health', (req, res) => {
+  const mem = process.memoryUsage()
+  const snap = { loopP50: Math.max(0, Math.round(loopDelay.percentile(50) / 1e4) / 100 - 20), loopP99: Math.max(0, Math.round(loopDelay.percentile(99) / 1e4) / 100 - 20), loopMax: Math.max(0, Math.round(loopDelay.max / 1e4) / 100 - 20) }
+  loopDelay.reset()
+  res.json({
+    ok: mongoose.connection.readyState === 1, uptimeSec: Math.round(process.uptime()), mode: MODE, pid: process.pid,
+    leader: require('./utils/leader').isLeader(), rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576),
+    eventLoopMs: snap, requests: reqStats
+  })
+})
 
 app.get('/api/config', async (req, res) => {
   try {
@@ -141,6 +171,7 @@ const shutdown = async (signal) => {
   console.log(`${signal} qabul qilindi, to'xtatilmoqda...`)
   const force = setTimeout(() => { console.error('To\'xtatish vaqti tugadi, majburan chiqilmoqda'); process.exit(1) }, 10000)
   try {
+    await require('./utils/leader').release()
     try { cronHandle && cronHandle.stop && cronHandle.stop() } catch (e) { console.error('Cron to\'xtatish xatosi:', e.message) }
     if (server) await new Promise((resolve) => { server.close(() => resolve()); server.closeIdleConnections && server.closeIdleConnections() })
     await mongoose.connection.close()
@@ -161,11 +192,24 @@ const bootstrap = async () => {
     console.error('❌ MongoDB ga ulanib bo\'lmadi, chiqilmoqda:', err.message)
     process.exit(1)
   }
-  server = app.listen(PORT, () => {
-    console.log(`🚀 Server http://localhost:${PORT} da ishga tushdi`)
+  server = app.listen(PORT)
+  // Port band bo'lsa (boshqa nusxa ishlayapti) jim davom etmaymiz: aks holda bu nusxa API bermasdan fon vazifalarini
+  // (AI, Hik so'rovlari) bajarib protsessorni band qilib turardi
+  server.once('error', (err) => {
+    console.error(`❌ Server ishga tushmadi (${err.code || err.message}): ${err.code === 'EADDRINUSE' ? `${PORT}-port band, boshqa nusxa allaqachon ishlayapti` : err.message}`)
+    process.exit(1)
   })
-  // Fon vazifalari (kamera so'rovi, AI, bot, hisobotlar) faqat TUMAN rejimida; DISABLE_BACKGROUND=1 — sinov uchun o'chirish
-  if (!isRegion && process.env.DISABLE_BACKGROUND !== '1') cronHandle = startCronJobs()
+  server.once('listening', () => {
+    console.log(`🚀 Server http://localhost:${PORT} da ishga tushdi`)
+    // Fon vazifalari (kamera so'rovi, AI, bot, hisobotlar) faqat TUMAN rejimida va faqat BITTA nusxada (utils/leader.js);
+    // DISABLE_BACKGROUND=1 — sinov uchun o'chirish
+    if (!isRegion && process.env.DISABLE_BACKGROUND !== '1') {
+      require('./utils/leader').run({
+        onAcquire: () => { cronHandle = startCronJobs() },
+        onLose: () => { try { cronHandle && cronHandle.stop && cronHandle.stop() } catch (e) { console.error(e.message) } cronHandle = null }
+      })
+    }
+  })
   console.log(`Rejim: ${MODE}${process.env.DISABLE_BACKGROUND === '1' ? ' (fon vazifalari o\'chiq)' : ''}`)
 }
 bootstrap()

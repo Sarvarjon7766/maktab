@@ -117,7 +117,7 @@ const UserAdminSidebar = ({ collapsed = false, onClose }) => {
 									 text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition"
 				>
 					<FiLogOut className="text-xl" />
-					{!collapsed && <span className="font-medium">Chiqish</span>}
+					{!collapsed && <span className="font-medium">{tx("Chiqish")}</span>}
 				</button>
 			</div>
 		</aside>

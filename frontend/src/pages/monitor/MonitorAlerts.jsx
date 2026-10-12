@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { FiAlertOctagon, FiAlertTriangle, FiCheckCircle, FiChevronRight, FiClock, FiInfo, FiTrendingDown, FiUsers, FiVideoOff } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { Chips, DateField, Empty, Page, PageHeader, SchoolLink, todayStr, useMonitorData, matchText, usePanel, SearchBox, SelectBox } from './monitorKit'
+import { tx } from '../../i18n'
+import { alertLink } from '../../utils/alertLink'
 
 const SEV = {
 	high: { label: 'Jiddiy', bar: 'bg-red-500', chip: 'bg-red-50 text-red-700', icon: <FiAlertOctagon />, tone: 'text-red-600', ring: 'hover:border-red-200' },
@@ -45,21 +47,21 @@ const MonitorAlerts = () => {
 			</div>
 
 			<div className="flex flex-wrap items-center gap-3 mb-4">
-				<SearchBox value={q} onChange={setQ} placeholder="Ogohlantirish yoki maktab qidirish..." />
-				<SelectBox value={type} onChange={setType} searchPlaceholder="Tur qidirish..." options={[{ value: '', label: 'Barcha turlar' }, ...Object.entries(TYPE).map(([value, t]) => ({ value, label: t.label }))]} />
-				{!scoped && <SelectBox value={school} onChange={setSchool} searchPlaceholder="Maktab qidirish..." options={schoolOpts} />}
+				<SearchBox value={q} onChange={setQ} placeholder={tx("Ogohlantirish yoki maktab qidirish...")} />
+				<SelectBox value={type} onChange={setType} searchPlaceholder={tx("Tur qidirish...")} options={[{ value: '', label: 'Barcha turlar' }, ...Object.entries(TYPE).map(([value, t]) => ({ value, label: t.label }))]} />
+				{!scoped && <SelectBox value={school} onChange={setSchool} searchPlaceholder={tx("Maktab qidirish...")} options={schoolOpts} />}
 			</div>
 			<div className="mb-5"><Chips value={sev} onChange={setSev} options={[{ key: 'all', label: 'Hammasi', count: (data?.alerts || []).length }, ...['high', 'medium', 'low'].map(k => ({ key: k, label: SEV[k].label, count: c[k] }))]} /></div>
 
-			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 mb-4">Ma'lumotni yuklab bo'lmadi</div>}
-			{loading && !data ? <Empty text="Yuklanmoqda..." /> : list.length === 0 ? (
-				<div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center"><FiCheckCircle className="mx-auto text-green-500 mb-3" size={36} /><p className="text-gray-700 font-medium">{(data?.alerts || []).length ? 'Topilmadi' : "Ogohlantirish yo'q"}</p></div>
+			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 mb-4">{tx("Ma'lumotni yuklab bo'lmadi")}</div>}
+			{loading && !data ? <Empty text={tx("Yuklanmoqda...")} /> : list.length === 0 ? (
+				<div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center"><FiCheckCircle className="mx-auto text-green-500 mb-3" size={36} /><p className="text-gray-700 font-medium">{(data?.alerts || []).length ? tx("Topilmadi") : tx("Ogohlantirish yo'q")}</p></div>
 			) : (
 				<div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					{list.map((a, ai) => {
 						const s = SEV[a.severity], t = TYPE[a.type] || { label: 'Ogohlantirish', icon: <FiInfo /> }
 						return (
-							<article key={`${a.id}-${a.type}-${ai}`} role="link" tabIndex={0} onClick={() => navigate(a.link)} onKeyDown={e => { if (e.key === 'Enter') navigate(a.link) }}
+							<article key={`${a.id}-${a.type}-${ai}`} role="link" tabIndex={0} onClick={() => navigate(alertLink(a, { base, scoped }))} onKeyDown={e => { if (e.key === 'Enter') navigate(alertLink(a, { base, scoped })) }}
 								className={`group cursor-pointer bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 ${s.ring}`}>
 								<div className={`w-1.5 shrink-0 ${s.bar}`} />
 								<div className="p-5 flex-1 min-w-0 flex items-start gap-4">

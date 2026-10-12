@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, DateField, LoadState, Page, PageHeader, Panel, Progress, SearchBox, KpiLink, Table, Td, Tr, exportXlsx, fmt, pct, schoolPlace, todayStr, useMonitorData, usePanel } from './monitorKit'
 import { FaCheckCircle, FaClock, FaDoorOpen, FaUserTimes } from 'react-icons/fa'
+import { tx } from '../../i18n'
 
 const CONFIG = {
 	students: { title: "O'quvchilar davomati", noun: "o'quvchi", key: 'student', color: CHART_COLORS.student },
@@ -47,19 +48,19 @@ const MonitorAttendance = ({ kind }) => {
 	return (
 		<Page>
 			<PageHeader title={cfg.title} subtitle={`Sana: ${data?.dateString || date} · har bir maktab bo'yicha`} onReload={reload} loading={loading}>
-				<DateField label="Sana" value={date} max={todayStr()} onChange={setDate} />
-				<button onClick={download} disabled={!rows.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<DateField label={tx("Sana")} value={date} max={todayStr()} onChange={setDate} />
+				<button onClick={download} disabled={!rows.length} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
 
 			<LoadState loading={loading && !data} error={error}>
 				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-					<KpiLink to={lk('came')} icon={<FaCheckCircle />} color="bg-green-50 text-green-600" label="Kelgan" value={totals.came} detail={`${fmt(totals.total)} ${cfg.noun}dan · ${pct(totals.came, totals.total)}%`} />
-					<KpiLink to={lk('absent')} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label="Kelmagan" value={totals.absent} detail={`${pct(totals.absent, totals.total)}%`} />
-					<KpiLink to={lk('inside')} icon={<FaDoorOpen />} color="bg-blue-50 text-blue-600" label="Hozir maktabda" value={totals.inside} detail="Ichkarida turganlar" />
-					<KpiLink to={lk('late')} icon={<FaClock />} color="bg-orange-50 text-orange-600" label="Kech qolgan" value={totals.late} detail="Ish/dars boshlanishidan keyin" />
+					<KpiLink to={lk('came')} icon={<FaCheckCircle />} color="bg-green-50 text-green-600" label={tx("Kelgan")} value={totals.came} detail={`${fmt(totals.total)} ${cfg.noun}dan · ${pct(totals.came, totals.total)}%`} />
+					<KpiLink to={lk('absent')} icon={<FaUserTimes />} color="bg-red-50 text-red-600" label={tx("Kelmagan")} value={totals.absent} detail={`${pct(totals.absent, totals.total)}%`} />
+					<KpiLink to={lk('inside')} icon={<FaDoorOpen />} color="bg-blue-50 text-blue-600" label={tx("Hozir maktabda")} value={totals.inside} detail={tx("Ichkarida turganlar")} />
+					<KpiLink to={lk('late')} icon={<FaClock />} color="bg-orange-50 text-orange-600" label={tx("Kech qolgan")} value={totals.late} detail={tx("Ish/dars boshlanishidan keyin")} />
 				</div>
 
-				<Panel title="Maktablar kesimida" subtitle="Kelgan va kelmaganlar soni" className="mb-6">
+				<Panel title={tx("Maktablar kesimida")} subtitle={tx("Kelgan va kelmaganlar soni")} className="mb-6">
 					<ChartBox height={320}>
 						<ResponsiveContainer width="100%" height="100%">
 							<BarChart data={chart} margin={{ top: 8, right: 12, left: -8, bottom: 8 }}>
@@ -74,14 +75,14 @@ const MonitorAttendance = ({ kind }) => {
 					</ChartBox>
 				</Panel>
 
-				<Panel title="Batafsil jadval" action={
+				<Panel title={tx("Batafsil jadval")} action={
 					<div className="flex flex-wrap gap-2">
-						<SearchBox value={query} onChange={setQuery} placeholder="Maktab yoki hudud" />
+						<SearchBox value={query} onChange={setQuery} placeholder={tx("Maktab yoki hudud")} />
 						<AutoSelect value={sortBy} onChange={e => setSortBy(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white">
-							<option value="percent-asc">Davomat: past → yuqori</option>
-							<option value="percent-desc">Davomat: yuqori → past</option>
-							<option value="absent-desc">Kelmaganlar ko'p</option>
-							<option value="name">Nomi bo'yicha</option>
+							<option value="percent-asc">{tx("Davomat: past → yuqori")}</option>
+							<option value="percent-desc">{tx("Davomat: yuqori → past")}</option>
+							<option value="absent-desc">{tx("Kelmaganlar ko'p")}</option>
+							<option value="name">{tx("Nomi bo'yicha")}</option>
 						</AutoSelect>
 					</div>
 				}>
@@ -94,7 +95,7 @@ const MonitorAttendance = ({ kind }) => {
 								<Td right className="text-red-600 font-medium">{fmt(r.absent)}</Td><Td right>{fmt(r.late)}</Td>
 							</Tr>
 						))}
-						{shown.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-500">Maktablar topilmadi</td></tr>}
+						{shown.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-500">{tx("Maktablar topilmadi")}</td></tr>}
 					</Table>
 				</Panel>
 			</LoadState>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { FiCheck, FiInbox, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import { api, Chip, dt, Empty, errText, initials, StudentPicker } from './ui'
+import { tx } from '../../../i18n'
 
 // Bitta so'rov kartasi: tavsiya etilgan farzandlar + qidiruv orqali boshqa farzandlarni belgilab, birdaniga biriktirish
 const RequestCard = ({ r, onDone }) => {
@@ -20,13 +21,13 @@ const RequestCard = ({ r, onDone }) => {
 	return (
 		<li className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm">
 			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div className="flex items-center gap-3"><span className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-semibold text-sm flex items-center justify-center">{initials(r.name)}</span><div><p className="font-semibold text-gray-900">{r.name}{r.username && <span className="font-normal text-gray-400"> @{r.username}</span>}</p><p className="text-xs text-gray-500">{r.phone || "Telefon yo'q"} · {dt(r.createdAt)}</p></div></div>
-				<Chip tone="bg-amber-50 text-amber-800">{r.kind === 'disabled' ? "Admin o'chirgan ulanishga qayta ulanmoqchi" : "Raqam maktab ro'yxatidan topilmadi"}</Chip>
+				<div className="flex items-center gap-3"><span className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-semibold text-sm flex items-center justify-center">{initials(r.name)}</span><div><p className="font-semibold text-gray-900">{r.name}{r.username && <span className="font-normal text-gray-400"> @{r.username}</span>}</p><p className="text-xs text-gray-500">{r.phone || tx("Telefon yo'q")} · {dt(r.createdAt)}</p></div></div>
+				<Chip tone="bg-amber-50 text-amber-800">{r.kind === 'disabled' ? tx("Admin o'chirgan ulanishga qayta ulanmoqchi") : tx("Raqam maktab ro'yxatidan topilmadi")}</Chip>
 			</div>
 
 			{r.suggestions.length > 0 && (
 				<div className="mt-4">
-					<p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Tavsiya etilgan farzandlar</p>
+					<p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">{tx("Tavsiya etilgan farzandlar")}</p>
 					<div className="flex flex-wrap gap-2">
 						{r.suggestions.map(s => {
 							const on = picked.has(String(s.studentId))
@@ -37,7 +38,7 @@ const RequestCard = ({ r, onDone }) => {
 			)}
 
 			<div className="mt-4">
-				<p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">{r.suggestions.length ? 'Boshqa farzandni qidirish' : "Qaysi o'quvchining ota-onasi?"}</p>
+				<p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">{r.suggestions.length ? tx("Boshqa farzandni qidirish") : tx("Qaysi o'quvchining ota-onasi?")}</p>
 				<StudentPicker selected={selectedKeys} onToggle={toggle} />
 			</div>
 
@@ -48,8 +49,8 @@ const RequestCard = ({ r, onDone }) => {
 			)}
 
 			<div className="mt-4 flex flex-wrap gap-2 justify-end">
-				<button onClick={reject} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"><FiX size={14} /> Rad etish</button>
-				<button disabled={!picked.size || busy} onClick={approve} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50"><FiCheck size={14} /> {picked.size ? `${picked.size} ta farzandga biriktirish` : 'Farzandni tanlang'}</button>
+				<button onClick={reject} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"><FiX size={14} /> {tx("Rad etish")}</button>
+				<button disabled={!picked.size || busy} onClick={approve} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50"><FiCheck size={14} /> {picked.size ? `${picked.size} ta farzandga biriktirish` : tx("Farzandni tanlang")}</button>
 			</div>
 		</li>
 	)
@@ -62,8 +63,8 @@ const RequestsTab = ({ onChanged }) => {
 	useEffect(() => { load() }, [load])
 	return (
 		<div className="space-y-4">
-			<p className="text-sm text-gray-500">Botda ro'yxatdan o'tmoqchi bo'lgan, lekin telefon raqami maktab ro'yxatidan topilmagan ota-onalar. Kim ekanini aniqlab, farzandiga (bir nechtasiga ham) biriktiring yoki rad eting.</p>
-			{!rows ? <p className="text-sm text-gray-500">Yuklanmoqda...</p> : rows.length === 0 ? <Empty icon={<FiInbox size={22} />} title="Kutilayotgan so'rov yo'q" hint="Hamma ota-onalar ko'rib chiqilgan. Raqami mos kelmagan yangi ota-ona bo'lsa, shu yerda paydo bo'ladi." /> : (
+			<p className="text-sm text-gray-500">{tx("Botda ro'yxatdan o'tmoqchi bo'lgan, lekin telefon raqami maktab ro'yxatidan topilmagan ota-onalar. Kim ekanini aniqlab, farzandiga (bir nechtasiga ham) biriktiring yoki rad eting.")}</p>
+			{!rows ? <p className="text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : rows.length === 0 ? <Empty icon={<FiInbox size={22} />} title={tx("Kutilayotgan so'rov yo'q")} hint={tx("Hamma ota-onalar ko'rib chiqilgan. Raqami mos kelmagan yangi ota-ona bo'lsa, shu yerda paydo bo'ladi.")} /> : (
 				<ul className="space-y-3">{rows.map(r => <RequestCard key={r._id} r={r} onDone={() => { load(); onChanged() }} />)}</ul>
 			)}
 		</div>

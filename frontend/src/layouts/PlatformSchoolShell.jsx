@@ -99,7 +99,7 @@ const PlatformSchoolShell = () => {
 		)
 	}
 
-	return <Outlet />
+	return <div className="school-admin-surfaces"><Outlet /></div>
 }
 
 export default PlatformSchoolShell

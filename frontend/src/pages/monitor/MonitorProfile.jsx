@@ -6,6 +6,7 @@ import { FaChalkboardTeacher, FaSchool, FaUserGraduate } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatUzDate } from '../../utils/formatDate'
 import { LoadState, Page, Panel, fmt, pct, shiftDate, todayStr, useMonitorData } from './monitorKit'
+import { uploadUrl } from '../../utils/uploadUrl'
 
 const initials = (name) => (name || '?').split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase()
 const dateOf = (d) => (d ? formatUzDate(new Date(d)) : '—')
@@ -80,7 +81,7 @@ const MonitorProfile = () => {
 							<div className="h-24 bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400" />
 							<div className="flex flex-wrap items-end gap-5 px-6 pb-6">
 								<div className="-mt-12 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-blue-100 text-2xl font-bold text-blue-700 shadow-md">
-									{user.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} alt={user.fullName} className="h-full w-full object-cover" /> : initials(user.fullName)}
+									{user.photo ? <img src={`${uploadUrl(user.photo)}`} alt={user.fullName} className="h-full w-full object-cover" /> : initials(user.fullName)}
 								</div>
 								<div className="min-w-0 flex-1 pt-2">
 									<h1 className="truncate text-2xl font-semibold text-slate-900">{user.fullName}</h1>
@@ -88,15 +89,15 @@ const MonitorProfile = () => {
 										<span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700"><FiShield size={13} /> {LEVELS[level]}</span>
 										{placeName && <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700"><FiMapPin size={13} /> {placeName}</span>}
 										{!placeName && user.position && <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">{user.position}</span>}
-										<span className="rounded-full bg-green-50 px-3 py-1 font-medium text-green-700">Faol</span>
+										<span className="rounded-full bg-green-50 px-3 py-1 font-medium text-green-700">{tx("Faol")}</span>
 									</div>
 								</div>
-								<button onClick={() => navigate('/logout')} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600"><FiLogOut size={15} /> Chiqish</button>
+								<button onClick={() => navigate('/logout')} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600"><FiLogOut size={15} /> {tx("Chiqish")}</button>
 							</div>
 						</section>
 
 						<div>
-							<h2 className="mb-3 font-semibold text-slate-900">Nazorat doirasi</h2>
+							<h2 className="mb-3 font-semibold text-slate-900">{tx("Nazorat doirasi")}</h2>
 							<div className={`grid grid-cols-2 gap-4 lg:grid-cols-3 ${cards.length > 5 ? 'xl:grid-cols-6' : 'xl:grid-cols-5'}`}>
 								{cards.map(([to, icon, label, value, sub, color, accent]) => <Stat key={to} to={to} icon={icon} label={label} value={value} sub={sub} color={color} accent={accent} />)}
 							</div>
@@ -104,8 +105,8 @@ const MonitorProfile = () => {
 
 						<div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
 							<div className="space-y-6">
-								<Panel title={tx("Bugungi holat · {{d}}", { d: formatUzDate(new Date(`${date}T12:00:00+05:00`)) })} action={<Link to="/monitor" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">Bosh sahifa <FiArrowRight size={13} /></Link>}>
-									{loading && !overview ? <p className="py-6 text-center text-sm text-slate-500">Yuklanmoqda...</p> : (
+								<Panel title={tx("Bugungi holat · {{d}}", { d: formatUzDate(new Date(`${date}T12:00:00+05:00`)) })} action={<Link to="/monitor" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">{tx("Bosh sahifa")} <FiArrowRight size={13} /></Link>}>
+									{loading && !overview ? <p className="py-6 text-center text-sm text-slate-500">{tx("Yuklanmoqda...")}</p> : (
 										<div className="grid grid-cols-2 gap-4">
 											{[
 												["O'quvchilar davomati", pct(t.studentCame, t.students), tx('{{a}} / {{b}} kelgan', { a: fmt(t.studentCame), b: fmt(t.students) }), '/monitor/students'],
@@ -117,14 +118,14 @@ const MonitorProfile = () => {
 													<p className="mt-2 text-[11px] text-slate-400">{sub}</p>
 												</Link>
 											))}
-											<Link to="/monitor/late" className="rounded-xl border border-orange-100 bg-orange-50 p-4 transition hover:shadow-sm"><p className="flex items-center gap-1.5 text-xs text-orange-700"><FiClock size={12} /> Kech qolgan o'quvchilar</p><p className="mt-1 text-2xl font-bold text-orange-700">{fmt(t.studentLate)}</p></Link>
-											<Link to="/monitor/alerts" className="rounded-xl border border-red-100 bg-red-50 p-4 transition hover:shadow-sm"><p className="flex items-center gap-1.5 text-xs text-red-700"><FiAlertTriangle size={12} /> Ogohlantirishlar</p><p className="mt-1 text-2xl font-bold text-red-700">{totalAlerts}</p><p className="text-[11px] text-red-500">{tx("{{a}} jiddiy · {{b}} o'rtacha · {{c}} past", { a: c.high, b: c.medium, c: c.low })}</p></Link>
+											<Link to="/monitor/late" className="rounded-xl border border-orange-100 bg-orange-50 p-4 transition hover:shadow-sm"><p className="flex items-center gap-1.5 text-xs text-orange-700"><FiClock size={12} /> {tx("Kech qolgan o'quvchilar")}</p><p className="mt-1 text-2xl font-bold text-orange-700">{fmt(t.studentLate)}</p></Link>
+											<Link to="/monitor/alerts" className="rounded-xl border border-red-100 bg-red-50 p-4 transition hover:shadow-sm"><p className="flex items-center gap-1.5 text-xs text-red-700"><FiAlertTriangle size={12} /> {tx("Ogohlantirishlar")}</p><p className="mt-1 text-2xl font-bold text-red-700">{totalAlerts}</p><p className="text-[11px] text-red-500">{tx("{{a}} jiddiy · {{b}} o'rtacha · {{c}} past", { a: c.high, b: c.medium, c: c.low })}</p></Link>
 										</div>
 									)}
 								</Panel>
 
 								{region && weakest.length > 0 && (
-									<Panel title="E'tibor talab qiladigan tumanlar" action={<Link to="/monitor/districts" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">Hammasi <FiArrowRight size={13} /></Link>}>
+									<Panel title={tx("E'tibor talab qiladigan tumanlar")} action={<Link to="/monitor/districts" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">{tx("Hammasi")} <FiArrowRight size={13} /></Link>}>
 										<ul className="space-y-3">
 											{weakest.map(r => (
 												<li key={r.name}>
@@ -139,7 +140,7 @@ const MonitorProfile = () => {
 								)}
 							</div>
 
-							<Panel title="Hisob ma'lumotlari">
+							<Panel title={tx("Hisob ma'lumotlari")}>
 								<dl className="space-y-3 text-sm">
 									{[
 										[<FiUser key="u" size={14} />, 'Login', `@${user.username}`],
@@ -153,12 +154,12 @@ const MonitorProfile = () => {
 										<div key={label} className="flex items-center justify-between gap-3 border-b border-slate-50 pb-3 last:border-0 last:pb-0"><dt className="inline-flex items-center gap-2 text-slate-500">{icon}{label}</dt><dd className="truncate text-right font-medium text-slate-900">{value}</dd></div>
 									))}
 								</dl>
-								<p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">Monitor hisobi faqat ko'rish uchun: ma'lumotlarni o'zgartirib bo'lmaydi. Hisobni tizim egasi boshqaradi.</p>
+								<p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">{tx("Monitor hisobi faqat ko'rish uchun: ma'lumotlarni o'zgartirib bo'lmaydi. Hisobni tizim egasi boshqaradi.")}</p>
 							</Panel>
 						</div>
 
 						<div>
-							<h2 className="mb-3 font-semibold text-slate-900">Tezkor o'tish</h2>
+							<h2 className="mb-3 font-semibold text-slate-900">{tx("Tezkor o'tish")}</h2>
 							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
 								{quick.map(([to, title, sub, icon]) => (
 									<Link key={to} to={to} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md">

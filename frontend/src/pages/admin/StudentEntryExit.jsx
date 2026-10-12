@@ -23,6 +23,9 @@ import PersonLink from '../../components/PersonLink'
 import { getTashkentHourMinute, formatUzTime } from '../../utils/formatDate'
 import { MANUAL_ENTRY_CHECKPOINT_ID } from '../../utils/constants'
 import { ListPager, usePaged } from '../../components/ListPager'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
+import { useSearchParams } from 'react-router-dom'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -47,7 +50,8 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 	const [refreshing, setRefreshing] = useState(false)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [selectedSinf, setSelectedSinf] = useState(fixedSinfId || 'all')
-	const [selectedStatus, setSelectedStatus] = useState('all')
+	const [urlParams] = useSearchParams()
+	const [selectedStatus, setSelectedStatus] = useState(['ishda', 'kelmagan', 'tashqarida'].includes(urlParams.get('status')) ? urlParams.get('status') : 'all')
 	const [selectedStat, setSelectedStat] = useState(null)
 	const [commentModalOpen, setCommentModalOpen] = useState(false)
 	const [timeModalOpen, setTimeModalOpen] = useState(false)
@@ -267,14 +271,14 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 						<PersonLink kind="student" id={student._id} className="flex items-center space-x-3">
 							<div className="flex-shrink-0 h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold overflow-hidden">
 								{student.photo ? (
-									<img src={`${BASE_URL}/uploads/${student.photo}`} alt={student.fullName} className="h-full w-full object-cover" />
+									<img src={`${uploadUrl(student.photo)}`} alt={student.fullName} className="h-full w-full object-cover" />
 								) : (
 									student.fullName?.charAt(0)?.toUpperCase()
 								)}
 							</div>
 							<div>
 								<p className="font-medium text-gray-900 text-sm">{student.fullName}</p>
-								<p className="text-xs text-gray-500">{student.sinf?.name || "Sinfsiz"}</p>
+								<p className="text-xs text-gray-500">{student.sinf?.name || tx("Sinfsiz")}</p>
 							</div>
 						</PersonLink>
 						<div className="text-right">
@@ -295,7 +299,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 
 					<div className="grid grid-cols-2 gap-3 text-xs">
 						<div className="col-span-2">
-							<span className="text-gray-500">Ota-ona:</span>
+							<span className="text-gray-500">{tx("Ota-ona:")}</span>
 							<p className="font-medium text-black mt-1">
 								{student.parentName || student.parentPhone
 									? `${student.parentName || ''}${student.parentName && student.parentPhone ? ' — ' : ''}${student.parentPhone || ''}`
@@ -303,18 +307,18 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 							</p>
 						</div>
 						<div className="col-span-2">
-							<span className="text-gray-500">Dastlabki kirish:</span>
+							<span className="text-gray-500">{tx("Dastlabki kirish:")}</span>
 							<p className="font-medium text-black mt-1">{student.firstEntryTime}</p>
 						</div>
 						<div>
-							<span className="text-gray-500">Kirish vaqti:</span>
+							<span className="text-gray-500">{tx("Kirish vaqti:")}</span>
 							<div className="flex items-center gap-1 mt-1">
 								<span className="font-medium text-black">{student.entryTime}</span>
 								{(!student.lastCheckInTime || (student.lastCheckInTime && student.lastCheckOutTime)) && (
 									<button
 										onClick={() => openTimeModal(student, 'entry')}
 										className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors flex-shrink-0"
-										title="Kirish vaqtini qo'shish/tahrirlash"
+										title={tx("Kirish vaqtini qo'shish/tahrirlash")}
 									>
 										<FaEdit size={10} />
 									</button>
@@ -322,14 +326,14 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 							</div>
 						</div>
 						<div>
-							<span className="text-gray-500">Chiqish vaqti:</span>
+							<span className="text-gray-500">{tx("Chiqish vaqti:")}</span>
 							<div className="flex items-center gap-1 mt-1">
 								<span className="font-medium text-black">{student.exitTime}</span>
 								{student.lastCheckInTime && !student.lastCheckOutTime && (
 									<button
 										onClick={() => openTimeModal(student, 'exit')}
 										className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors flex-shrink-0"
-										title="Chiqish vaqtini qo'shish"
+										title={tx("Chiqish vaqtini qo'shish")}
 									>
 										<FaEdit size={10} />
 									</button>
@@ -338,12 +342,12 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 						</div>
 						{student.isLate && (
 							<div className="col-span-2">
-								<span className="text-gray-500">Kechikish:</span>
-								<p className="font-medium text-black mt-1">{student.lateMinutes} daqiqa</p>
+								<span className="text-gray-500">{tx("Kechikish:")}</span>
+								<p className="font-medium text-black mt-1">{tx("{{n}} daqiqa", { n: student.lateMinutes })}</p>
 							</div>
 						)}
 						<div className="col-span-2">
-							<span className="text-gray-500">Izoh:</span>
+							<span className="text-gray-500">{tx("Izoh:")}</span>
 							<div className="flex items-start justify-between">
 								<div className="flex-1">
 									<p className="font-medium text-black mt-1 break-words">{student.comment}</p>
@@ -352,7 +356,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 									<button
 										onClick={() => openCommentModal(student)}
 										className="ml-2 text-gray-400 hover:text-blue-500 flex-shrink-0 mt-1"
-										title="Komentariya qo'shish"
+										title={tx("Komentariya qo'shish")}
 									>
 										<FaRegCommentDots size={14} />
 									</button>
@@ -372,14 +376,14 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 					<thead className="sticky top-0 z-20 bg-gray-50">
 						<tr>
 							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap w-[80px] sticky left-0 bg-gray-50 z-30">№</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px] sticky left-[80px] bg-gray-50 z-20">O'quvchi</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">Sinf</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[180px]">Ota-ona</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">Dastlabki</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">Kirish</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">Chiqish</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px]">Izoh</th>
-							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">Holat</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px] sticky left-[80px] bg-gray-50 z-20">{tx("O'quvchi")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">{tx("Sinf")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[180px]">{tx("Ota-ona")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">{tx("Dastlabki")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">{tx("Kirish")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[100px]">{tx("Chiqish")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[200px]">{tx("Izoh")}</th>
+							<th className="px-4 py-4 text-left text-sm font-medium text-gray-500 tracking-wider whitespace-nowrap min-w-[120px]">{tx("Holat")}</th>
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-gray-200 bg-white">
@@ -399,7 +403,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 									<PersonLink kind="student" id={student._id} className="flex items-center">
 										<div className="flex-shrink-0 h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold overflow-hidden">
 											{student.photo ? (
-												<img src={`${BASE_URL}/uploads/${student.photo}`} alt={student.fullName} className="h-full w-full object-cover" />
+												<img src={`${uploadUrl(student.photo)}`} alt={student.fullName} className="h-full w-full object-cover" />
 											) : (
 												student.fullName?.charAt(0)?.toUpperCase()
 											)}
@@ -411,7 +415,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								</td>
 								<td className="px-4 py-4 text-sm text-gray-900 min-w-[120px]">
 									<span className="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-										{student.sinf?.name || "Sinfsiz"}
+										{student.sinf?.name || tx("Sinfsiz")}
 									</span>
 								</td>
 								<td className="px-4 py-4 text-sm text-gray-900 min-w-[180px]">
@@ -427,7 +431,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 											<button
 												onClick={() => openTimeModal(student, 'entry')}
 												className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors opacity-0 group-hover:opacity-100"
-												title="Kirish vaqtini qo'shish/tahrirlash"
+												title={tx("Kirish vaqtini qo'shish/tahrirlash")}
 											>
 												<FaEdit size={12} />
 											</button>
@@ -441,7 +445,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 											<button
 												onClick={() => openTimeModal(student, 'exit')}
 												className="p-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors opacity-0 group-hover:opacity-100"
-												title="Chiqish vaqtini qo'shish"
+												title={tx("Chiqish vaqtini qo'shish")}
 											>
 												<FaEdit size={12} />
 											</button>
@@ -455,7 +459,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 											<button
 												onClick={() => openCommentModal(student)}
 												className="ml-2 text-gray-400 hover:text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-												title="Komentariya qo'shish"
+												title={tx("Komentariya qo'shish")}
 											>
 												<FaRegCommentDots size={14} />
 											</button>
@@ -475,7 +479,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 			</div>
 			<div className="flex-shrink-0 bg-gray-50 border-t">
 				<ListPager {...paged} />
-				<p className="px-6 py-3 text-sm text-gray-600">Jami: {filteredStudents.length} ta o'quvchi</p>
+				<p className="px-6 py-3 text-sm text-gray-600">{tx("Jami: {{n}} ta o'quvchi", { n: filteredStudents.length })}</p>
 			</div>
 		</div>
 	)
@@ -484,10 +488,10 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 		const toggle = (key) => () => selectedStat === key ? clearStatFilter() : setSelectedStat(key)
 		return (
 			<div className="flex-shrink-0 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 p-2 sm:p-3 lg:p-4">
-				<KpiCard compact icon={<FaUserCheck size={14} />} label="Ishda" value={stats.ishda} total={stats.total} tone="good" active={selectedStat === 'ishda'} onClick={toggle('ishda')} />
-				<KpiCard compact icon={<FaUserSlash size={14} />} label="Tashqarida" value={stats.tashqarida} total={stats.total} tone="blue" active={selectedStat === 'tashqarida'} onClick={toggle('tashqarida')} />
-				<KpiCard compact icon={<FaClock size={14} />} label="Kechikkan" value={stats.kechikkan} total={stats.total} tone="warning" active={selectedStat === 'kechikkan'} onClick={toggle('kechikkan')} />
-				<KpiCard compact icon={<FaUserTimes size={14} />} label="Kelmagan" value={stats.kelmagan} total={stats.total} tone="critical" active={selectedStat === 'kelmagan'} onClick={toggle('kelmagan')} />
+				<KpiCard compact icon={<FaUserCheck size={14} />} label={tx("Ishda")} value={stats.ishda} total={stats.total} tone="good" active={selectedStat === 'ishda'} onClick={toggle('ishda')} />
+				<KpiCard compact icon={<FaUserSlash size={14} />} label={tx("Tashqarida")} value={stats.tashqarida} total={stats.total} tone="blue" active={selectedStat === 'tashqarida'} onClick={toggle('tashqarida')} />
+				<KpiCard compact icon={<FaClock size={14} />} label={tx("Kechikkan")} value={stats.kechikkan} total={stats.total} tone="warning" active={selectedStat === 'kechikkan'} onClick={toggle('kechikkan')} />
+				<KpiCard compact icon={<FaUserTimes size={14} />} label={tx("Kelmagan")} value={stats.kelmagan} total={stats.total} tone="critical" active={selectedStat === 'kelmagan'} onClick={toggle('kelmagan')} />
 			</div>
 		)
 	}
@@ -506,7 +510,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								</div>
 								<input
 									type="text"
-									placeholder="O'quvchilarni qidirish..."
+									placeholder={tx("O'quvchilarni qidirish...")}
 									className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-black bg-gray-50"
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
@@ -523,11 +527,11 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 										value={selectedSinf}
 										onChange={(e) => setSelectedSinf(e.target.value)}
 									>
-										<option value="all">Barcha sinflar</option>
+										<option value="all">{tx("Barcha sinflar")}</option>
 										{sinfs.map(sinf => (
 											<option key={sinf._id} value={sinf._id}>{sinf.name}</option>
 										))}
-										<option value="no-sinf">Sinfsiz</option>
+										<option value="no-sinf">{tx("Sinfsiz")}</option>
 									</AutoSelect>
 								</div>
 							)}
@@ -539,10 +543,10 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 									value={selectedStatus}
 									onChange={(e) => setSelectedStatus(e.target.value)}
 								>
-									<option value="all">Barcha holat</option>
-									<option value="ishda">Ishda</option>
-									<option value="kelmagan">Kelmagan</option>
-									<option value="tashqarida">Tashqarida</option>
+									<option value="all">{tx("Barcha holat")}</option>
+									<option value="ishda">{tx("Ishda")}</option>
+									<option value="kelmagan">{tx("Kelmagan")}</option>
+									<option value="tashqarida">{tx("Tashqarida")}</option>
 								</AutoSelect>
 							</div>
 
@@ -550,9 +554,9 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								onClick={() => { setRefreshing(true); fetchData() }}
 								disabled={refreshing}
 								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors duration-200 font-medium min-w-[120px] max-w-[150px]"
-								title="Yangilash"
+								title={tx("Yangilash")}
 							>
-								{refreshing ? <PulseLoader size={6} color="white" /> : (<><FiRefreshCw size={16} /><span className="truncate">Yangilash</span></>)}
+								{refreshing ? <PulseLoader size={6} color="white" /> : (<><FiRefreshCw size={16} /><span className="truncate">{tx("Yangilash")}</span></>)}
 							</button>
 						</div>
 					</div>
@@ -569,9 +573,9 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								<div className="mx-auto h-24 w-24 text-gray-400 mb-4">
 									<FaUserGraduate className="w-full h-full" />
 								</div>
-								<h3 className="text-lg font-medium text-gray-900">O'quvchilar topilmadi</h3>
+								<h3 className="text-lg font-medium text-gray-900">{tx("O'quvchilar topilmadi")}</h3>
 								<p className="text-base text-gray-500 mt-2">
-									{searchTerm ? "Qidiruv bo'yicha o'quvchi topilmadi" : "Tizimda o'quvchilar mavjud emas"}
+									{searchTerm ? tx("Qidiruv bo'yicha o'quvchi topilmadi") : tx("Tizimda o'quvchilar mavjud emas")}
 								</p>
 							</div>
 						</div>
@@ -587,7 +591,7 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 					<div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto z-10">
 						<div className="p-6">
 							<div className="flex justify-between items-center mb-4">
-								<h3 className="text-lg font-bold text-gray-800">{selectedStudent?.fullName} uchun izoh</h3>
+								<h3 className="text-lg font-bold text-gray-800">{tx("{{name}} uchun izoh", { name: selectedStudent?.fullName })}</h3>
 								<button onClick={() => setCommentModalOpen(false)} className="text-gray-500 hover:text-gray-700"><FiX size={20} /></button>
 							</div>
 							<textarea
@@ -595,12 +599,12 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 								rows={4}
 								value={commentText}
 								onChange={(e) => setCommentText(e.target.value)}
-								placeholder="Komentariya yozing..."
+								placeholder={tx("Komentariya yozing...")}
 							/>
 							<div className="flex justify-end gap-3">
-								<button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium" onClick={() => setCommentModalOpen(false)}>Bekor qilish</button>
+								<button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium" onClick={() => setCommentModalOpen(false)}>{tx("Bekor qilish")}</button>
 								<button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-sm font-medium" onClick={handleCommentSubmit} disabled={submitting}>
-									{submitting ? "Saqlanmoqda..." : "Saqlash"}
+									{submitting ? tx("Saqlanmoqda...") : tx("Saqlash")}
 								</button>
 							</div>
 						</div>
@@ -614,18 +618,18 @@ const StudentEntryExit = ({ fixedSinfId }) => {
 					<div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto z-10">
 						<div className="p-6">
 							<div className="flex justify-between items-center mb-4">
-								<h3 className="text-lg font-bold text-gray-800">{selectedStudent?.fullName} uchun {modalType === "entry" ? "Kirish" : "Chiqish"}</h3>
+								<h3 className="text-lg font-bold text-gray-800">{tx("{{name}} uchun {{type}}", { name: selectedStudent?.fullName, type: modalType === "entry" ? tx("Kirish") : tx("Chiqish") })}</h3>
 								<button onClick={() => setTimeModalOpen(false)} className="text-gray-500 hover:text-gray-700"><FiX size={20} /></button>
 							</div>
 							<div className="mb-6 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg">
-								Ushbu amalni tasdiqlashni xohlaysizmi?
+								{tx("Ushbu amalni tasdiqlashni xohlaysizmi?")}
 								<br />
-								<strong>{selectedStudent?.fullName}</strong> - {modalType === "entry" ? "kirish" : "chiqish"} vaqti qayd etiladi.
+								<strong>{selectedStudent?.fullName}</strong> - {tx("{{type}} vaqti qayd etiladi.", { type: modalType === "entry" ? tx("kirish") : tx("chiqish") })}
 							</div>
 							<div className="flex justify-end gap-3">
-								<button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium" onClick={() => setTimeModalOpen(false)}>Bekor qilish</button>
+								<button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium" onClick={() => setTimeModalOpen(false)}>{tx("Bekor qilish")}</button>
 								<button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-sm font-medium" onClick={handleTimeSubmit} disabled={submitting}>
-									{submitting ? "Saqlanmoqda..." : (modalType === "entry" ? "O'quvchini kiritish" : "O'quvchini chiqarish")}
+									{submitting ? tx("Saqlanmoqda...") : (modalType === "entry" ? tx("O'quvchini kiritish") : tx("O'quvchini chiqarish"))}
 								</button>
 							</div>
 						</div>

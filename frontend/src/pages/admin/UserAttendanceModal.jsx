@@ -5,6 +5,8 @@ import { FiArrowRight, FiCalendar, FiDownload, FiX } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import * as XLSX from 'xlsx-js-style'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const pad = n => String(n).padStart(2, '0')
 const toLocalStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -118,14 +120,14 @@ const UserAttendanceModal = ({ userId, onClose }) => {
 			<div onClick={e => e.stopPropagation()} className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
 				<div className="flex items-center gap-4 border-b border-slate-100 px-5 py-4">
 					<span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-slate-200 to-slate-300 text-lg font-semibold text-slate-600">
-						{user?.photo ? <img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} alt="" className="h-full w-full object-cover" /> : user?.fullName?.charAt(0)?.toUpperCase()}
+						{user?.photo ? <img src={`${uploadUrl(user.photo)}`} alt="" className="h-full w-full object-cover" /> : user?.fullName?.charAt(0)?.toUpperCase()}
 					</span>
 					<div className="min-w-0 flex-1">
-						<h3 className="truncate text-lg font-semibold text-slate-900">{user?.fullName || 'Yuklanmoqda...'}</h3>
-						<p className="truncate text-sm text-slate-500">{[user?.position, user?.sinf?.name].filter(Boolean).join(' · ') || 'Davomat tarixi'}</p>
+						<h3 className="truncate text-lg font-semibold text-slate-900">{user?.fullName || tx("Yuklanmoqda...")}</h3>
+						<p className="truncate text-sm text-slate-500">{[user?.position, user?.sinf?.name].filter(Boolean).join(' · ') || tx("Davomat tarixi")}</p>
 					</div>
-					<Link to={`/${roleBase}/users/${userId}/analytics`} onClick={onClose} className="hidden items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 sm:inline-flex">Batafsil tahlil <FiArrowRight size={14} /></Link>
-					<button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Yopish"><FiX size={18} /></button>
+					<Link to={`/${roleBase}/users/${userId}/analytics`} onClick={onClose} className="hidden items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 sm:inline-flex">{tx("Batafsil tahlil")} <FiArrowRight size={14} /></Link>
+					<button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tx("Yopish")}><FiX size={18} /></button>
 				</div>
 
 				<div className="space-y-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
@@ -135,9 +137,9 @@ const UserAttendanceModal = ({ userId, onClose }) => {
 						<input type="date" value={from} max={to} onChange={e => e.target.value && setFrom(e.target.value)} className={date} />
 						<span className="text-slate-400">—</span>
 						<input type="date" value={to} min={from} max={toLocalStr(new Date())} onChange={e => e.target.value && setTo(e.target.value)} className={date} />
-						<button onClick={exportToExcel} disabled={!rows.length} className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100 disabled:opacity-50"><FiDownload size={14} /> Excel</button>
+						<button onClick={exportToExcel} disabled={!rows.length} className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100 disabled:opacity-50"><FiDownload size={14} /> {tx("Excel")}</button>
 					</div>
-					{invalid && <p className="text-xs text-rose-600">Boshlanish sanasi tugash sanasidan keyin bo'lishi mumkin emas</p>}
+					{invalid && <p className="text-xs text-rose-600">{tx("Boshlanish sanasi tugash sanasidan keyin bo'lishi mumkin emas")}</p>}
 				</div>
 
 				<div className="grid grid-cols-2 gap-3 px-5 py-4 sm:grid-cols-4">
@@ -159,13 +161,13 @@ const UserAttendanceModal = ({ userId, onClose }) => {
 					) : rows.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-14 text-center text-slate-400">
 							<FiCalendar size={40} className="mb-3" />
-							<p className="font-medium text-slate-600">{history.length ? "Bu filtr bo'yicha yozuv yo'q" : 'Davomat tarixi mavjud emas'}</p>
-							<p className="mt-1 text-sm">{history.length ? "Boshqa holatni tanlang" : "Tanlangan davr uchun yozuvlar topilmadi"}</p>
+							<p className="font-medium text-slate-600">{history.length ? tx("Bu filtr bo'yicha yozuv yo'q") : tx("Davomat tarixi mavjud emas")}</p>
+							<p className="mt-1 text-sm">{history.length ? tx("Boshqa holatni tanlang") : tx("Tanlangan davr uchun yozuvlar topilmadi")}</p>
 						</div>
 					) : (
 						<table className="min-w-full">
 							<thead className="sticky top-0 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-								<tr><th className="px-5 py-2.5">Sana</th><th className="px-3 py-2.5">Holat</th><th className="px-3 py-2.5">Kirish</th><th className="px-3 py-2.5">Chiqish</th><th className="px-5 py-2.5 text-right">Ish vaqti</th></tr>
+								<tr><th className="px-5 py-2.5">{tx("Sana")}</th><th className="px-3 py-2.5">{tx("Holat")}</th><th className="px-3 py-2.5">{tx("Kirish")}</th><th className="px-3 py-2.5">{tx("Chiqish")}</th><th className="px-5 py-2.5 text-right">{tx("Ish vaqti")}</th></tr>
 							</thead>
 							<tbody className="divide-y divide-slate-100">
 								{rows.map((r, i) => {

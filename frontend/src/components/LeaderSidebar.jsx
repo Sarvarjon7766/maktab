@@ -33,7 +33,7 @@ const LeaderSidebar = ({ collapsed = false, onClose }) => {
 			{onClose && (
 				<div className="lg:hidden p-4 border-b border-slate-700 flex justify-between">
 					<span className="flex items-center gap-2 font-bold">
-						<BrandLogo className="w-8 h-8 shrink-0" /> School Supervision
+						<BrandLogo className="w-8 h-8 shrink-0" /> {tx("School Supervision")}
 					</span>
 					<button onClick={onClose}><FiX /></button>
 				</div>
@@ -44,7 +44,7 @@ const LeaderSidebar = ({ collapsed = false, onClose }) => {
 				<div className="hidden lg:flex p-6 border-b border-slate-700">
 					<h1 className="flex items-center gap-3 font-bold text-xl">
 						<BrandLogo className="w-12 h-12 shrink-0" />
-						School Supervision
+						{tx("School Supervision")}
 					</h1>
 				</div>
 			)}
@@ -91,7 +91,7 @@ const LeaderSidebar = ({ collapsed = false, onClose }) => {
 					className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800"
 				>
 					<FiLogOut />
-					{!collapsed && <span>Chiqish</span>}
+					{!collapsed && <span>{tx("Chiqish")}</span>}
 				</button>
 			</div>
 		</aside>

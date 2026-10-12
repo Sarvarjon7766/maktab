@@ -88,9 +88,9 @@ const RegionDistricts = () => {
 			<Card title={tx("Tuman serverini qo'shish")} hint={tx("Manzil HTTPS bo'lishi shart (masalan https://bulungur.example.uz). Kalitni tuman superadmini «Viloyat ulanishi» sahifasida yaratadi.")}>
 				<form onSubmit={add} className="grid grid-cols-1 gap-3 md:grid-cols-2">
 					<label className="text-xs text-slate-500">{tx('Server nomi')}<input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={input} placeholder={tx("Masalan: Bulung'ur")} /></label>
-					<label className="text-xs text-slate-500">{tx('Viloyat')}<input value={form.region} onChange={e => setForm({ ...form, region: e.target.value })} className={input} placeholder="Samarqand" /></label>
+					<label className="text-xs text-slate-500">{tx('Viloyat')}<input value={form.region} onChange={e => setForm({ ...form, region: e.target.value })} className={input} placeholder={tx("Samarqand")} /></label>
 					<label className="text-xs text-slate-500">{tx('Server manzili')}<input required value={form.baseUrl} onChange={e => setForm({ ...form, baseUrl: e.target.value })} className={input} placeholder="https://bulungur.example.uz" /></label>
-					<label className="text-xs text-slate-500">{tx('API kalit')}<input required type="password" autoComplete="off" value={form.apiKey} onChange={e => setForm({ ...form, apiKey: e.target.value })} className={input} placeholder="fk_xxxxxxxx.…" /></label>
+					<label className="text-xs text-slate-500">{tx('API kalit')}<input required type="password" autoComplete="off" value={form.apiKey} onChange={e => setForm({ ...form, apiKey: e.target.value })} className={input} placeholder={tx("fk_xxxxxxxx.…")} /></label>
 					<div className="md:col-span-2"><button disabled={busy === 'add'} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"><FiPlus size={15} /> {busy === 'add' ? tx('Ulanmoqda...') : tx("Qo'shish va tekshirish")}</button></div>
 				</form>
 			</Card>
@@ -171,7 +171,7 @@ const DistrictKeys = () => {
 			<Card title={tx("Oxirgi so'rovlar (audit)")} hint={tx("Viloyat serveri qachon va nimani so'raganini ko'rasiz. 30 kundan keyin o'zi o'chadi.")}>
 				{audit.length === 0 ? <p className="text-sm text-slate-500">{tx("Hali so'rov bo'lmagan.")}</p> : (
 					<div className="max-h-72 overflow-y-auto"><table className="w-full text-xs"><tbody>{audit.map(a => (
-						<tr key={a._id} className="border-b border-slate-50"><td className="py-1.5 pr-3 text-slate-500">{when(a.at)}</td><td className="pr-3 text-slate-700">{a.keyName}</td><td className="pr-3 font-mono text-slate-600">{a.path}</td><td className={`pr-3 ${a.status >= 400 ? 'text-red-600' : 'text-green-700'}`}>{a.status}</td><td className="text-slate-400">{a.ms} ms · {a.ip}</td></tr>))}</tbody></table></div>
+						<tr key={a._id} className="border-b border-slate-50"><td className="py-1.5 pr-3 text-slate-500">{when(a.at)}</td><td className="pr-3 text-slate-700">{a.keyName}</td><td className="pr-3 font-mono text-slate-600">{a.path}</td><td className={`pr-3 ${a.status >= 400 ? 'text-red-600' : 'text-green-700'}`}>{a.status}</td><td className="text-slate-400">{tx("{{ms}} ms", { ms: a.ms })} · {a.ip}</td></tr>))}</tbody></table></div>
 				)}
 			</Card>
 		</div>
@@ -182,9 +182,6 @@ const PlatformFederation = () => {
 	const { mode } = useOrg()
 	return (
 		<div className="max-w-6xl space-y-5">
-			<div className="flex items-center gap-3 text-slate-900"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><FiServer size={20} /></span>
-				<div><h1 className="text-lg font-semibold">{mode === 'region' ? tx('Tumanlar bilan ulanish') : tx('Viloyat ulanishi')}</h1>
-					<p className="text-xs text-slate-500">{mode === 'region' ? tx("Viloyat rejimi: ma'lumot tuman serverlaridan o'qiladi") : tx("Tuman rejimi: viloyatga faqat o'qish uchun API beriladi")}</p></div></div>
 			{mode === 'region' ? <RegionDistricts /> : <DistrictKeys />}
 		</div>
 	)

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import AutoSelect from '../../components/AutoSelect'
 import { FaExclamationTriangle, FaSchool, FaUserSlash } from 'react-icons/fa'
 import { Empty, KpiLink, Page, PageHeader, PersonLink, RangePicker, SchoolLink, SchoolSelect, exportXlsx, fmt, levelColor, shiftDate, todayStr, useMonitorData, matchText, usePanel, SearchBox, SelectBox, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 
 // Xavf guruhi: ketma-ket kelmayotgan yoki davomati past o'quvchilar. Har biri profiliga va maktabiga olib boradi
 const MonitorRisk = () => {
@@ -31,20 +32,20 @@ const MonitorRisk = () => {
 	return (
 		<Page>
 			<PageHeader onReload={reload} loading={loading}>
-				<label className="inline-flex items-center gap-2 text-sm text-gray-600">Ketma-ket
+				<label className="inline-flex items-center gap-2 text-sm text-gray-600">{tx("Ketma-ket")}
 					<AutoSelect value={minStreak} onChange={e => setMinStreak(Number(e.target.value))} className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm">
-						{[2, 3, 5, 7, 10].map(n => <option key={n} value={n}>{n}+ kun</option>)}
+						{[2, 3, 5, 7, 10].map(n => <option key={n} value={n}>{tx("{{n}}+ kun", { n })}</option>)}
 					</AutoSelect>
 				</label>
 				<SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={setSchoolId} />
-				<button onClick={download} disabled={!rows.length} className="px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<button onClick={download} disabled={!rows.length} className="px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
-			<div className="mb-5 flex flex-wrap items-center gap-3"><RangePicker {...range} onChange={setRange} /><SearchBox value={q} onChange={setQ} placeholder="O'quvchi yoki maktab qidirish..." /><SelectBox value={sinf} onChange={setSinf} searchPlaceholder="Sinf qidirish..." options={sinfOpts} className="min-w-[150px] max-w-[220px]" /></div>
+			<div className="mb-5 flex flex-wrap items-center gap-3"><RangePicker {...range} onChange={setRange} /><SearchBox value={q} onChange={setQ} placeholder={tx("O'quvchi yoki maktab qidirish...")} /><SelectBox value={sinf} onChange={setSinf} searchPlaceholder={tx("Sinf qidirish...")} options={sinfOpts} className="min-w-[150px] max-w-[220px]" /></div>
 
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-				<KpiLink icon={<FaUserSlash />} color="bg-red-50 text-red-600" label="Xavf guruhidagi o'quvchilar" value={data?.total ?? 0} />
-				<KpiLink to={longest ? `${base}/people/student/${longest._id}` : undefined} icon={<FaExclamationTriangle />} color="bg-orange-50 text-orange-600" label="Eng uzun kelmagan seriya" value={`${stats.maxStreak} kun`} />
-				<KpiLink to={topSchool ? `/monitor/schools/${topSchool.schoolId}?tab=students` : undefined} icon={<FaSchool />} color="bg-slate-100 text-slate-600" label="Eng ko'p xavf guruhi" value={stats.top ? stats.top[0] : '—'} detail={stats.top ? `${stats.top[1]} nafar` : ''} />
+				<KpiLink icon={<FaUserSlash />} color="bg-red-50 text-red-600" label={tx("Xavf guruhidagi o'quvchilar")} value={data?.total ?? 0} />
+				<KpiLink to={longest ? `${base}/people/student/${longest._id}` : undefined} icon={<FaExclamationTriangle />} color="bg-orange-50 text-orange-600" label={tx("Eng uzun kelmagan seriya")} value={`${stats.maxStreak} kun`} />
+				<KpiLink to={!scoped && topSchool ? `/monitor/schools/${topSchool.schoolId}?tab=students` : undefined} icon={<FaSchool />} color="bg-slate-100 text-slate-600" label={tx("Eng ko'p xavf guruhi")} value={stats.top ? stats.top[0] : '—'} detail={stats.top ? `${stats.top[1]} nafar` : ''} />
 			</div>
 
 			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -63,16 +64,16 @@ const MonitorRisk = () => {
 										<div className="flex items-center justify-between mb-1"><span className="text-gray-900 font-medium">{fmt(r.present)} <span className="text-gray-400 font-normal">/ {fmt(r.schoolDays)}</span></span><span className="text-xs font-semibold text-gray-600">{pctFmt(r.percent)}</span></div>
 										<div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={`h-full rounded-full ${levelColor(r.percent)}`} style={{ width: `${Math.min(r.percent, 100)}%` }} /></div>
 									</td>
-									<td className="px-4 py-2.5 text-right"><span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.streak >= 5 ? 'bg-red-100 text-red-700' : r.streak >= 3 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>{r.streak} kun</span></td>
-									<td className="px-4 py-2.5 text-gray-500">{r.lastPresent || 'Davrda kelmagan'}</td>
+									<td className="px-4 py-2.5 text-right"><span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.streak >= 5 ? 'bg-red-100 text-red-700' : r.streak >= 3 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>{tx("{{n}} kun", { n: r.streak })}</span></td>
+									<td className="px-4 py-2.5 text-gray-500">{r.lastPresent || tx("Davrda kelmagan")}</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
-				{loading && !data && <Empty text="Yuklanmoqda..." />}
-				{!loading && rows.length === 0 && !error && <Empty text={all.length ? 'Topilmadi' : "Xavf guruhida o'quvchi yo'q"} />}
-				{error && <Empty text="Ma'lumotni yuklab bo'lmadi" />}
+				{loading && !data && <Empty text={tx("Yuklanmoqda...")} />}
+				{!loading && rows.length === 0 && !error && <Empty text={all.length ? tx("Topilmadi") : tx("Xavf guruhida o'quvchi yo'q")} />}
+				{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 			</div>
 		</Page>
 	)

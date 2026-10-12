@@ -4,6 +4,7 @@ import { FiCalendar, FiCheck, FiDownload, FiLoader, FiStar } from 'react-icons/f
 import { FaFileExcel } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import SearchableSelect from './SearchableSelect'
+import { tx } from '../i18n'
 
 // Token har so'rovda joriy qiymatdan olinadi (mount paytida qotib qolmasin)
 const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` })
@@ -81,8 +82,8 @@ const ReportCenter = () => {
 				</div>
 				<p className="mt-1 flex-1 text-sm text-slate-500">{r.desc}</p>
 				{r.params.length > 0 && <div className="mt-3 flex flex-wrap gap-1">{r.params.map(p => <span key={p} className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">{PARAM_LABEL[p]}</span>)}</div>}
-				<button disabled={busy === r.key || blocked} onClick={() => download(r)} title={blocked ? 'Avval sinfni tanlang' : ''} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
-					{busy === r.key ? <><FiLoader className="animate-spin" /> Tayyorlanmoqda...</> : done[r.key] ? <><FiCheck /> Yana yuklab olish</> : <><FaFileExcel /> Excel yuklab olish</>}
+				<button disabled={busy === r.key || blocked} onClick={() => download(r)} title={blocked ? tx("Avval sinfni tanlang") : ''} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
+					{busy === r.key ? <><FiLoader className="animate-spin" /> {tx("Tayyorlanmoqda...")}</> : done[r.key] ? <><FiCheck /> {tx("Yana yuklab olish")}</> : <><FaFileExcel /> {tx("Excel yuklab olish")}</>}
 				</button>
 			</div>
 		)
@@ -92,23 +93,23 @@ const ReportCenter = () => {
 		<div className="space-y-5">
 			<div className="sticky top-0 z-10 space-y-3 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur">
 				<div className="flex flex-wrap items-end gap-x-5 gap-y-3">
-					<label className="text-xs text-slate-500">Sana (kunlik hisobotlar)<input type="date" value={date} max={todayStr()} onChange={e => e.target.value && setDate(e.target.value)} className={`${input} mt-1 block`} /></label>
-					<div className="text-xs text-slate-500">Davr (davr hisobotlari)
+					<label className="text-xs text-slate-500">{tx("Sana (kunlik hisobotlar)")}<input type="date" value={date} max={todayStr()} onChange={e => e.target.value && setDate(e.target.value)} className={`${input} mt-1 block`} /></label>
+					<div className="text-xs text-slate-500">{tx("Davr (davr hisobotlari)")}
 						<div className="mt-1 flex items-center gap-1.5">
 							<input type="date" value={from} max={to} onChange={e => e.target.value && setFrom(e.target.value)} className={input} />
 							<span className="text-slate-400">—</span>
 							<input type="date" value={to} min={from} max={todayStr()} onChange={e => e.target.value && setTo(e.target.value)} className={input} />
 						</div>
 					</div>
-					<div className="text-xs text-slate-500">Sinf
-											<SearchableSelect variant="outline" icon={false} className="mt-1 min-w-[160px] max-w-[260px]" searchPlaceholder="Sinf qidirish..." value={sinfId} onChange={setSinfId}
+					<div className="text-xs text-slate-500">{tx("Sinf")}
+											<SearchableSelect variant="outline" icon={false} className="mt-1 min-w-[160px] max-w-[260px]" searchPlaceholder={tx("Sinf qidirish...")} value={sinfId} onChange={setSinfId}
 												options={[{ value: '', label: 'Barcha sinflar' }, ...sinfs.map(s => ({ value: s._id, label: s.name }))]} />
 										</div>
-										<div className="text-xs text-slate-500">Xavf guruhi: ketma-ket
+										<div className="text-xs text-slate-500">{tx("Xavf guruhi: ketma-ket")}
 											<SearchableSelect variant="outline" icon={false} className="mt-1 min-w-[110px] max-w-[160px]" value={String(minStreak)} onChange={v => setMinStreak(Number(v))}
 												options={[2, 3, 5, 7].map(n => ({ value: String(n), label: `${n}+ kun` }))} />
 										</div>
-					<input value={q} onChange={e => setQ(e.target.value)} placeholder="Hisobot qidirish" className={`${input} ml-auto w-48`} />
+					<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Hisobot qidirish")} className={`${input} ml-auto w-48`} />
 				</div>
 				<div className="flex flex-wrap items-center gap-1.5">
 					<FiCalendar className="text-slate-400" />
@@ -122,11 +123,11 @@ const ReportCenter = () => {
 				<>
 					{featured && !q && (
 						<div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-slate-900 to-blue-900 p-5 text-white shadow-sm">
-							<div className="min-w-0"><p className="text-xs uppercase tracking-widest text-cyan-200/80">Tavsiya etiladi</p><h2 className="mt-1 text-lg font-semibold">{featured.title}</h2><p className="mt-1 max-w-2xl text-sm text-slate-300">{featured.desc}</p></div>
-							<button disabled={busy === featured.key} onClick={() => download(featured)} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-100 disabled:opacity-60">{busy === featured.key ? <><FiLoader className="animate-spin" /> Tayyorlanmoqda...</> : <><FiDownload /> Yuklab olish</>}</button>
+							<div className="min-w-0"><p className="text-xs uppercase tracking-widest text-cyan-200/80">{tx("Tavsiya etiladi")}</p><h2 className="mt-1 text-lg font-semibold">{featured.title}</h2><p className="mt-1 max-w-2xl text-sm text-slate-300">{featured.desc}</p></div>
+							<button disabled={busy === featured.key} onClick={() => download(featured)} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-100 disabled:opacity-60">{busy === featured.key ? <><FiLoader className="animate-spin" /> {tx("Tayyorlanmoqda...")}</> : <><FiDownload /> {tx("Yuklab olish")}</>}</button>
 						</div>
 					)}
-					{groups.length === 0 && <p className="rounded-2xl border border-dashed border-slate-300 bg-white py-10 text-center text-sm text-slate-500">Hisobot topilmadi</p>}
+					{groups.length === 0 && <p className="rounded-2xl border border-dashed border-slate-300 bg-white py-10 text-center text-sm text-slate-500">{tx("Hisobot topilmadi")}</p>}
 					{groups.map(([g, list]) => (
 						<section key={g}>
 							<h2 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-slate-700">{g}<span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">{list.length}</span></h2>

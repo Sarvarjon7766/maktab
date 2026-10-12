@@ -1,11 +1,13 @@
 import axios from 'axios'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiActivity, FiLogIn, FiLogOut, FiRefreshCw, FiSearch, FiUsers, FiVideo } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import HikLivePlayer from '../../components/HikLivePlayer'
 import { CameraSettings, authHeaders, statusOf } from '../../components/HikCameraList'
 import SearchableSelect from '../../components/SearchableSelect'
+import { makeGuard, setVisibleInterval } from '../../utils/poll'
+import { tx } from '../../i18n'
 
 const norm = (t) => String(t || '').toLowerCase().replace(/['‘’ʻʼ`´]/g, '')
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
@@ -42,27 +44,30 @@ const AdminFaceControl = () => {
 	const [q, setQ] = useState('')
 	const [dir, setDir] = useState('all')
 
+	const guard = useRef(makeGuard()).current
 	const load = useCallback(async () => {
+		const id = guard.next()
 		try {
 			const [fc, s] = await Promise.all([
 				axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/facecontrol`, { ...authHeaders(), params: { date } }),
 				axios.get(`${import.meta.env.VITE_BASE_URL}/api/sinf/getAll`, authHeaders()).catch(() => ({ data: { sinfs: [] } }))
 			])
+			if (!guard.ok(id)) return // sana almashgan: eskirgan javob
 			setData(fc.data)
 			setSinfs(s.data.sinfs || [])
 			setError(false)
 		} catch {
-			setError(true)
+			if (guard.ok(id)) setError(true)
 		} finally {
-			setLoading(false)
+			if (guard.ok(id)) setLoading(false)
 		}
-	}, [date])
+	}, [date, guard])
 
 	useEffect(() => {
 		setLoading(true)
 		load()
 		if (date !== today()) return
-		const timer = setInterval(load, 5000)
+		const timer = setVisibleInterval(load, 5000)
 		return () => clearInterval(timer)
 	}, [load, date])
 
@@ -93,7 +98,7 @@ const AdminFaceControl = () => {
 			<div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
 				{canPlay ? <div className="overflow-hidden rounded-t-2xl"><HikLivePlayer cameraId={c._id} lazy /></div> : (
 					<div className="flex flex-col items-center justify-center gap-2 rounded-t-2xl bg-slate-900 text-slate-400 text-sm" style={{ aspectRatio: '16 / 9' }}>
-						<FiVideo size={26} /><span>{c.online === false ? 'Kamera offline' : "Holat noma'lum"}</span>
+						<FiVideo size={26} /><span>{c.online === false ? tx("Kamera offline") : tx("Holat noma'lum")}</span>
 					</div>
 				)}
 				<div className="p-4 space-y-3">
@@ -106,10 +111,10 @@ const AdminFaceControl = () => {
 							<div key={l} className="rounded-lg bg-gray-50 py-1.5"><p className="text-base font-bold text-gray-900">{v}</p><p className="text-[11px] text-gray-500">{l}</p></div>
 						))}
 					</div>
-					<p className="text-xs text-gray-400">Oxirgi aniqlash: {ago(c.lastEventAt)}</p>
+					<p className="text-xs text-gray-400">{tx("Oxirgi aniqlash: {{time}}", { time: ago(c.lastEventAt) })}</p>
 					<label className="flex items-start gap-2 text-xs text-gray-700 cursor-pointer">
 						<input type="checkbox" className="mt-0.5" checked={!!c.autoAttendance} onChange={e => setAuto(c, e.target.checked)} />
-						<span>Avto-davomat: aniqlangan o'quvchi/xodim kirish-chiqishga o'zi yoziladi</span>
+						<span>{tx("Avto-davomat: aniqlangan o'quvchi/xodim kirish-chiqishga o'zi yoziladi")}</span>
 					</label>
 					<CameraSettings camera={c} sinfs={sinfs} onSaved={load} />
 				</div>
@@ -119,29 +124,29 @@ const AdminFaceControl = () => {
 
 	const renderSection = ({ title, icon, list, tone }) => (
 		<section>
-			<div className="flex items-center gap-2 mb-3"><span className={`w-8 h-8 rounded-lg flex items-center justify-center ${tone}`}>{icon}</span><h2 className="font-semibold text-gray-900">{title}</h2><span className="text-sm text-gray-500">· {list.length} ta</span></div>
-			{list.length === 0 ? <p className="text-sm text-gray-500 rounded-xl border border-dashed border-gray-200 p-6 text-center">Kamera yo'q. Tizim egasi kameraga FaceControl vazifasini bergach, shu yerda ko'rinadi</p>
+			<div className="flex items-center gap-2 mb-3"><span className={`w-8 h-8 rounded-lg flex items-center justify-center ${tone}`}>{icon}</span><h2 className="font-semibold text-gray-900">{title}</h2><span className="text-sm text-gray-500">· {tx("{{n}} ta", { n: list.length })}</span></div>
+			{list.length === 0 ? <p className="text-sm text-gray-500 rounded-xl border border-dashed border-gray-200 p-6 text-center">{tx("Kamera yo'q. Tizim egasi kameraga FaceControl vazifasini bergach, shu yerda ko'rinadi")}</p>
 				: <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">{list.map(c => <div key={c._id}>{renderCamera(c)}</div>)}</div>}
 		</section>
 	)
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6 space-y-6">
+		<div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6 space-y-6">
 			<div className="flex flex-wrap items-center justify-end gap-3">
 				<div className="flex items-center gap-2">
 					<input type="date" value={date} max={today()} onChange={e => e.target.value && setDate(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-black" />
-					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={14} /> Yangilash</button>
+					<button onClick={load} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={14} /> {tx("Yangilash")}</button>
 				</div>
 			</div>
 
-			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">Ma'lumotni yuklab bo'lmadi</div>}
-			{data?.poller?.lastError && <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">Hik-Connect hodisalarini olishda xatolik: {data.poller.lastError}</div>}
+			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Ma'lumotni yuklab bo'lmadi")}</div>}
+			{data?.poller?.lastError && <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">{tx("Hik-Connect hodisalarini olishda xatolik: {{error}}", { error: data.poller.lastError })}</div>}
 
 			<div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-				<Stat icon={<FiLogIn />} tone="bg-green-50 text-green-600" to="../students" label="Kirgan o'quvchilar" value={t.studentsIn ?? 0} />
-				<Stat icon={<FiLogOut />} tone="bg-orange-50 text-orange-600" to="../students" label="Chiqqan o'quvchilar" value={t.studentsOut ?? 0} />
-				<Stat icon={<FiUsers />} tone="bg-violet-50 text-violet-600" to="../attandance" label="Xodimlar (kirgan / chiqqan)" value={`${t.staffIn ?? 0} / ${t.staffOut ?? 0}`} />
-				<Stat icon={<FiActivity />} tone="bg-blue-50 text-blue-600" to="../entry-exit" label="Jami aniqlashlar" value={t.events ?? 0} />
+				<Stat icon={<FiLogIn />} tone="bg-green-50 text-green-600" to="../students" label={tx("Kirgan o'quvchilar")} value={t.studentsIn ?? 0} />
+				<Stat icon={<FiLogOut />} tone="bg-orange-50 text-orange-600" to="../students" label={tx("Chiqqan o'quvchilar")} value={t.studentsOut ?? 0} />
+				<Stat icon={<FiUsers />} tone="bg-violet-50 text-violet-600" to="../attandance" label={tx("Xodimlar (kirgan / chiqqan)")} value={`${t.staffIn ?? 0} / ${t.staffOut ?? 0}`} />
+				<Stat icon={<FiActivity />} tone="bg-blue-50 text-blue-600" to="../entry-exit" label={tx("Jami aniqlashlar")} value={t.events ?? 0} />
 			</div>
 
 			{renderSection({ title: "Kirish kameralari", icon: <FiLogIn />, tone: "bg-green-50 text-green-600", list: ins })}
@@ -149,13 +154,13 @@ const AdminFaceControl = () => {
 
 			<section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
 				<div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-					<h2 className="font-semibold text-gray-900">Aniqlashlar lentasi</h2>
-					<p className="text-xs text-gray-500">{date === today() ? "Har 5 soniyada yangilanadi" : date}{data?.poller?.lastPollAt ? ` · Hik'dan oxirgi so'rov: ${ago(data.poller.lastPollAt)}` : ''}</p>
+					<h2 className="font-semibold text-gray-900">{tx("Aniqlashlar lentasi")}</h2>
+					<p className="text-xs text-gray-500">{date === today() ? tx("Har 5 soniyada yangilanadi") : date}{data?.poller?.lastPollAt ? ` · Hik'dan oxirgi so'rov: ${ago(data.poller.lastPollAt)}` : ''}</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2 border-b border-gray-100 px-5 py-3">
 					<div className="relative min-w-[200px] max-w-sm flex-1">
 						<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-						<input value={q} onChange={e => setQ(e.target.value)} placeholder="Shaxs, ID, kamera yoki sinf bo'yicha qidirish" className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+						<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Shaxs, ID, kamera yoki sinf bo'yicha qidirish")} className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
 					</div>
 					<SearchableSelect variant="outline" icon={false} className="min-w-[140px] max-w-[200px]" value={dir} onChange={setDir} options={[{ value: 'all', label: 'Barcha yo\'nalish' }, { value: 'in', label: 'Kirish' }, { value: 'out', label: 'Chiqish' }]} />
 				</div>
@@ -168,18 +173,18 @@ const AdminFaceControl = () => {
 							{events.map(e => (
 								<tr key={e._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
 									<td className="px-4 py-2.5 whitespace-nowrap text-gray-700">{timeOf(e.time)}</td>
-									<td className="px-4 py-2.5"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.direction === 'in' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>{e.direction === 'in' ? 'Kirish' : 'Chiqish'}</span></td>
+									<td className="px-4 py-2.5"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.direction === 'in' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>{e.direction === 'in' ? tx("Kirish") : tx("Chiqish")}</span></td>
 									<td className="px-4 py-2.5 text-gray-600">{e.camera}</td>
 									<td className="px-4 py-2.5">
-										{e.personName ? <><p className="font-medium text-gray-900">{e.personName}</p><p className="text-xs text-gray-500">{e.personType === 'student' ? "O'quvchi" : 'Xodim'} · {e.humanId}</p></>
-											: <><p className="text-gray-500">{e.humanName || "Noma'lum"}</p><p className="text-xs text-amber-600">ID: {e.humanId || '—'} — bazada topilmadi</p></>}
+										{e.personName ? <><p className="font-medium text-gray-900">{e.personName}</p><p className="text-xs text-gray-500">{e.personType === 'student' ? tx("O'quvchi") : tx("Xodim")} · {e.humanId}</p></>
+											: <><p className="text-gray-500">{e.humanName || tx("Noma'lum")}</p><p className="text-xs text-amber-600">{tx("ID: {{id}} — bazada topilmadi", { id: e.humanId || '—' })}</p></>}
 									</td>
 									<td className="px-4 py-2.5 text-gray-600">{e.sinf || '—'}</td>
 									<td className="px-4 py-2.5 text-gray-700">{e.similarity != null ? `${Math.round(e.similarity * 100)}%` : '—'}</td>
-									<td className="px-4 py-2.5">{e.recorded ? <span className="text-green-600 text-xs font-medium">Yozildi</span> : <span className="text-xs text-gray-500">{e.note || 'Yozilmagan'}</span>}</td>
+									<td className="px-4 py-2.5">{e.recorded ? <span className="text-green-600 text-xs font-medium">{tx("Yozildi")}</span> : <span className="text-xs text-gray-500">{e.note || tx("Yozilmagan")}</span>}</td>
 								</tr>
 							))}
-							{data && events.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-500">{data.events.length ? "Qidiruv bo'yicha hodisa topilmadi" : "Bu kunda aniqlash hodisalari yo'q"}</td></tr>}
+							{data && events.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-500">{data.events.length ? tx("Qidiruv bo'yicha hodisa topilmadi") : tx("Bu kunda aniqlash hodisalari yo'q")}</td></tr>}
 						</tbody>
 					</table>
 				</div>

@@ -82,8 +82,8 @@ const MonitorSidebar = ({ collapsed = false, onClose }) => {
 					<BrandLogo className="w-12 h-12 shrink-0" />
 					{!collapsed && (
 						<div className="leading-tight overflow-hidden">
-							<p className="font-bold truncate">School Supervision</p>
-							<p className="text-[11px] text-cyan-300/80 truncate" title={area?.scoped ? `${area.region}, ${area.district}` : undefined}>{area?.scoped ? tx('{{district}} nazorati', { district: area.district }) : 'Umumiy nazorat'}</p>
+							<p className="font-bold truncate">{tx("School Supervision")}</p>
+							<p className="text-[11px] text-cyan-300/80 truncate" title={area?.scoped ? `${area.region}, ${area.district}` : undefined}>{area?.scoped ? tx('{{district}} nazorati', { district: area.district }) : tx("Umumiy nazorat")}</p>
 						</div>
 					)}
 				</div>
@@ -118,10 +118,10 @@ const MonitorSidebar = ({ collapsed = false, onClose }) => {
 				<button
 					onClick={() => navigate('/logout')}
 					className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition-colors ${collapsed ? 'justify-center' : ''}`}
-					title={collapsed ? 'Chiqish' : undefined}
+					title={collapsed ? tx("Chiqish") : undefined}
 				>
 					<FiLogOut size={18} />
-					{!collapsed && 'Chiqish'}
+					{!collapsed && tx("Chiqish")}
 				</button>
 			</div>
 		</div>

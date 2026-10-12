@@ -19,6 +19,8 @@ const hikCameraEventModel = require('../models/hik.cameraevent.model')
 const studentModel = require('../models/student.model')
 const sinfModel = require('../models/sinf.model')
 const ai = require('../ai/aiPool')
+const AiSettings = require('./ai.settings.service')
+const { ALERT_KINDS, ALL_KINDS } = require('../ai/kinds')
 const { activityBetween } = require('../ai/activity')
 const { LESSON_START, LESSON_END } = require('../utils/lessonHours')
 const Snapshots = require('./hik.snapshot.service')
@@ -29,13 +31,21 @@ const EVENT_DIR = path.join(__dirname, '..', 'private', 'hik-events') // isbot k
 // Dars soatlari (Toshkent): qoidalar va avtomatik namunalar faqat shu vaqtda ishlaydi (utils/lessonHours.js)
 const LESSON = [LESSON_START, LESSON_END]
 const HOURS = [6, 20] // faqat shu soatlar oralig'ida (Toshkent vaqti) tahlil qilinadi
-const INTERVAL_MS = Math.max(15, Number(process.env.VISION_INTERVAL_SEC) || 60) * 1000
+let INTERVAL_MS = 60 * 1000 // tizim egasi panelidagi 'intervalSec' bilan har siklda yangilanadi (refreshCfg)
 const STALE_MS = 5 * 60 * 1000 // shundan eski natija "eskirgan" hisoblanadi
 const SMOOTH_N = 3 // jonli son — oxirgi N o'lchovning medianasi (bitta xato kadr sonni sakratmasin)
 
 // Qurilma yuklamasi
-const DEVICE_GAP_MS = Math.max(2, Number(process.env.VISION_DEVICE_GAP_SEC) || 8) * 1000 // bir qurilmadagi ketma-ket so'rovlar orasida
-const DEVICE_PARALLEL = Math.max(1, Number(process.env.VISION_DEVICE_PARALLEL) || 3)
+let DEVICE_GAP_MS = 8 * 1000 // bir qurilmadagi ketma-ket so'rovlar orasida
+let DEVICE_PARALLEL = 3
+// Tizim egasi panelidagi (AI sozlamalari) qiymatlarni o'qib, tahlil tezligini yangilaydi
+async function refreshCfg() {
+	const cfg = await AiSettings.get()
+	INTERVAL_MS = Math.max(15, Number(cfg.intervalSec) || 60) * 1000
+	DEVICE_GAP_MS = Math.max(2, Number(cfg.deviceGapSec) || 8) * 1000
+	DEVICE_PARALLEL = Math.max(1, Number(cfg.deviceParallel) || 3)
+	return cfg
+}
 const OFFLINE_BASE_MS = 2 * 60 * 1000 // offline: 2, 4, 8, 15 daqiqa
 const BUSY_BASE_MS = 60 * 1000 // javob bermadi / bulut band: 1, 2, 4, 8, 15 daqiqa
 const DEVICE_MAX_MS = 15 * 60 * 1000
@@ -48,18 +58,22 @@ const LIVE_INTERVAL_MS = Math.max(1, Number(process.env.VISION_LIVE_INTERVAL_MIN
 
 // Isbot qoidalari
 const COOLDOWN_MS = 15 * 60 * 1000 // bir kamerada bir xil isbot shuncha vaqtda bir martadan ko'p olinmaydi
-const SAMPLE_EVERY_MS = 30 * 60 * 1000 // hodisa bo'lmasa ham AI har 30 daqiqada tahlil namunasini saqlaydi
 const PURGE_EVERY_MS = 6 * 60 * 60 * 1000
 const SURGE_MIN_DELTA = 6 // odamlar soni oldingi medianadan kamida shuncha taga ...
 const SURGE_RATIO = 1.5 // ... va shuncha baravar oshsa
 const SURGE_MIN_BASE = 3 // sinf allaqachon band bo'lsagina (bo'sh sinfga dars boshida kirish "keskin oshish" emas)
 const EMPTY_PEAK = 5 // "bo'sh qoldi" deyish uchun avval kamida shuncha odam bo'lgan bo'lishi kerak
-const EMPTY_MIN_MS = Math.max(1, Number(process.env.VISION_EMPTY_MIN) || 15) * 60 * 1000 // tanafus (5-15 daqiqa) emas, shundan uzoq bo'sh turishi kerak
 const OVER_ROSTER = 4 // ro'yxatdagi o'quvchilardan shuncha ko'p odam (o'qituvchi +1 va xato +-2 hisobida)
 const PRE_IMAGES = 3 // hodisadan oldingi nechta kadr rasm sifatida saqlanadi
 const FOLLOW_UPS_MS = [45 * 1000, 150 * 1000] // hodisadan keyingi kadrlar (har biri shu vaqtdan keyin, navbat bilan)
 const FOLLOW_UP_EXPIRE_MS = 10 * 60 * 1000
 const ACTIVITY_GAP_MS = 8 * 60 * 1000 // ikki o'lchov orasi shundan uzoq bo'lsa harakat hisoblanmaydi
+const MASS_SHARE = 0.55 // holati aniqlangan odamlarning shuncha ulushi tik turgan bo'lsa "ko'pchilik o'rnidan turgan"
+const MASS_MIN = 6 // ... va kamida shuncha odamning holati aniqlangan bo'lsa
+const POSE_SELECT = 'kind time camera sinfId title detail count clip images scene pose'
+// Holatlar soni: eski yozuvlarda `analyzed` yo'q (o'tirgan + tik turgan)
+const anOf = (p) => (p ? (p.analyzed ?? (p.seated || 0) + (p.standing || 0)) : 0)
+const pct = (a, b) => (b ? Math.round((a / b) * 1000) / 10 : null)
 
 const SAFE_IMAGE = /^[a-f0-9]{24}(_(pre|post)\d+)?\.jpg$/
 const validId = (id) => mongoose.isValidObjectId(id)
@@ -128,6 +142,7 @@ class VisionService {
 		this.rosters = new Map() // sinfId -> { n, name, until }
 		this.followUps = [] // hodisadan keyingi kadrlar navbati
 		this.prevBoxes = new Map() // camera -> { t, boxes }: harakat (faollik) hisoblash uchun oldingi kadr
+		this.tileTick = new Map() // camera -> sikl raqami (bo'sh xonada bo'laklab tahlilni siyrak qilish uchun)
 		this.lastPurge = 0
 		this.lastCycle = null
 	}
@@ -164,23 +179,44 @@ class VisionService {
 		return a === null ? null : Math.round(a * 1000) / 1000
 	}
 
+	// Odam holatlari sanog'i (o'tirgan, tik turgan, boshi egilgan, qo'l ko'targan ...). Model yo'q yoki xato bo'lsa null (tahlil to'xtamaydi)
+	async poseOf(buf, result, cfg) {
+		if (!result.boxes.length) return null
+		try {
+			return await ai.pose(buf, result.boxes, { model: cfg.poseModel, conf: cfg.poseConf })
+		} catch (e) {
+			if (Date.now() - (this.poseErrAt || 0) > 10 * 60 * 1000) { this.poseErrAt = Date.now(); console.log('Vision holatlarni aniqlash xatosi:', e.message) }
+			return null
+		}
+	}
+
 	// Bitta kamerani tahlil qiladi va natijani yozadi. followUp berilsa — hodisaning keyingi kadri
 	async analyze(camera, followUp = null) {
 		const started = Date.now()
+		const cfg = await AiSettings.get()
 		const buf = await Snapshots.captureBuffer(camera)
-		const result = await ai.detect(buf)
+		// Bo'laklab tahlil (butun kadr + 4 burchak = 5 marta model) eng og'ir qism. Xona oxirgi o'lchovda bo'sh yoki deyarli bo'sh bo'lsa
+		// uni har 3-siklda bir marta bajaramiz (qolganida faqat butun kadr): bo'sh xonalarda protsessor ~4 baravar kam ketadi
+		const camKey = String(camera._id)
+		const lastCount = (this.hist.get(camKey) || []).slice(-1)[0]?.count
+		const tick = (this.tileTick.get(camKey) || 0) + 1
+		this.tileTick.set(camKey, tick)
+		const sparse = lastCount !== undefined && lastCount <= 1 && tick % 3 !== 0
+		const result = await ai.detect(buf, { tiled: cfg.tiled && !sparse, score: cfg.detectorScore })
 		const now = new Date()
 		const { dateString, hour } = tzParts(now)
 		const activity = await this.activityOf(camera, result, now)
+		// Odam holatlari (skelet): "Har tahlilda hisoblash" yoqilgan bo'lsa shu yerda, aks holda faqat hodisa/namuna paytida (emit)
+		if (cfg.poseEnabled && cfg.poseLive) result.pose = await this.poseOf(buf, result, cfg)
 		await visionMetricModel.create({
 			schoolId: camera.schoolId, camera: camera._id, sinfId: camera.sinfId || null,
-			count: result.count, activity, boxes: result.boxes.flatMap((b) => [b.x1, b.y1, b.x2, b.y2]), time: now, hour, dateString, ms: Date.now() - started
+			count: result.count, activity, pose: result.pose || undefined, boxes: result.boxes.flatMap((b) => [b.x1, b.y1, b.x2, b.y2]), time: now, hour, dateString, ms: Date.now() - started
 		})
 		// Panel uchun oxirgi tahlil kadri (qutilar bilan)
 		await ai.smallFrame(buf, result, 1280, '#22c55e', 72)
 			.then((jpeg) => writeAtomic(fileOf(String(camera._id)), jpeg))
 			.catch((e) => console.log('Vision kadr saqlash xatosi:', e.message))
-		await this.observe(camera, buf, result, now).catch((e) => console.log('Vision isbot xatosi:', e.message))
+		await this.observe(camera, buf, result, now, { cfg, activity }).catch((e) => console.log('Vision isbot xatosi:', e.message))
 		if (followUp) await this.attachFollowUp(followUp, buf, result, now).catch((e) => console.log('Vision keyingi kadr xatosi:', e.message))
 		return result.count
 	}
@@ -200,11 +236,11 @@ class VisionService {
 	}
 
 	// Har o'lchovdan keyin: tarixni yangilaydi, qoidalarni tekshiradi va topilsa isbotni avtomatik saqlaydi
-	async observe(camera, buf, result, now) {
+	async observe(camera, buf, result, now, { cfg = {}, activity = null } = {}) {
 		const key = String(camera._id)
 		const hist = this.hist.get(key) || []
 		const prev = hist.filter((p) => now - p.t <= 30 * 60 * 1000) // eskirgan (uzilishdan oldingi) tarix hisobga olinmaydi
-		hist.push({ t: now, count: result.count })
+		hist.push({ t: now, count: result.count, activity })
 		while (hist.length > 60) hist.shift()
 		this.hist.set(key, hist)
 		const frames = this.frames.get(key) || []
@@ -219,17 +255,17 @@ class VisionService {
 		const { hour } = tzParts(now)
 		if (hour < LESSON[0] || hour >= LESSON[1]) return
 		const roster = await this.rosterOf(camera)
-		const finding = this.evaluate(result.count, prev, roster, state, now)
+		const finding = this.evaluate(result.count, prev, roster, state, now, { cfg, activity, pose: result.pose, hall: !camera.sinfId, capacity: camera.capacity })
 		if (!finding) {
 			// Hodisa yo'q: AI baribir tahlil qilganini isbotlash uchun vaqti-vaqti bilan namuna kadr saqlaydi (lavhasiz)
 			if (!this.lastSample.has(key)) {
 				const lastDb = await hikCameraEventModel.findOne({ camera: camera._id, kind: 'vision_sample' }).sort({ time: -1 }).select('time').lean()
 				this.lastSample.set(key, lastDb ? new Date(lastDb.time).getTime() : 0)
 			}
-			if (now - this.lastSample.get(key) >= SAMPLE_EVERY_MS) {
+			if (now - this.lastSample.get(key) >= Math.max(5, Number(cfg.sampleEveryMin) || 30) * 60 * 1000) {
 				this.lastSample.set(key, now.getTime())
 				const detail = roster.n ? `${result.count} odam · sinf ro'yxatida ${roster.n} o'quvchi · holat me'yorda` : `${result.count} odam · holat me'yorda`
-				await this.emit(camera, buf, result, now, { kind: 'vision_sample', title: 'Avtomatik kuzatuv namunasi', detail }, hist, [], roster)
+				await this.emit(camera, buf, result, now, { kind: 'vision_sample', title: 'Avtomatik kuzatuv namunasi', detail }, hist, [], roster, cfg)
 			}
 			return
 		}
@@ -239,11 +275,13 @@ class VisionService {
 			if (now - (this.cooldown.get(ck) || 0) < COOLDOWN_MS) return
 			this.cooldown.set(ck, now.getTime())
 		}
-		await this.emit(camera, buf, result, now, finding, hist, frames, roster)
+		await this.emit(camera, buf, result, now, finding, hist, frames, roster, cfg)
 	}
 
 	// Qoidalar. prev — shu kameraning oldingi o'lchovlari (oxirgi 30 daqiqa), count — hozirgi
-	evaluate(count, prev, roster, state, now) {
+	evaluate(count, prev, roster, state, now, ctx = {}) {
+		const cfg = ctx.cfg || {}
+		const EMPTY_MIN_MS = Math.max(1, Number(cfg.emptyMin) || 15) * 60 * 1000 // tanafus (5-15 daqiqa) emas, shundan uzoq bo'sh turishi kerak
 		const last = prev[prev.length - 1]
 		const peak = Math.max(0, ...prev.map((p) => p.count))
 
@@ -260,6 +298,30 @@ class VisionService {
 		if (roster.n >= 5 && count >= roster.n + OVER_ROSTER && last && last.count >= roster.n + OVER_ROSTER) {
 			return { kind: 'vision_overcrowd', title: 'Sinfda ortiqcha odam', detail: `Kamerada ${count} odam, sinf ro'yxatida ${roster.n} o'quvchi (o'qituvchi hisobiga +1)` }
 		}
+		// 2b) Zal kamerasi (sinfga biriktirilmagan): odamlar soni belgilangan zichlikdan oshsa, ketma-ket 2 o'lchovda
+		const hallCrowd = Number(ctx.capacity) || Number(cfg.hallCrowd) || 40
+		if (ctx.hall && count >= hallCrowd && last && last.count >= hallCrowd) {
+			return { kind: 'vision_overcrowd', title: 'Zalda odamlar zich', detail: `Kamerada ${count} odam (chegara: ${hallCrowd}). Zich to'planish bo'lishi mumkin` }
+		}
+		// 2c) Notinchlik / to'polon: ko'pchilik tez harakatlanyapti (ketma-ket 2 o'lchovda). Zalda tartibsizlik, sinfda "sinf notinch"
+		const actMin = Number(cfg.restlessAct) || 0.6
+		const peopleMin = Number(cfg.restlessMinPeople) || 8
+		const act = ctx.activity
+		if (typeof act === 'number' && act >= actMin && count >= peopleMin && last && typeof last.activity === 'number' && last.activity >= actMin && last.count >= peopleMin) {
+			const v = Math.round(((act + last.activity) / 2) * 100)
+			const detail = `${count} odam tez harakatlanyapti (harakat ${v}%, ketma-ket ikki o'lchovda). To'polon yoki janjal bo'lishi mumkin (taxminiy, kadr orqali)`
+			return ctx.hall
+				? { kind: 'vision_commotion', title: 'Zalda tartibsizlik belgisi', detail }
+				: { kind: 'vision_restless', title: 'Sinf notinch', detail }
+		}
+		// 2d) Ko'pchilik o'rnidan turgan (skelet bo'yicha), ketma-ket 2 o'lchovda: sinf notinch hisoblanadi
+		const pose = ctx.pose
+		const mass = !!(pose && pose.analyzed >= MASS_MIN && pose.standing / pose.analyzed >= MASS_SHARE)
+		const massBefore = state.lastStandMass
+		if (!ctx.hall) state.lastStandMass = mass
+		if (!ctx.hall && mass && massBefore) {
+			return { kind: 'vision_restless', title: 'Sinf notinch', detail: `Holati aniqlangan ${pose.analyzed} odamdan ${pose.standing} tasi tik turibdi (${Math.round(pose.standing / pose.analyzed * 100)}%): ko'pchilik o'rnidan turgan yoki yurib yuribdi` }
+		}
 		// 3) Odamlar soni keskin oshdi: oxirgi 3 o'lchov medianasiga nisbatan
 		if (prev.length >= 3) {
 			const med = median(prev.slice(-3).map((p) => p.count))
@@ -272,11 +334,14 @@ class VisionService {
 
 	// Isbotni chizib saqlaydi: hodisa kadri (sabab va chizma bilan), hodisadan oldingi kadrlar va qisqa lavha.
 	// Hodisadan keyingi kadrlar keyinroq navbat bilan qo'shiladi (attachFollowUp)
-	async emit(camera, buf, result, now, finding, hist, frames, roster) {
+	async emit(camera, buf, result, now, finding, hist, frames, roster, cfg = {}) {
 		const id = new mongoose.Types.ObjectId()
 		const isSample = finding.kind === 'vision_sample'
 		const { dateString, hour } = tzParts(now)
-		const image = await ai.renderEvidence({ buf, result, kind: finding.kind, title: finding.title, detail: finding.detail, history: hist, cameraName: camera.name, sinfName: roster.name, at: now })
+		if (!result.pose && cfg.poseEnabled) result.pose = await this.poseOf(buf, result, cfg)
+		// Telefon nomzodlari (ishonchsiz: faqat dalil rasmida belgilanadi, ogohlantirishga ta'sir qilmaydi)
+		const phones = cfg.phoneEnabled ? await ai.phones(buf, result.boxes, { score: cfg.phoneScore }).catch(() => []) : []
+		const image = await ai.renderEvidence({ buf, result, phones, kind: finding.kind, title: finding.title, detail: finding.detail, history: hist, cameraName: camera.name, sinfName: roster.name, at: now })
 		await writeAtomic(path.join(EVENT_DIR, `${id}.jpg`), image)
 
 		const images = []
@@ -297,7 +362,7 @@ class VisionService {
 		await hikCameraEventModel.create({
 			_id: id, schoolId: camera.schoolId, accountId: camera.accountId, camera: camera._id, sinfId: camera.sinfId || null,
 			guid: `vision-${camera._id}-${finding.kind}-${now.getTime()}`, eventType: 0, kind: finding.kind, time: now, hour, dateString,
-			snapshot: `${id}.jpg`, snapshotAt: now, title: finding.title, detail: finding.detail, count: result.count,
+			snapshot: `${id}.jpg`, snapshotAt: now, title: finding.title, detail: finding.detail, count: result.count, pose: result.pose || null,
 			clip: clip ? `${id}.webp` : null, images
 		})
 		if (!isSample && camera.serial) {
@@ -306,6 +371,7 @@ class VisionService {
 				due: now.getTime() + after, n: i + 1, last: i === FOLLOW_UPS_MS.length - 1, frames: [...frames]
 			}))
 		}
+		if (!isSample && cfg.vlmEnabled) require('./vlm.service').enqueue(id, buf).catch(() => {})
 		console.log(`Vision isbot: ${finding.title} (${camera.name || camera._id}, ${result.count} odam, ${images.length || 1} rasm)`)
 	}
 
@@ -348,7 +414,7 @@ class VisionService {
 				if (kind === 'offline' || kind === 'busy') {
 					// Qurilma darajasidagi xato: qolgan kameralarga ham tegmaymiz, kutish vaqti oshadi
 					dev.failure(kind)
-					if (kind === 'offline') await hikCameraModel.updateMany({ accountId: camera.accountId, serial }, { $set: { online: false } }).catch(() => {})
+					if (kind === 'offline') await HikService.markDeviceOffline(camera.accountId, serial)
 					return false
 				}
 				// Kamera darajasidagi xato: faqat shu kamera uchun kutish (1, 2, 4 ... 10 daqiqa)
@@ -388,7 +454,7 @@ class VisionService {
 		const ids = new Set(cameras.map((c) => String(c._id)))
 		const serials = new Set(cameras.map((c) => c.serial))
 		for (const fu of this.followUps) serials.add(fu.serial)
-		for (const m of [this.failures, this.lastError, this.hist, this.frames, this.state, this.lastSample, this.prevBoxes]) {
+		for (const m of [this.failures, this.lastError, this.hist, this.frames, this.state, this.lastSample, this.prevBoxes, this.tileTick]) {
 			for (const k of m.keys()) if (!ids.has(k)) m.delete(k)
 		}
 		for (const k of this.cooldown.keys()) if (!ids.has(k.split(':')[0])) this.cooldown.delete(k)
@@ -399,11 +465,13 @@ class VisionService {
 		if (this.running) return
 		this.running = true
 		try {
+			const cfg = await refreshCfg()
+			if (cfg.enabled === false) return
 			const { hour } = tzParts()
 			if (hour < HOURS[0] || hour >= HOURS[1]) return
 			const cameras = await hikCameraModel.find({
 				visionEnabled: true, inCloud: { $ne: false }, online: { $ne: false },
-				schoolId: { $ne: null }, role: 'monitor', serial: { $ne: '' }
+				schoolId: { $ne: null }, role: { $in: ['monitor', 'hall'] }, serial: { $ne: '' }
 			}).lean()
 			this.evictInactive(cameras)
 			const byDevice = new Map()
@@ -455,7 +523,7 @@ class VisionService {
 	mapEvidence(e) {
 		return {
 			_id: e._id, kind: e.kind, time: e.time, camera: e.camera?.name || '', sinf: e.sinfId?.name || '', sinfId: e.sinfId?._id || null,
-			title: e.title || '', detail: e.detail || '', count: e.count ?? null, hasClip: !!e.clip,
+			title: e.title || '', detail: e.detail || '', count: e.count ?? null, pose: e.pose || null, scene: e.scene || null, hasClip: !!e.clip,
 			images: (e.images || []).map((i) => ({ label: i.label, t: i.t, count: i.count }))
 		}
 	}
@@ -463,20 +531,20 @@ class VisionService {
 	// "Aqlli kuzatuv" sahifasi uchun jamlama: kun bo'yicha ko'rsatkichlar, muhim hodisalar (oxirgi 8 ta) va har sinf uchun
 	// lahzalar soni + eng oxirgisi. Hamma kadrlarni emas, faqat xulosani beradi; to'liq ro'yxat `evidence()` orqali (batafsil ko'rish)
 	async summary(schoolId, date = null) {
-		const ALERTS = ['vision_empty', 'vision_surge', 'vision_overcrowd']
+		const ALERTS = ALERT_KINDS
 		const school = new mongoose.Types.ObjectId(String(schoolId))
 		const day = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : tzParts().dateString
-		const base = { schoolId: school, dateString: day, kind: { $in: [...ALERTS, 'vision_sample'] } }
+		const base = { schoolId: school, dateString: day, kind: { $in: ALL_KINDS } }
 		const [perSinf, lastIds, alerts, cams, lastMetric] = await Promise.all([
 			hikCameraEventModel.aggregate([{ $match: base }, { $group: { _id: '$sinfId', total: { $sum: 1 }, alerts: { $sum: { $cond: [{ $in: ['$kind', ALERTS] }, 1, 0] } } } }]),
 			hikCameraEventModel.aggregate([{ $match: base }, { $sort: { time: -1 } }, { $group: { _id: '$sinfId', id: { $first: '$_id' } } }]),
 			hikCameraEventModel.find({ ...base, kind: { $in: ALERTS } }).sort({ time: -1 }).limit(8)
-				.populate('camera', 'name').populate('sinfId', 'name').select('kind time camera sinfId title detail count clip images scene').lean(),
+				.populate('camera', 'name').populate('sinfId', 'name').select(POSE_SELECT).lean(),
 			hikCameraModel.find({ schoolId, visionEnabled: true, role: 'monitor' }).select('name sinfId online').populate('sinfId', 'name').lean(),
 			visionMetricModel.findOne({ schoolId: school }).sort({ time: -1 }).select('time').lean()
 		])
 		const lastRows = await hikCameraEventModel.find({ _id: { $in: lastIds.map((x) => x.id) } })
-			.populate('camera', 'name').populate('sinfId', 'name').select('kind time camera sinfId title detail count clip images scene').lean()
+			.populate('camera', 'name').populate('sinfId', 'name').select(POSE_SELECT).lean()
 		const lastBySinf = new Map(lastRows.map((e) => [String(e.sinfId?._id || ''), this.mapEvidence(e)]))
 		const counts = new Map(perSinf.map((x) => [String(x._id || ''), x]))
 		const classes = new Map()
@@ -505,7 +573,7 @@ class VisionService {
 
 	// Har sinf uchun eng oxirgi `per` ta kuzatuv lahzasi (sinfxonalar ro'yxati sahifasi uchun)
 	async evidenceRecent(schoolId, { date = null, per = 4 } = {}) {
-		const base = { schoolId: new mongoose.Types.ObjectId(String(schoolId)), kind: { $in: ['vision_empty', 'vision_surge', 'vision_overcrowd', 'vision_sample'] } }
+		const base = { schoolId: new mongoose.Types.ObjectId(String(schoolId)), kind: { $in: ALL_KINDS } }
 		if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) base.dateString = date
 		const grouped = await hikCameraEventModel.aggregate([
 			{ $match: base }, { $sort: { time: -1 } },
@@ -513,7 +581,7 @@ class VisionService {
 			{ $project: { ids: { $slice: ['$ids', Math.max(1, Math.min(12, Number(per) || 4))] } } }
 		])
 		const rows = await hikCameraEventModel.find({ _id: { $in: grouped.flatMap((g) => g.ids) } }).sort({ time: -1 })
-			.populate('camera', 'name').populate('sinfId', 'name').select('kind time camera sinfId title detail count clip images scene').lean()
+			.populate('camera', 'name').populate('sinfId', 'name').select(POSE_SELECT).lean()
 		const bySinf = {}
 		for (const e of rows) {
 			const k = String(e.sinfId?._id || '')
@@ -528,21 +596,21 @@ class VisionService {
 
 	// Kuzatuv lahzalari ro'yxati (sahifalab): sana, sinf va guruh (alerts | samples | hammasi) bo'yicha
 	async evidence(schoolId, { date = null, sinfId = null, group = 'all', page = 1 } = {}) {
-		const base = { schoolId: new mongoose.Types.ObjectId(String(schoolId)), kind: { $in: ['vision_empty', 'vision_surge', 'vision_overcrowd', 'vision_sample'] } }
+		const base = { schoolId: new mongoose.Types.ObjectId(String(schoolId)), kind: { $in: ALL_KINDS } }
 		if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) base.dateString = date
 		if (sinfId) {
 			if (!validId(sinfId)) return { success: false, message: "Sinf id noto'g'ri" }
 			base.sinfId = new mongoose.Types.ObjectId(String(sinfId))
 		}
 		const match = { ...base }
-		if (group === 'alerts') match.kind = { $in: ['vision_empty', 'vision_surge', 'vision_overcrowd'] }
+		if (group === 'alerts') match.kind = { $in: ALERT_KINDS }
 		else if (group === 'samples') match.kind = 'vision_sample'
 		const size = 24
 		const current = Math.max(1, Number(page) || 1)
 		const [total, rows, kinds] = await Promise.all([
 			hikCameraEventModel.countDocuments(match),
 			hikCameraEventModel.find(match).sort({ time: -1 }).skip((current - 1) * size).limit(size)
-				.populate('camera', 'name').populate('sinfId', 'name').select('kind time camera sinfId title detail count clip images scene').lean(),
+				.populate('camera', 'name').populate('sinfId', 'name').select(POSE_SELECT).lean(),
 			hikCameraEventModel.aggregate([{ $match: base }, { $group: { _id: '$kind', n: { $sum: 1 } } }])
 		])
 		return {
@@ -579,11 +647,11 @@ class VisionService {
 	// Maktabdagi vision kameralarining hozirgi holati: sinf bo'yicha silliqlangan son va oxirgi soat qatori
 	async live(schoolId) {
 		const school = new mongoose.Types.ObjectId(String(schoolId))
-		const cameras = await hikCameraModel.find({ schoolId, visionEnabled: true, role: 'monitor' }).select('name sinfId online serial').lean()
+		const cameras = await hikCameraModel.find({ schoolId, visionEnabled: true, role: { $in: ['monitor', 'hall'] } }).select('name sinfId online serial role capacity').lean()
 		if (!cameras.length) return { success: true, items: [], intervalSec: INTERVAL_MS / 1000 }
 		const since = new Date(Date.now() - 60 * 60 * 1000)
 		const rows = await visionMetricModel.find({ schoolId: school, camera: { $in: cameras.map((c) => c._id) }, time: { $gte: since } })
-			.sort({ time: 1 }).select('camera count time activity').lean()
+			.sort({ time: 1 }).select('camera count time activity pose').lean()
 		const byCam = new Map()
 		for (const r of rows) {
 			const k = String(r.camera)
@@ -597,11 +665,19 @@ class VisionService {
 			const le = this.lastError.get(String(c._id))
 			const recent = list.filter((r) => Date.now() - r.time.getTime() <= STALE_MS).slice(-SMOOTH_N)
 			const acts = list.filter((r) => Date.now() - r.time.getTime() <= 15 * 60 * 1000 && r.count > 0 && typeof r.activity === 'number').map((r) => r.activity)
+			// Holatlar: eng oxirgi (eskirmagan) o'lchov va oxirgi 15 daqiqadagi o'rtacha ulushlar
+			const poseRows = list.filter((r) => anOf(r.pose) > 0)
+			const lastPose = poseRows[poseRows.length - 1]
+			const win = poseRows.filter((r) => Date.now() - r.time.getTime() <= 15 * 60 * 1000)
+			const sumOf = (k) => win.reduce((a, r) => a + (r.pose[k] || 0), 0)
+			const winAn = win.reduce((a, r) => a + anOf(r.pose), 0)
 			return {
-				cameraId: c._id, name: c.name, role: c.role || 'monitor', sinfId: c.sinfId || null, online: c.online,
+				cameraId: c._id, name: c.name, role: c.role || 'monitor', capacity: c.capacity ?? null, sinfId: c.sinfId || null, online: c.online,
 				count: recent.length ? median(recent.map((r) => r.count)) : null,
 				lastCount: last ? last.count : null,
 				activity: acts.length ? Math.round(acts.reduce((a, b) => a + b, 0) / acts.length * 1000) / 1000 : null,
+				pose: lastPose && Date.now() - lastPose.time.getTime() <= STALE_MS ? { ...lastPose.pose, analyzed: anOf(lastPose.pose) } : null,
+				poseShare: winAn ? { standing: pct(sumOf('standing'), winAn), headDown: pct(sumOf('headDown'), winAn), raised: pct(sumOf('raised'), winAn) } : null,
 				at: last ? last.time : null,
 				stale: !last || Date.now() - last.time.getTime() > STALE_MS,
 				series: list.map((r) => ({ t: r.time, count: r.count })),
@@ -622,17 +698,144 @@ class VisionService {
 		}
 		const rows = await visionMetricModel.aggregate([
 			{ $match: match },
-			{ $group: { _id: { sinf: '$sinfId', camera: '$camera', hour: '$hour' }, avg: { $avg: '$count' }, max: { $max: '$count' }, n: { $sum: 1 } } }
+			{ $group: { _id: { sinf: '$sinfId', camera: '$camera', hour: '$hour' }, avg: { $avg: '$count' }, max: { $max: '$count' }, n: { $sum: 1 },
+				pAn: { $sum: { $ifNull: ['$pose.analyzed', { $add: [{ $ifNull: ['$pose.seated', 0] }, { $ifNull: ['$pose.standing', 0] }] }] } }, pStand: { $sum: { $ifNull: ['$pose.standing', 0] } }, pHead: { $sum: { $ifNull: ['$pose.headDown', 0] } }, pHand: { $sum: { $ifNull: ['$pose.raised', 0] } }, handPeak: { $max: { $ifNull: ['$pose.raised', 0] } } } }
 		])
 		const sinfs = new Map()
+		const poseAcc = new Map()
 		for (const r of rows) {
 			const k = String(r._id.sinf)
-			if (!sinfs.has(k)) sinfs.set(k, Array.from({ length: 24 }, () => ({ avg: 0, max: 0 })))
+			if (!sinfs.has(k)) { sinfs.set(k, Array.from({ length: 24 }, () => ({ avg: 0, max: 0 }))); poseAcc.set(k, Array.from({ length: 24 }, () => ({ an: 0, stand: 0, head: 0, hand: 0, peak: 0 }))) }
 			const slot = sinfs.get(k)[r._id.hour]
 			slot.avg = Math.max(slot.avg, Math.round(r.avg * 10) / 10)
 			slot.max = Math.max(slot.max, r.max)
+			const a = poseAcc.get(k)[r._id.hour]
+			a.an += r.pAn; a.stand += r.pStand; a.head += r.pHead; a.hand += r.pHand; a.peak = Math.max(a.peak, r.handPeak || 0)
 		}
-		return { success: true, dateString, sinfs: Object.fromEntries(sinfs) }
+		// Soatlik holatlar ulushi (%): tik turgan, boshi egilgan, qo'l ko'targan; handPeak — soat ichidagi eng ko'p ko'tarilgan qo'l soni
+		const pose = {}
+		for (const [k, hours] of poseAcc) pose[k] = hours.map((a) => ({ standing: pct(a.stand, a.an) ?? 0, headDown: pct(a.head, a.an) ?? 0, raised: pct(a.hand, a.an) ?? 0, handPeak: a.peak, analyzed: a.an }))
+		return { success: true, dateString, sinfs: Object.fromEntries(sinfs), pose }
+	}
+
+	// Maktab admini uchun umumiy nazorat: sinflar kesimida hozirgi holat va kun bo'yicha tahlil (odam soni, tik turganlar, boshi egilganlar,
+	// qo'l ko'targanlar, harakat/notinchlik, hodisalar) hamda butun maktab bo'yicha soatlik dinamika. Hammasi taxminiy (kadr va skelet bo'yicha)
+	async overview(schoolId, date = null) {
+		const school = new mongoose.Types.ObjectId(String(schoolId))
+		const day = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : tzParts().dateString
+		const cfg = await AiSettings.get()
+		const MIN = Math.max(1, Number(process.env.VISION_MIN_PEOPLE) || 3) // dars borgan hisoblash chegarasi
+		const [live, perSinf, perHour, kinds, cams] = await Promise.all([
+			this.live(schoolId),
+			visionMetricModel.aggregate([
+				{ $match: { schoolId: school, dateString: day } },
+				{ $group: {
+					_id: '$sinfId', n: { $sum: 1 }, avg: { $avg: '$count' }, max: { $max: '$count' }, last: { $max: '$time' },
+					lessonN: { $sum: { $cond: [{ $gte: ['$count', MIN] }, 1, 0] } },
+					actSum: { $sum: { $cond: [{ $and: [{ $isNumber: '$activity' }, { $gte: ['$count', MIN] }] }, '$activity', 0] } },
+					actN: { $sum: { $cond: [{ $and: [{ $isNumber: '$activity' }, { $gte: ['$count', MIN] }] }, 1, 0] } },
+					pN: { $sum: { $cond: [{ $gt: [{ $ifNull: ['$pose.analyzed', { $add: [{ $ifNull: ['$pose.seated', 0] }, { $ifNull: ['$pose.standing', 0] }] }] }, 0] }, 1, 0] } },
+					pAn: { $sum: { $ifNull: ['$pose.analyzed', { $add: [{ $ifNull: ['$pose.seated', 0] }, { $ifNull: ['$pose.standing', 0] }] }] } }, pStand: { $sum: { $ifNull: ['$pose.standing', 0] } },
+					pHead: { $sum: { $ifNull: ['$pose.headDown', 0] } }, pHand: { $sum: { $ifNull: ['$pose.raised', 0] } },
+					handPeak: { $max: { $ifNull: ['$pose.raised', 0] } },
+					handMoments: { $sum: { $cond: [{ $gt: [{ $ifNull: ['$pose.raised', 0] }, 0] }, 1, 0] } }
+				} }
+			]),
+			visionMetricModel.aggregate([
+				{ $match: { schoolId: school, dateString: day, count: { $gte: MIN } } },
+				{ $group: {
+					_id: '$hour', n: { $sum: 1 }, avg: { $avg: '$count' },
+					actSum: { $sum: { $cond: [{ $isNumber: '$activity' }, '$activity', 0] } }, actN: { $sum: { $cond: [{ $isNumber: '$activity' }, 1, 0] } },
+					pAn: { $sum: { $ifNull: ['$pose.analyzed', { $add: [{ $ifNull: ['$pose.seated', 0] }, { $ifNull: ['$pose.standing', 0] }] }] } }, pStand: { $sum: { $ifNull: ['$pose.standing', 0] } },
+					pHead: { $sum: { $ifNull: ['$pose.headDown', 0] } }, pHand: { $sum: { $ifNull: ['$pose.raised', 0] } }
+				} }
+			]),
+			hikCameraEventModel.aggregate([
+				{ $match: { schoolId: school, dateString: day, kind: { $in: ALERT_KINDS } } },
+				{ $group: { _id: { sinf: '$sinfId', kind: '$kind' }, n: { $sum: 1 }, last: { $max: '$time' } } }
+			]),
+			hikCameraModel.find({ schoolId: school, visionEnabled: true, role: 'monitor' }).select('name sinfId online').populate('sinfId', 'name').lean()
+		])
+
+		const names = new Map()
+		for (const c of cams) if (c.sinfId) names.set(String(c.sinfId._id), c.sinfId.name)
+		const extra = [...new Set([...perSinf.map((x) => String(x._id)), ...kinds.map((x) => String(x._id.sinf))])].filter((id) => validId(id) && !names.has(id))
+		if (extra.length) for (const x of await sinfModel.find({ _id: { $in: extra } }).select('name').lean()) names.set(String(x._id), x.name)
+
+		const todayBySinf = new Map(perSinf.map((x) => [String(x._id), x]))
+		const alertsBySinf = new Map()
+		const alertsByKind = {}
+		for (const k of kinds) {
+			const id = String(k._id.sinf)
+			if (!alertsBySinf.has(id)) alertsBySinf.set(id, { total: 0, kinds: {}, last: null })
+			const a = alertsBySinf.get(id)
+			a.total += k.n; a.kinds[k._id.kind] = k.n
+			if (!a.last || k.last > a.last) a.last = k.last
+			alertsByKind[k._id.kind] = (alertsByKind[k._id.kind] || 0) + k.n
+		}
+
+		const actMin = Number(cfg.restlessAct) || 0.6
+		const rowsBySinf = new Map()
+		for (const it of live.items) {
+			const id = String(it.sinfId || '')
+			if (!id) continue
+			if (!rowsBySinf.has(id)) rowsBySinf.set(id, { sinfId: id, sinf: names.get(id) || '', cameras: [], online: false, live: null })
+			const row = rowsBySinf.get(id)
+			row.cameras.push(it.name)
+			row.online = row.online || it.online === true
+			if (!it.stale && it.count !== null && (!row.live || it.count > row.live.count)) {
+				const an = anOf(it.pose)
+				row.live = { count: it.count, activity: it.activity, at: it.at, pose: it.pose || null, poseShare: it.poseShare || null, cameraId: it.cameraId,
+					standingPct: an ? pct(it.pose.standing, an) : null, headDownPct: an ? pct(it.pose.headDown, an) : null, handsNow: an ? it.pose.raised : null }
+			}
+		}
+		for (const id of [...todayBySinf.keys(), ...alertsBySinf.keys()]) if (id && id !== 'null' && !rowsBySinf.has(id)) rowsBySinf.set(id, { sinfId: id, sinf: names.get(id) || '', cameras: [], online: false, live: null })
+
+		const classes = [...rowsBySinf.values()].map((row) => {
+			const t = todayBySinf.get(row.sinfId)
+			const al = alertsBySinf.get(row.sinfId)
+			const today = t ? {
+				n: t.n, avgCount: Math.round(t.avg * 10) / 10, maxCount: t.max, lessonPct: Math.round(t.lessonN / t.n * 100),
+				activityPct: t.actN ? Math.round(t.actSum / t.actN * 1000) / 10 : null,
+				standingPct: pct(t.pStand, t.pAn), headDownPct: pct(t.pHead, t.pAn), handsPct: pct(t.pHand, t.pAn),
+				handPeak: t.handPeak, handMoments: t.handMoments, poseCoverage: Math.round(t.pN / t.n * 100), lastAt: t.last
+			} : null
+			const live_ = row.live
+			const flags = []
+			if (live_) {
+				if (typeof live_.activity === 'number' && live_.activity >= actMin && live_.count >= (Number(cfg.restlessMinPeople) || 8)) flags.push('restless')
+				if (anOf(live_.pose) >= MASS_MIN && live_.pose.standing / anOf(live_.pose) >= MASS_SHARE) flags.push('standing')
+				if (anOf(live_.pose) >= MASS_MIN && live_.pose.headDown / anOf(live_.pose) >= 0.5) flags.push('headDown')
+				if (live_.pose && live_.pose.raised > 0) flags.push('hands')
+			}
+			return { ...row, today, alerts: al ? { total: al.total, kinds: al.kinds, last: al.last } : { total: 0, kinds: {}, last: null }, flags }
+		}).sort((a, b) => b.alerts.total - a.alerts.total || b.flags.length - a.flags.length || String(a.sinf).localeCompare(String(b.sinf), 'uz', { numeric: true }))
+
+		const fresh = classes.filter((c) => c.live)
+		const sum = (f) => fresh.reduce((a, c) => a + (f(c) || 0), 0)
+		const hourly = Array.from({ length: 24 }, (_, h) => {
+			const r = perHour.find((x) => x._id === h)
+			return r ? { hour: h, avgPeople: Math.round(r.avg * 10) / 10, activityPct: r.actN ? Math.round(r.actSum / r.actN * 1000) / 10 : null,
+				standingPct: pct(r.pStand, r.pAn), headDownPct: pct(r.pHead, r.pAn), handsPct: pct(r.pHand, r.pAn), n: r.n } : { hour: h, avgPeople: 0, activityPct: null, standingPct: null, headDownPct: null, handsPct: null, n: 0 }
+		})
+		const totalAn = perSinf.reduce((a, x) => a + x.pAn, 0)
+		return {
+			success: true, date: day, intervalSec: live.intervalSec, poseEnabled: cfg.poseEnabled !== false,
+			totals: {
+				classes: classes.length, classesLive: fresh.length, camerasOnline: cams.filter((c) => c.online === true).length, cameras: cams.length,
+				peopleNow: sum((c) => c.live.count), standingNow: sum((c) => c.live.pose?.standing), headDownNow: sum((c) => c.live.pose?.headDown), handsNow: sum((c) => c.live.pose?.raised),
+				analyzedNow: sum((c) => anOf(c.live.pose)),
+				restlessNow: classes.filter((c) => c.flags.includes('restless') || c.flags.includes('standing')).length,
+				alerts: Object.values(alertsByKind).reduce((a, b) => a + b, 0), alertsByKind,
+				standingPctDay: pct(perSinf.reduce((a, x) => a + x.pStand, 0), totalAn), headDownPctDay: pct(perSinf.reduce((a, x) => a + x.pHead, 0), totalAn), handsPctDay: pct(perSinf.reduce((a, x) => a + x.pHand, 0), totalAn)
+			},
+			// Zal / koridor kameralari (sinfga bog'lanmagan): hozirgi odam soni va zichlik chegarasi
+			halls: live.items.filter((i) => i.role === 'hall').map((i) => {
+				const limit = i.capacity || Number(cfg.hallCrowd) || 40
+				return { cameraId: i.cameraId, name: i.name, online: i.online, count: i.stale ? null : i.count, limit, activity: i.activity, pose: i.pose, at: i.at, crowded: !i.stale && i.count !== null && i.count >= limit, error: i.error }
+			}),
+			classes, hourly: hourly.filter((x) => x.hour >= 6 && x.hour <= 20)
+		}
 	}
 
 	// Kameraning oxirgi tahlil kadri (huquq tekshiruvi bilan). Fayl yo'lini qaytaradi yoki null

@@ -14,6 +14,7 @@ import {
 	FaLayerGroup,
 	FaRobot,
 	FaSitemap,
+	FaTachometerAlt,
 	FaTelegramPlane,
 	FaUmbrellaBeach,
 	FaUserCheck,
@@ -45,6 +46,7 @@ export const schoolMenuGroups = (base) => [
 	{
 		label: tx('Kameralar va kuzatuv'),
 		items: [
+			{ path: `${base}/nazorat`, icon: FaTachometerAlt, label: tx('Sinfxonalar nazorati') },
 			{ path: `${base}/live`, icon: FaDesktop, label: tx('Jonli kuzatuv') },
 			{ path: `${base}/classrooms`, icon: FaChalkboard, label: tx('Sinfxonalar') },
 			{ path: `${base}/kuzatuv`, icon: FaRobot, label: tx('Aqlli kuzatuv') },

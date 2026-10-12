@@ -55,16 +55,16 @@ const MonitorDistricts = () => {
 				{t && (
 					<>
 						<div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-5">
-							<KpiLink icon={<FaLandmark />} label="Tumanlar" value={t.districts} detail={tx("{{n}} ta maktab", { n: fmt(t.schools) })} color="bg-blue-50 text-blue-600" />
-							<KpiLink to="/monitor/schools" icon={<FaSchool />} label="Maktablar" value={t.schools} detail="viloyat bo'yicha" />
-							<KpiLink to="/monitor/students" icon={<FaUserGraduate />} color="bg-amber-50 text-amber-600" label="O'quvchi davomati" value={val(t.studentPeriod)} detail={tx("bugun {{a}} · {{b}}/{{c}}", { a: val(t.studentToday), b: fmt(t.studentCame), c: fmt(t.students) })} />
-							<KpiLink to="/monitor/staff" icon={<FaChalkboardTeacher />} color="bg-violet-50 text-violet-600" label="Xodimlar bugun" value={val(t.staff ? Math.round((t.staffCame / t.staff) * 1000) / 10 : null)} detail={`${fmt(t.staffCame)}/${fmt(t.staff)}`} />
-							<KpiLink to="/monitor/cameras" icon={<FaVideo />} color="bg-green-50 text-green-600" label="Kameralar online" value={`${fmt(t.cameraOnline)}/${fmt(t.cameraTotal)}`} detail={tx("kech qolganlar: {{n}}", { n: fmt(t.studentLate) })} />
+							<KpiLink icon={<FaLandmark />} label={tx("Tumanlar")} value={t.districts} detail={tx("{{n}} ta maktab", { n: fmt(t.schools) })} color="bg-blue-50 text-blue-600" />
+							<KpiLink to="/monitor/schools" icon={<FaSchool />} label={tx("Maktablar")} value={t.schools} detail={tx("viloyat bo'yicha")} />
+							<KpiLink to="/monitor/students" icon={<FaUserGraduate />} color="bg-amber-50 text-amber-600" label={tx("O'quvchi davomati")} value={val(t.studentPeriod)} detail={tx("bugun {{a}} · {{b}}/{{c}}", { a: val(t.studentToday), b: fmt(t.studentCame), c: fmt(t.students) })} />
+							<KpiLink to="/monitor/staff" icon={<FaChalkboardTeacher />} color="bg-violet-50 text-violet-600" label={tx("Xodimlar bugun")} value={val(t.staff ? Math.round((t.staffCame / t.staff) * 1000) / 10 : null)} detail={`${fmt(t.staffCame)}/${fmt(t.staff)}`} />
+							<KpiLink to="/monitor/cameras" icon={<FaVideo />} color="bg-green-50 text-green-600" label={tx("Kameralar online")} value={`${fmt(t.cameraOnline)}/${fmt(t.cameraTotal)}`} detail={tx("kech qolganlar: {{n}}", { n: fmt(t.studentLate) })} />
 						</div>
 
 						<div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-							<Panel title="O'quvchilar davomati: tumanlar" subtitle="Tanlangan davr bo'yicha o'rtacha foiz">
-								{chart.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">Tanlangan davrda davomat ma'lumoti yo'q</p> : (
+							<Panel title={tx("O'quvchilar davomati: tumanlar")} subtitle={tx("Tanlangan davr bo'yicha o'rtacha foiz")}>
+								{chart.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">{tx("Tanlangan davrda davomat ma'lumoti yo'q")}</p> : (
 									<ChartBox height={Math.max(260, chart.length * 30)}>
 										<ResponsiveContainer width="100%" height="100%">
 											<BarChart data={chart} layout="vertical" margin={{ left: 8, right: 28 }}>
@@ -82,28 +82,28 @@ const MonitorDistricts = () => {
 							</Panel>
 
 							<div className="space-y-4">
-								{best && <Link to={hub(best.name)} className="block rounded-2xl border border-green-200 bg-green-50/60 p-5 transition hover:shadow-md"><p className="text-xs font-semibold uppercase tracking-wide text-green-700">Eng yaxshi tuman</p><p className="mt-1 text-xl font-bold text-slate-900">{best.name}</p><p className="mt-1 text-sm text-slate-600">{tx("Davomat {{p}} · {{s}} ta maktab · {{n}} o'quvchi", { p: `${best.studentPeriod}%`, s: best.schools, n: fmt(best.students) })}</p></Link>}
-								{worst && <Link to={hub(worst.name)} className="block rounded-2xl border border-red-200 bg-red-50/60 p-5 transition hover:shadow-md"><p className="text-xs font-semibold uppercase tracking-wide text-red-700">Eng past tuman</p><p className="mt-1 text-xl font-bold text-slate-900">{worst.name}</p><p className="mt-1 text-sm text-slate-600">{tx("Davomat {{p}} · {{s}} ta maktab · {{n}} o'quvchi", { p: `${worst.studentPeriod}%`, s: worst.schools, n: fmt(worst.students) })}</p></Link>}
-								<div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm font-semibold text-slate-800">Ma'lumot to'liqligi</p><p className="mt-1 text-sm text-slate-500">{tx("Xaritada belgilangan maktablar: {{a}} / {{b}}. Maktab adminlari joylashuvni «Sozlamalar»da belgilaydi.", { a: fmt((data.rows || []).reduce((a, r) => a + r.located, 0)), b: fmt(t.schools) })}</p><Link to="/monitor/map" className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline">Xaritada ko'rish →</Link></div>
+								{best && <Link to={hub(best.name)} className="block rounded-2xl border border-green-200 bg-green-50/60 p-5 transition hover:shadow-md"><p className="text-xs font-semibold uppercase tracking-wide text-green-700">{tx("Eng yaxshi tuman")}</p><p className="mt-1 text-xl font-bold text-slate-900">{best.name}</p><p className="mt-1 text-sm text-slate-600">{tx("Davomat {{p}} · {{s}} ta maktab · {{n}} o'quvchi", { p: `${best.studentPeriod}%`, s: best.schools, n: fmt(best.students) })}</p></Link>}
+								{worst && <Link to={hub(worst.name)} className="block rounded-2xl border border-red-200 bg-red-50/60 p-5 transition hover:shadow-md"><p className="text-xs font-semibold uppercase tracking-wide text-red-700">{tx("Eng past tuman")}</p><p className="mt-1 text-xl font-bold text-slate-900">{worst.name}</p><p className="mt-1 text-sm text-slate-600">{tx("Davomat {{p}} · {{s}} ta maktab · {{n}} o'quvchi", { p: `${worst.studentPeriod}%`, s: worst.schools, n: fmt(worst.students) })}</p></Link>}
+								<div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm font-semibold text-slate-800">{tx("Ma'lumot to'liqligi")}</p><p className="mt-1 text-sm text-slate-500">{tx("Xaritada belgilangan maktablar: {{a}} / {{b}}. Maktab adminlari joylashuvni «Sozlamalar»da belgilaydi.", { a: fmt((data.rows || []).reduce((a, r) => a + r.located, 0)), b: fmt(t.schools) })}</p><Link to="/monitor/map" className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline">{tx("Xaritada ko'rish →")}</Link></div>
 							</div>
 						</div>
 
-						<Panel title="Tumanlar jadvali" action={<SearchBox value={query} onChange={setQuery} placeholder="Tuman qidirish" />}>
+						<Panel title={tx("Tumanlar jadvali")} action={<SearchBox value={query} onChange={setQuery} placeholder={tx("Tuman qidirish")} />}>
 							<Table head={COLS.map(c => ({ label: <button onClick={() => toggle(c.key)} className="inline-flex items-center gap-1 font-bold uppercase tracking-wider hover:text-slate-800">{c.label}{sort.key === c.key && (sort.dir === 'asc' ? <FiArrowUp size={11} /> : <FiArrowDown size={11} />)}</button>, right: c.right }))}>
 								{rows.map(r => (
 									<Tr key={r.name}>
 										<Td><span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${r.rank === 1 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{r.rank ?? '—'}</span></Td>
 										<Td><Link to={`/monitor/schools?district=${encodeURIComponent(r.name)}`} className="font-semibold text-slate-900 hover:text-blue-600">{r.name}</Link></Td>
-										<Td right>{r.schools}{r.located < r.schools && <span className="ml-1 text-[10px] text-amber-600" title="Xaritada belgilanmagan maktablar bor">·{r.schools - r.located}</span>}</Td>
+										<Td right>{r.schools}{r.located < r.schools && <span className="ml-1 text-[10px] text-amber-600" title={tx("Xaritada belgilanmagan maktablar bor")}>·{r.schools - r.located}</span>}</Td>
 										<Td right>{fmt(r.students)}</Td>
 										<Td right>{r.studentPeriod === null ? <span className="text-slate-300">—</span> : <div className="ml-auto w-32"><div className="mb-1 text-right text-xs font-semibold"><span className={levelText(r.studentPeriod)}>{r.studentPeriod}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${levelColor(r.studentPeriod)}`} style={{ width: `${Math.min(r.studentPeriod, 100)}%` }} /></div></div>}</Td>
 										<Td right><b className={r.students ? levelText(r.studentToday) : 'text-slate-300'}>{r.students ? `${r.studentToday}%` : '—'}</b></Td>
 										<Td right>{val(r.staffPeriod)}</Td>
 										<Td right><span className={r.latePercent > 15 ? 'font-semibold text-red-600' : 'text-slate-700'}>{val(r.latePercent)}</span></Td>
-										<Td right>{r.cameraTotal ? <span className={r.cameraPercent < 80 ? 'font-semibold text-red-600' : 'text-slate-700'}>{r.cameraOnline}/{r.cameraTotal}</span> : <span className="text-slate-300">yo'q</span>}</Td>
+										<Td right>{r.cameraTotal ? <span className={r.cameraPercent < 80 ? 'font-semibold text-red-600' : 'text-slate-700'}>{r.cameraOnline}/{r.cameraTotal}</span> : <span className="text-slate-300">{tx("yo'q")}</span>}</Td>
 									</Tr>
 								))}
-								{rows.length === 0 && <tr><td colSpan={COLS.length} className="px-4 py-10 text-center text-slate-500">Topilmadi</td></tr>}
+								{rows.length === 0 && <tr><td colSpan={COLS.length} className="px-4 py-10 text-center text-slate-500">{tx("Topilmadi")}</td></tr>}
 							</Table>
 						</Panel>
 					</>

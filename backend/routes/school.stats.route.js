@@ -38,7 +38,7 @@ router.get('/school', handle((req, school) => MonitorService.school({ schoolId: 
 router.get('/trend', handle(cached(60000, (req, school) => MonitorService.trend({ from: q(req).from, to: q(req).to, schoolId: school }), byUrlAndSchool)))
 router.get('/grades', handle(cached(45000, (req, school) => Analytics.gradesReport({ from: q(req).from, to: q(req).to, grade: q(req).grade, schoolId: school }), byUrlAndSchool)))
 router.get('/grade-class', handle((req, school) => Analytics.gradeClassDetail({ sinfId: q(req).sinfId, from: q(req).from, to: q(req).to, schoolId: school })))
-router.get('/late-people', handle(cached(60000, (req, school) => Analytics.latePeople({ kind: q(req).kind, from: q(req).from, to: q(req).to, schoolId: school, limit: q(req).limit }), byUrlAndSchool)))
+router.get('/late-people', handle(cached(60000, (req, school) => Analytics.latePeople({ kind: q(req).kind, from: q(req).from, to: q(req).to, schoolId: school, limit: q(req).limit, page: q(req).page, pageSize: q(req).pageSize, q: q(req).q, group: q(req).group, sort: q(req).sort, all: q(req).all }), byUrlAndSchool)))
 router.get('/at-risk', handle(cached(60000, (req, school) => Analytics.atRisk({ from: q(req).from, to: q(req).to, schoolId: school, minStreak: q(req).minStreak, limit: q(req).limit }), byUrlAndSchool)))
 router.get('/alerts', handle(cached(45000, (req, school) => Analytics.alerts({ date: q(req).date, schoolId: school }), byUrlAndSchool)))
 // DIQQAT: quyidagi 2 ta marshrut sessiya tarixidan tiklanmagan — frontend (MonitorLate/MonitorRisk/MonitorLeaves/SchoolDashboard) ishlatishiga qarab qayta yozilgan

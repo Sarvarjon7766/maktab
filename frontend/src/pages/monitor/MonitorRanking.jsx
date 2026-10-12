@@ -3,6 +3,7 @@ import { FiArrowRight, FiSearch } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, Drawer, Empty, Page, PageHeader, Panel, Progress, RangePicker, Segmented, WEEKDAYS, exportXlsx, fmt, levelText, pct, schoolPlace, shiftDate, todayStr, useMonitorData, pctFmt } from './monitorKit'
+import { tx } from '../../i18n'
 
 // Maktablar reytingi. Har qator bosilganda "tafsilot" paneli ochiladi: raqam qanday hisoblangani, kunma-kun
 // ma'lumot va manba ro'yxatlariga (kelmaganlar, xodimlar) havolalar
@@ -41,10 +42,10 @@ const MonitorRanking = () => {
 		<Page>
 			<PageHeader onReload={reload} loading={loading}>
 				<Segmented value={kind} onChange={setKind} options={[{ key: 'student', label: "O'quvchilar" }, { key: 'staff', label: 'Xodimlar' }]} />
-				<button onClick={download} disabled={!ranked.length} className="px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">Excel</button>
+				<button onClick={download} disabled={!ranked.length} className="px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">{tx("Excel")}</button>
 			</PageHeader>
 			<div className="mb-6"><RangePicker {...range} onChange={setRange} /></div>
-			{error && <Empty text="Ma'lumotni yuklab bo'lmadi" />}
+			{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 
 			<div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
 				{[['Eng yuqori davomatli 10 ta', ranked.slice(0, 10), CHART_COLORS.ok], ['Eng past davomatli 10 ta', [...ranked].reverse().slice(0, 10), CHART_COLORS.bad]].map(([title, list, color]) => (
@@ -64,7 +65,7 @@ const MonitorRanking = () => {
 
 			<div className="relative w-full sm:w-80 mb-4">
 				<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-				<input value={query} onChange={e => setQuery(e.target.value)} placeholder="Maktab yoki hudud" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm outline-none focus:border-blue-400" />
+				<input value={query} onChange={e => setQuery(e.target.value)} placeholder={tx("Maktab yoki hudud")} className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm outline-none focus:border-blue-400" />
 			</div>
 
 			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -82,46 +83,46 @@ const MonitorRanking = () => {
 									<td className="px-4 py-2.5 text-right">{s.schoolDays}</td><td className="px-4 py-2.5 text-right">{fmt(s.avg)}</td>
 									<td className="px-4 py-2.5 text-right text-green-600">{s.best ? `${pctFmt(s.best.percent)} · ${s.best.dateString.slice(5)}` : '—'}</td>
 									<td className="px-4 py-2.5 text-right text-red-600">{s.worst ? `${pctFmt(s.worst.percent)} · ${s.worst.dateString.slice(5)}` : '—'}</td>
-									<td className="px-4 py-2.5 text-right text-blue-600 whitespace-nowrap">Batafsil <FiArrowRight className="inline" size={13} /></td>
+									<td className="px-4 py-2.5 text-right text-blue-600 whitespace-nowrap">{tx("Batafsil")} <FiArrowRight className="inline" size={13} /></td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
-				{loading && !data && <Empty text="Yuklanmoqda..." />}
-				{!loading && ranked.length === 0 && !error && <Empty text="Bu davrda davomat ma'lumoti yo'q" />}
+				{loading && !data && <Empty text={tx("Yuklanmoqda...")} />}
+				{!loading && ranked.length === 0 && !error && <Empty text={tx("Bu davrda davomat ma'lumoti yo'q")} />}
 			</div>
-			{noData.length > 0 && <p className="text-xs text-gray-500 mt-4">Ma'lumot kelmagan maktablar: {noData.map(s => s.name).join(', ')}</p>}
+			{noData.length > 0 && <p className="text-xs text-gray-500 mt-4">{tx("Ma'lumot kelmagan maktablar: {{names}}", { names: noData.map(s => s.name).join(', ') })}</p>}
 
 			<Drawer open={!!evidence} onClose={() => setEvidence(null)} title={evidence?.name} subtitle={`${range.from} — ${range.to} · ${kind === 'student' ? "O'quvchilar" : 'Xodimlar'}`}>
 				{evidence && <>
 					<div className="rounded-2xl bg-slate-50 border border-slate-100 p-5 mb-5">
 						<div className="flex items-end justify-between gap-3">
-							<div><p className="text-xs text-gray-500">Davomat</p><p className={`text-4xl font-bold ${levelText(evidence.percent)}`}>{pctFmt(evidence.percent)}</p></div>
-							<p className="text-right text-xs text-gray-500">O'rin: <b className="text-gray-800">{evidence.rank}</b> / {ranked.length}</p>
+							<div><p className="text-xs text-gray-500">{tx("Davomat")}</p><p className={`text-4xl font-bold ${levelText(evidence.percent)}`}>{pctFmt(evidence.percent)}</p></div>
+							<p className="text-right text-xs text-gray-500">{tx("O'rin:")} <b className="text-gray-800">{evidence.rank}</b> / {ranked.length}</p>
 						</div>
 						<p className="mt-4 text-sm text-gray-600 font-mono leading-relaxed">
-							{fmt(sumCame)} kelgan kishi-kun ÷ ({fmt(trend.data?.[totalKey] || 0)} {kind === 'student' ? "o'quvchi" : 'xodim'} × {days.length} o'quv kuni = {fmt(denom)}) = {pct(sumCame, denom)}%
+							{tx("{{came}} kelgan kishi-kun ÷ ({{total}} {{unit}} × {{days}} o'quv kuni = {{denom}}) = {{pct}}%", { came: fmt(sumCame), total: fmt(trend.data?.[totalKey] || 0), unit: kind === 'student' ? tx("o'quvchi") : tx("xodim"), days: days.length, denom: fmt(denom), pct: pct(sumCame, denom) })}
 						</p>
 					</div>
 
 					<div className="flex flex-wrap gap-2 mb-5">
-						<Link to={`/monitor/schools/${evidence._id}?tab=${kind === 'student' ? 'students' : 'staff'}`} className="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800">Maktabni ochish</Link>
-						{worstDay && <Link to={`/monitor/lists?kind=${listKind}&status=absent&school=${evidence._id}&date=${worstDay.dateString}`} className="px-3.5 py-2 rounded-lg border border-red-200 text-red-700 text-sm hover:bg-red-50">Eng yomon kun kelmaganlari ({worstDay.dateString.slice(5)})</Link>}
+						<Link to={`/monitor/schools/${evidence._id}?tab=${kind === 'student' ? 'students' : 'staff'}`} className="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800">{tx("Maktabni ochish")}</Link>
+						{worstDay && <Link to={`/monitor/lists?kind=${listKind}&status=absent&school=${evidence._id}&date=${worstDay.dateString}`} className="px-3.5 py-2 rounded-lg border border-red-200 text-red-700 text-sm hover:bg-red-50">{tx("Eng yomon kun kelmaganlari ({{date}})", { date: worstDay.dateString.slice(5) })}</Link>}
 					</div>
 
-					<h3 className="text-sm font-semibold text-gray-900 mb-2">Kunma-kun</h3>
-					{trend.loading && !trend.data ? <Empty text="Yuklanmoqda..." /> : (
+					<h3 className="text-sm font-semibold text-gray-900 mb-2">{tx("Kunma-kun")}</h3>
+					{trend.loading && !trend.data ? <Empty text={tx("Yuklanmoqda...")} /> : (
 						<div className="border border-gray-100 rounded-xl overflow-hidden">
 							<table className="w-full text-sm">
-								<thead className="bg-gray-50"><tr className="text-left text-xs uppercase tracking-wide text-gray-500"><th className="px-3 py-2 font-semibold">Sana</th><th className="px-3 py-2 font-semibold text-right">Kelgan</th><th className="px-3 py-2 font-semibold text-right">%</th><th className="px-3 py-2" /></tr></thead>
+								<thead className="bg-gray-50"><tr className="text-left text-xs uppercase tracking-wide text-gray-500"><th className="px-3 py-2 font-semibold">{tx("Sana")}</th><th className="px-3 py-2 font-semibold text-right">{tx("Kelgan")}</th><th className="px-3 py-2 font-semibold text-right">%</th><th className="px-3 py-2" /></tr></thead>
 								<tbody>
 									{[...days].reverse().map(d => (
 										<tr key={d.dateString} className="border-t border-gray-50">
-											<td className="px-3 py-2 whitespace-nowrap">{d.dateString} <span className="text-xs text-gray-400">{WEEKDAYS[d.weekday].slice(0, 3)}</span>{d === bestDay && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-green-50 text-green-700 font-semibold">Eng yaxshi</span>}{d === worstDay && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 font-semibold">Eng yomon</span>}</td>
+											<td className="px-3 py-2 whitespace-nowrap">{d.dateString} <span className="text-xs text-gray-400">{WEEKDAYS[d.weekday].slice(0, 3)}</span>{d === bestDay && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-green-50 text-green-700 font-semibold">{tx("Eng yaxshi")}</span>}{d === worstDay && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 font-semibold">{tx("Eng yomon")}</span>}</td>
 											<td className="px-3 py-2 text-right">{fmt(d[camKey])}</td>
 											<td className={`px-3 py-2 text-right font-semibold ${levelText(d[pctKey])}`}>{d[pctKey]}%</td>
-											<td className="px-3 py-2 text-right"><Link to={`/monitor/lists?kind=${listKind}&status=absent&school=${evidence._id}&date=${d.dateString}`} className="text-xs text-blue-600 hover:underline whitespace-nowrap">Kelmaganlar</Link></td>
+											<td className="px-3 py-2 text-right"><Link to={`/monitor/lists?kind=${listKind}&status=absent&school=${evidence._id}&date=${d.dateString}`} className="text-xs text-blue-600 hover:underline whitespace-nowrap">{tx("Kelmaganlar")}</Link></td>
 										</tr>
 									))}
 								</tbody>

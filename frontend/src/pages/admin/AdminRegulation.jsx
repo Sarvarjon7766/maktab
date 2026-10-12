@@ -4,6 +4,8 @@ import { FiRefreshCw, FiSave, FiSearch } from "react-icons/fi"
 import { PulseLoader } from "react-spinners"
 import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 const AdminRegulation = () => {
 	const token = localStorage.getItem("token")
@@ -138,9 +140,9 @@ const AdminRegulation = () => {
 	}
 
 	return (
-		<div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+		<div className="p-4 md:p-6 bg-gray-50 min-h-full">
 
-			<div className="rounded-lg border p-3 sm:p-4 mb-5 flex flex-col sm:flex-row gap-3 sm:gap-4">
+			<div className="rounded-lg border bg-white p-3 sm:p-4 mb-5 flex flex-col sm:flex-row gap-3 sm:gap-4">
 				<div className="flex-1">
 					<div className="relative max-w-md">
 						<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -148,7 +150,7 @@ const AdminRegulation = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Xodimlarni qidirish..."
+							placeholder={tx("Xodimlarni qidirish...")}
 							className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-black"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
@@ -162,7 +164,7 @@ const AdminRegulation = () => {
 					className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition"
 				>
 					{refreshing ? <PulseLoader size={6} color="black" /> : <FiRefreshCw size={16} />}
-					<span>Yangilash</span>
+					<span>{tx("Yangilash")}</span>
 				</button>
 
 				{isChanged && (
@@ -172,7 +174,7 @@ const AdminRegulation = () => {
 						className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition"
 					>
 						{saving ? <PulseLoader size={6} color="white" /> : <FiSave size={16} />}
-						<span>Saqlash</span>
+						<span>{tx("Saqlash")}</span>
 					</button>
 				)}
 			</div>
@@ -184,7 +186,7 @@ const AdminRegulation = () => {
 							<span className="text-sm font-bold text-gray-400 w-6 text-center">{index + 1}</span>
 							<div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
 								{user.photo ? (
-									<img src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`} alt={user.fullName} className="h-full w-full object-cover" />
+									<img src={`${uploadUrl(user.photo)}`} alt={user.fullName} className="h-full w-full object-cover" />
 								) : (
 									user.fullName.charAt(0)
 								)}
@@ -201,7 +203,7 @@ const AdminRegulation = () => {
 									onClick={() => {
 										if (index === 0) return
 										const newList = [...filteredUsers]
-										;[newList[index - 1], newList[index]] = [newList[index], newList[index - 1]]
+											;[newList[index - 1], newList[index]] = [newList[index], newList[index - 1]]
 										setUsers(mergeReorderedFilteredIntoFull(newList))
 										setFilteredUsers(newList.map((u, i) => ({ ...u, lavel: i + 1 })))
 										setIsChanged(true)
@@ -215,7 +217,7 @@ const AdminRegulation = () => {
 									onClick={() => {
 										if (index === filteredUsers.length - 1) return
 										const newList = [...filteredUsers]
-										;[newList[index], newList[index + 1]] = [newList[index + 1], newList[index]]
+											;[newList[index], newList[index + 1]] = [newList[index + 1], newList[index]]
 										setUsers(mergeReorderedFilteredIntoFull(newList))
 										setFilteredUsers(newList.map((u, i) => ({ ...u, lavel: i + 1 })))
 										setIsChanged(true)
@@ -237,9 +239,9 @@ const AdminRegulation = () => {
 						<table className="min-w-full divide-y divide-gray-200">
 							<thead className="bg-gray-50">
 								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Xodim</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lavozim</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holati</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tx("Xodim")}</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tx("Lavozim")}</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tx("Holati")}</th>
 								</tr>
 							</thead>
 
@@ -258,7 +260,7 @@ const AdminRegulation = () => {
 												<div className="h-10 w-10 flex-shrink-0">
 													{user.photo ? (
 														<img
-															src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+															src={`${uploadUrl(user.photo)}`}
 															alt={user.fullName}
 															className="h-10 w-10 rounded-full object-cover"
 														/>

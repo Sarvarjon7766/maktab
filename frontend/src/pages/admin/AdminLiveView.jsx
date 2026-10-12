@@ -7,6 +7,8 @@ import HikLiveModal from '../../components/HikLiveModal'
 import HikLivePlayer from '../../components/HikLivePlayer'
 import { authHeaders } from '../../components/HikCameraList'
 import { useOrg } from '../../context/OrgContext'
+import { setVisibleInterval } from '../../utils/poll'
+import { tx } from '../../i18n'
 
 const COLS = { 2: 'md:grid-cols-2', 3: 'md:grid-cols-2 xl:grid-cols-3', 4: 'md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' }
 const GENERAL = '_general'
@@ -34,12 +36,12 @@ const AdminLiveView = () => {
 				axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/my-cameras`, authHeaders()),
 				axios.get(`${import.meta.env.VITE_BASE_URL}/api/sinf/getAll`, authHeaders()).catch(() => ({ data: { sinfs: [] } })),
 			])
-			setCameras((c.data.cameras || []).filter(x => (x.role || 'monitor') === 'monitor'))
+			setCameras((c.data.cameras || []).filter(x => ['monitor', 'hall'].includes(x.role || 'monitor')))
 			setSinfs(s.data.sinfs || [])
 			setError(false)
 		} catch { setError(true) } finally { setLoading(false) }
 	}, [])
-	useEffect(() => { load(); const t = setInterval(load, 60000); return () => clearInterval(t) }, [load])
+	useEffect(() => { load(); const t = setVisibleInterval(load, 60000); return () => clearInterval(t) }, [load])
 
 	const sinfName = useMemo(() => new Map(sinfs.map(s => [String(s._id), s.name])), [sinfs])
 	// Papkalar: har bir sinfxona + umumiy kameralar (faqat kamerasi borlari)
@@ -67,31 +69,31 @@ const AdminLiveView = () => {
 				<div className="relative">
 					{live ? <HikLivePlayer cameraId={c._id} lazy /> : (
 						<div className="flex flex-col items-center justify-center gap-2 bg-slate-900 text-slate-400 text-sm" style={{ aspectRatio: '16 / 9' }}>
-							<FiVideo size={26} /><span>{c.inCloud === false ? "Bulutda yo'q" : c.online === false ? 'Kamera offline' : "Holat noma'lum"}</span>
+							<FiVideo size={26} /><span>{c.inCloud === false ? tx("Bulutda yo'q") : c.online === false ? tx("Kamera offline") : tx("Holat noma'lum")}</span>
 						</div>
 					)}
-					{live && <button onClick={() => setExpand({ id: c._id, name, areaName: '', schoolName: org.orgName })} title="Kattalashtirish" className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 text-white hover:bg-black/80"><FiMaximize2 size={13} /></button>}
+					{live && <button onClick={() => setExpand({ id: c._id, name, areaName: '', schoolName: org.orgName })} title={tx("Kattalashtirish")} className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 text-white hover:bg-black/80"><FiMaximize2 size={13} /></button>}
 				</div>
 				<div className="flex items-center justify-between gap-2 px-3 py-2.5">
-					<div className="min-w-0"><p className="text-sm font-semibold truncate text-gray-900">{name}</p>{folder === ALL && <p className="text-xs text-gray-400 truncate">{c.sinfId ? sinfName.get(String(c.sinfId)) || 'Sinfxona' : 'Umumiy kamera'}</p>}</div>
-					<span className={`w-2.5 h-2.5 rounded-full shrink-0 ${c.online === true ? 'bg-green-500' : c.online === false ? 'bg-red-500' : 'bg-gray-300'}`} title={c.online === true ? 'Online' : c.online === false ? 'Offline' : "Noma'lum"} />
+					<div className="min-w-0"><p className="text-sm font-semibold truncate text-gray-900">{name}</p>{folder === ALL && <p className="text-xs text-gray-400 truncate">{c.sinfId ? sinfName.get(String(c.sinfId)) || tx("Sinfxona") : tx("Umumiy kamera")}</p>}</div>
+					<span className={`w-2.5 h-2.5 rounded-full shrink-0 ${c.online === true ? 'bg-green-500' : c.online === false ? 'bg-red-500' : 'bg-gray-300'}`} title={c.online === true ? tx("Online") : c.online === false ? tx("Offline") : tx("Noma'lum")} />
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6 space-y-4">
+		<div className="min-h-full bg-slate-50 p-4 md:p-6 space-y-4">
 			<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
 				<aside className="bg-white rounded-2xl border border-gray-100 shadow-sm lg:sticky lg:top-4">
 					<div className="p-3 border-b border-gray-100 relative">
 						<FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-						<input value={query} onChange={e => setQuery(e.target.value)} placeholder="Sinfxona qidirish" className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-black outline-none focus:border-blue-400" />
+						<input value={query} onChange={e => setQuery(e.target.value)} placeholder={tx("Sinfxona qidirish")} className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-black outline-none focus:border-blue-400" />
 					</div>
 					<ul className="max-h-[60vh] lg:max-h-[calc(100vh-230px)] overflow-y-auto py-1">
-						<li><button onClick={() => open(ALL)} className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 ${folder === ALL ? 'font-semibold text-blue-700 bg-blue-50/60' : 'text-gray-700'}`}><FaThLarge className="text-blue-500 shrink-0" /> Hamma kameralar <span className="ml-auto text-xs text-gray-400">{all.total}</span></button></li>
-						<li><button onClick={() => open('')} className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 ${!folder ? 'font-semibold text-blue-700 bg-blue-50/60' : 'text-gray-700'}`}><FaFolder className="text-amber-400 shrink-0" /> Papkalar <span className="ml-auto text-xs text-gray-400">{all.total}</span></button></li>
-						{loading && <li className="px-4 py-6 text-sm text-gray-500">Yuklanmoqda...</li>}
+						<li><button onClick={() => open(ALL)} className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 ${folder === ALL ? 'font-semibold text-blue-700 bg-blue-50/60' : 'text-gray-700'}`}><FaThLarge className="text-blue-500 shrink-0" /> {tx("Hamma kameralar")} <span className="ml-auto text-xs text-gray-400">{all.total}</span></button></li>
+						<li><button onClick={() => open('')} className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 ${!folder ? 'font-semibold text-blue-700 bg-blue-50/60' : 'text-gray-700'}`}><FaFolder className="text-amber-400 shrink-0" /> {tx("Papkalar")} <span className="ml-auto text-xs text-gray-400">{all.total}</span></button></li>
+						{loading && <li className="px-4 py-6 text-sm text-gray-500">{tx("Yuklanmoqda...")}</li>}
 						{shown.map(f => {
 							const st = stat(f.cameras); const active = f.id === folder
 							return (
@@ -108,31 +110,37 @@ const AdminLiveView = () => {
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center justify-between gap-3 mb-4">
 						<nav className="flex items-center gap-1.5 text-sm text-gray-500 min-w-0">
-							<button onClick={() => open('')} className={current ? 'hover:text-blue-600' : 'font-semibold text-gray-900'}>Papkalar</button>
+							<button onClick={() => open('')} className={current ? 'hover:text-blue-600' : 'font-semibold text-gray-900'}>{tx("Papkalar")}</button>
 							{current && <><FiChevronRight size={14} /><span className="font-semibold text-gray-900 truncate">{current.name}</span></>}
 						</nav>
 						<div className="flex items-center gap-3">
-							<span className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-3 py-1 text-sm text-gray-700"><span className={`w-2 h-2 rounded-full ${(current ? stat(list) : all).online ? 'bg-green-500' : 'bg-gray-300'}`} />{(current ? stat(list) : all).online}/{(current ? list : cameras).length} online</span>
+							<span className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-3 py-1 text-sm text-gray-700"><span className={`w-2 h-2 rounded-full ${(current ? stat(list) : all).online ? 'bg-green-500' : 'bg-gray-300'}`} />{tx("{{online}}/{{total}} online", { online: (current ? stat(list) : all).online, total: (current ? list : cameras).length })}</span>
 							{current && <div className="hidden md:inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden text-sm">{[2, 3, 4].map(n => <button key={n} onClick={() => setColsSaved(n)} className={`px-3 py-1.5 ${cols === n ? 'bg-slate-900 text-white' : 'text-gray-600 hover:bg-gray-50'}`}>{n}</button>)}</div>}
 						</div>
 					</div>
 
-					{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 mb-4">Kameralarni yuklab bo'lmadi</div>}
+					{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 mb-4">{tx("Kameralarni yuklab bo'lmadi")}</div>}
 
 					{!current ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-							{cameras.length > 0 && !query && <button onClick={() => open(ALL)} className="group text-left bg-gradient-to-br from-blue-600 to-cyan-500 text-white rounded-2xl shadow-sm p-5 hover:shadow-md transition"><FaThLarge size={40} className="opacity-90" /><p className="font-medium mt-3">Hamma kameralar</p><p className="text-xs text-white/80 mt-1">{all.total} kamera · {all.online} online · bir vaqtda</p></button>}
+							{cameras.length > 0 && !query && (
+								<button onClick={() => open(ALL)} className="group text-left bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-amber-200 transition">
+									<FaFolder className="text-amber-400 group-hover:text-amber-500 transition" size={44} />
+									<p className="font-medium text-gray-900 mt-3 truncate">{tx("Hamma kameralar")}</p>
+									<p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${dot(all)}`} />{tx("{{total}} kamera · {{online}} online", { total: all.total, online: all.online })}</p>
+								</button>
+							)}
 							{shown.map(f => {
 								const st = stat(f.cameras)
 								return (
 									<button key={f.id} onClick={() => open(f.id)} className="group text-left bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-amber-200 transition">
 										<FaFolder className="text-amber-400 group-hover:text-amber-500 transition" size={44} />
 										<p className="font-medium text-gray-900 mt-3 truncate">{f.name}</p>
-										<p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${dot(st)}`} />{st.total} kamera · {st.online} online</p>
+										<p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${dot(st)}`} />{tx("{{total}} kamera · {{online}} online", { total: st.total, online: st.online })}</p>
 									</button>
 								)
 							})}
-							{!loading && shown.length === 0 && <p className="col-span-full text-center text-gray-500 py-12">{cameras.length === 0 ? "Maktabga hali kamera biriktirilmagan" : 'Papka topilmadi'}</p>}
+							{!loading && shown.length === 0 && <p className="col-span-full text-center text-gray-500 py-12">{cameras.length === 0 ? tx("Maktabga hali kamera biriktirilmagan") : tx("Papka topilmadi")}</p>}
 						</div>
 					) : (
 						// key=papka: papka almashganda oldingi oqimlar yopilib, yangilari ochiladi

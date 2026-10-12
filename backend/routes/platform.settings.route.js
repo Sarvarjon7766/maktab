@@ -30,4 +30,11 @@ router.get('/telegram', verifyToken, requireSuperAdmin, handle(() => Parents.pla
 router.put('/telegram', verifyToken, requireSuperAdmin, handle(req => Parents.connect(req.body?.token)))
 router.delete('/telegram', verifyToken, requireSuperAdmin, handle(() => Parents.disconnect()))
 
+// AI sozlamalari (odam sanash, telefon, ko'rish modeli): o'qish, saqlash, standartga qaytarish va mavjud modellar (faqat tizim egasi)
+const AiSettings = require('../services/ai.settings.service')
+router.get('/ai/models', verifyToken, requireSuperAdmin, handle(async (req) => ({ success: true, ...(await AiSettings.models(req.query.ollamaUrl)) })))
+router.get('/ai', verifyToken, requireSuperAdmin, handle(async () => ({ success: true, settings: await AiSettings.get(true) })))
+router.put('/ai', verifyToken, requireSuperAdmin, handle(req => AiSettings.save(req.body || {})))
+router.delete('/ai', verifyToken, requireSuperAdmin, handle(() => AiSettings.reset()))
+
 module.exports = router

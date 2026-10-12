@@ -14,6 +14,8 @@ import { publicId } from '../../utils/ids'
 import AdminUserAdd from './AdminUserAdd'
 import AdminUserImportExcel from './AdminUserImportExcel'
 import AdminUserUpdate from './AdminUserUpdate'
+import { uploadUrl } from '../../utils/uploadUrl'
+import { tx } from '../../i18n'
 
 // Xodim rasmining kameradagi holati: kamerada | navbatda (hali yuborilmagan) | rad etildi (sabab bilan) | rasm yo'q
 const camState = (u) => {
@@ -46,19 +48,16 @@ const PeopleSummary = ({ icon, label, value, tone = 'blue' }) => (
 const AdminUsers = () => {
 	const token = localStorage.getItem('token')
 	const location = useLocation()
-	const roleBase = location.pathname.split('/')[1] || 'admin'
 	const [sinfs, setDepartments] = useState([])
 	const [selectedDepartment, setSelectedDepartment] = useState('all')
 	const [camFilter, setCamFilter] = useState('all')
 	const [users, setUsers] = useState([])
 	const [filteredUsers, setFilteredUsers] = useState([])
 	const [searchTerm, setSearchTerm] = useState('')
-	const [commentModalOpen, setCommentModalOpen] = useState(false)
 	const [selectedUser, setSelectedUser] = useState(null)
 	const [addUser, setAddUser] = useState(false)
 	const [importExcelOpen, setImportExcelOpen] = useState(false)
 	const [updateUser, setUpdateUser] = useState(false)
-	const [commentText, setCommentText] = useState('')
 	const [exportLoading, setExportLoading] = useState(false)
 	const [deletingId, setDeletingId] = useState(null)
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -79,7 +78,7 @@ const AdminUsers = () => {
 			if (res.data.success) {
 				setDepartments(res.data.sinfs)
 			}
-		} catch (error) {
+		} catch {
 			toast.error('Sinflarni yuklashda xatolik')
 		}
 	}
@@ -95,7 +94,7 @@ const AdminUsers = () => {
 				setUsers(sortedUsers)
 				setFilteredUsers(sortedUsers)
 			}
-		} catch (error) {
+		} catch {
 			toast.error('Foydalanuvchilarni yuklashda xatolik')
 		} finally {
 			setIsLoading(false)
@@ -308,7 +307,7 @@ const AdminUsers = () => {
 	// results — har bir kameraning alohida natijasi ([{device, success, error}]), chunki xodim bir nechta kameraga bir vaqtda yuboriladi
 	const getCameraIcon = (hasCamera, error, attempts, results) => {
 		if (hasCamera === true) {
-			return <FiCamera className="text-green-600" size={16} title="Kamera bor" />
+			return <FiCamera className="text-green-600" size={16} title={tx("Kamera bor")} />
 		} else if (hasCamera === false) {
 			let title = "Kamera yo'q"
 			if (Array.isArray(results) && results.length) {
@@ -372,7 +371,7 @@ const AdminUsers = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 md:p-6">
+		<div className="min-h-full bg-slate-50 p-4 md:p-6">
 			{/* O'chirish tasdiq modali */}
 			{deleteModalOpen && (
 				<div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -382,33 +381,33 @@ const AdminUsers = () => {
 							<div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
 								<FiTrash className="text-red-600" size={20} />
 							</div>
-							<h3 className="text-lg font-semibold text-gray-900">Foydalanuvchini o'chirish</h3>
+							<h3 className="text-lg font-semibold text-gray-900">{tx("Foydalanuvchini o'chirish")}</h3>
 						</div>
 
 						<div className="mb-6">
 							<p className="text-gray-700 mb-2">
-								<strong>{userToDelete?.fullName}</strong> foydalanuvchisini o'chirishni tasdiqlaysizmi?
+								<strong>{userToDelete?.fullName}</strong> {tx("foydalanuvchisini o'chirishni tasdiqlaysizmi?")}
 							</p>
 							<p className="text-sm text-gray-500">
-								Bu amalni qaytarib bo'lmaydi. Foydalanuvchi butunlay o'chiriladi.
+								{tx("Bu amalni qaytarib bo'lmaydi. Foydalanuvchi butunlay o'chiriladi.")}
 							</p>
 
 							{userToDelete && (
 								<div className="mt-4 p-3 bg-gray-50 rounded-lg">
 									<p className="text-sm text-gray-600">
-										<span className="font-medium">Lavozim:</span> {userToDelete.position}
+										<span className="font-medium">{tx("Lavozim:")}</span> {userToDelete.position}
 									</p>
 									{userToDelete.sinf && (
 										<p className="text-sm text-gray-600">
-											<span className="font-medium">Sinf:</span> {userToDelete.sinf.name}
+											<span className="font-medium">{tx("Sinf:")}</span> {userToDelete.sinf.name}
 										</p>
 									)}
 									<p className="text-sm text-gray-600">
-										<span className="font-medium">Username:</span> {userToDelete.username}
+										<span className="font-medium">{tx("Username:")}</span> {userToDelete.username}
 									</p>
 									{userToDelete.photo_camera !== undefined && (
 										<p className="text-sm text-gray-600">
-											<span className="font-medium">Kamera:</span> {userToDelete.photo_camera ? 'Bor' : 'Yoʻq'}
+											<span className="font-medium">{tx("Kamera:")}</span> {userToDelete.photo_camera ? tx("Bor") : tx("Yoʻq")}
 										</p>
 									)}
 								</div>
@@ -421,7 +420,7 @@ const AdminUsers = () => {
 								disabled={deletingId}
 								className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium disabled:opacity-50"
 							>
-								Bekor qilish
+								{tx("Bekor qilish")}
 							</button>
 							<button
 								onClick={confirmDelete}
@@ -431,12 +430,12 @@ const AdminUsers = () => {
 								{deletingId ? (
 									<>
 										<div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-										O'chirilmoqda...
+										{tx("O'chirilmoqda...")}
 									</>
 								) : (
 									<>
 										<FiTrash size={16} />
-										O'chirish
+										{tx("O'chirish")}
 									</>
 								)}
 							</button>
@@ -446,10 +445,10 @@ const AdminUsers = () => {
 			)}
 
 			<div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
-				<PeopleSummary icon={<FiUsers />} label="Jami xodimlar" value={stats.total} tone="blue" />
-				<PeopleSummary icon={<FiUserCheck />} label="Ishda" value={stats.ishda.count} tone="green" />
-				<PeopleSummary icon={<FiLogOut />} label="Tashqarida" value={stats.tashqarida.count} tone="amber" />
-				<PeopleSummary icon={<FiUserX />} label="Kelmadi" value={stats.kelmagan.count} tone="rose" />
+				<PeopleSummary icon={<FiUsers />} label={tx("Jami xodimlar")} value={stats.total} tone="blue" />
+				<PeopleSummary icon={<FiUserCheck />} label={tx("Ishda")} value={stats.ishda.count} tone="green" />
+				<PeopleSummary icon={<FiLogOut />} label={tx("Tashqarida")} value={stats.tashqarida.count} tone="amber" />
+				<PeopleSummary icon={<FiUserX />} label={tx("Kelmadi")} value={stats.kelmagan.count} tone="rose" />
 			</div>
 			<div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 mb-5">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -460,7 +459,7 @@ const AdminUsers = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Xodimlarni qidirish..."
+							placeholder={tx("Xodimlarni qidirish...")}
 							className="pl-10 pr-4 py-2.5 text-black w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
@@ -477,7 +476,7 @@ const AdminUsers = () => {
 								value={selectedDepartment}
 								onChange={(e) => setSelectedDepartment(e.target.value)}
 							>
-								<option value="all">Barcha sinflar</option>
+								<option value="all">{tx("Barcha sinflar")}</option>
 								{sinfs.map(dept => (
 									<option key={dept._id} value={dept._id} className="max-w-[350px] whitespace-normal break-words">
 										{dept.name}
@@ -494,7 +493,7 @@ const AdminUsers = () => {
 								? 'bg-gray-400 cursor-not-allowed'
 								: 'bg-green-600 hover:bg-green-700 text-white'
 								}`}
-							title="Excelga yuklash"
+							title={tx("Excelga yuklash")}
 						>
 							{exportLoading ? (
 								<svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -504,7 +503,7 @@ const AdminUsers = () => {
 							) : (
 								<FiDownload size={18} />
 							)}
-							<span className="hidden xs:inline">Excel</span>
+							<span className="hidden xs:inline">{tx("Excel")}</span>
 						</button>
 
 						{/* PDF export */}
@@ -515,10 +514,10 @@ const AdminUsers = () => {
 								? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
 								: 'bg-white text-red-600 border-red-200 hover:bg-red-50'
 								}`}
-							title="PDF'ga yuklash"
+							title={tx("PDF'ga yuklash")}
 						>
 							<FiFileText size={18} />
-							<span className="hidden xs:inline">PDF</span>
+							<span className="hidden xs:inline">{tx("PDF")}</span>
 						</button>
 
 						{/* Word export */}
@@ -529,30 +528,30 @@ const AdminUsers = () => {
 								? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
 								: 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'
 								}`}
-							title="Word'ga yuklash"
+							title={tx("Word'ga yuklash")}
 						>
 							<FiFile size={18} />
-							<span className="hidden xs:inline">Word</span>
+							<span className="hidden xs:inline">{tx("Word")}</span>
 						</button>
 
 						{/* Excel'dan ommaviy qo'shish */}
 						<button
 							onClick={() => setImportExcelOpen(true)}
 							className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg flex items-center gap-2 flex-1 sm:flex-none justify-center"
-							title="Excel'dan ommaviy qo'shish"
+							title={tx("Excel'dan ommaviy qo'shish")}
 						>
 							<FiUploadCloud size={18} />
-							<span className="hidden xs:inline">Excel'dan qo'shish</span>
+							<span className="hidden xs:inline">{tx("Excel'dan qo'shish")}</span>
 						</button>
 
 						{/* Yangi xodim */}
 						<button
 							onClick={() => setAddUser(true)}
 							className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex items-center gap-2 flex-1 sm:flex-none justify-center"
-							title="Yangi xodim"
+							title={tx("Yangi xodim")}
 						>
 							<FiPlus size={18} />
-							<span className="hidden xs:inline">Yangi</span>
+							<span className="hidden xs:inline">{tx("Yangi")}</span>
 						</button>
 					</div>
 				</div>
@@ -563,7 +562,7 @@ const AdminUsers = () => {
 				<div className="space-y-3">
 					{isLoading ? (
 						<div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-400">
-							Yuklanmoqda...
+							{tx("Yuklanmoqda...")}
 						</div>
 					) : filteredUsers.length > 0 ? (
 						filteredUsers.map((user) => (
@@ -573,7 +572,7 @@ const AdminUsers = () => {
 										{user.photo ? (
 											<img
 												className="h-10 w-10 rounded-full object-cover"
-												src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+												src={`${uploadUrl(user.photo)}`}
 												alt={user.fullName}
 											/>
 										) : (
@@ -592,7 +591,7 @@ const AdminUsers = () => {
 								</div>
 								<div className="text-xs text-gray-600 mb-3">
 									<p>{user.position}</p>
-									{publicId(user.hodimID) && <p className="text-gray-400">ID: {publicId(user.hodimID)}</p>}
+									{publicId(user.hodimID) && <p className="text-gray-400">{tx("ID: {{id}}", { id: publicId(user.hodimID) })}</p>}
 								</div>
 								<div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
 									<button onClick={() => openEditModal(user)} className="text-blue-600 hover:text-blue-900 p-1.5 rounded-full hover:bg-blue-50"><FiEdit size={16} /></button>
@@ -602,7 +601,7 @@ const AdminUsers = () => {
 						))
 					) : (
 						<div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-500">
-							Hech qanday xodim topilmadi
+							{tx("Hech qanday xodim topilmadi")}
 						</div>
 					)}
 				</div>
@@ -616,17 +615,17 @@ const AdminUsers = () => {
 							<thead className="bg-gray-50">
 								<tr>
 									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Xodim</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lavozim</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Holati</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amallar</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Xodim")}</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Lavozim")}</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Holati")}</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Amallar")}</th>
 								</tr>
 							</thead>
 							<tbody className="bg-white divide-y divide-gray-200">
 								{isLoading ? (
 									<tr>
 										<td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-400">
-											Yuklanmoqda...
+											{tx("Yuklanmoqda...")}
 										</td>
 									</tr>
 								) : filteredUsers.length > 0 ? (
@@ -641,7 +640,7 @@ const AdminUsers = () => {
 														{user.photo ? (
 															<img
 																className="h-10 w-10 rounded-full object-cover"
-																src={`${import.meta.env.VITE_BASE_URL}/uploads/${user.photo}`}
+																src={`${uploadUrl(user.photo)}`}
 																alt={user.fullName}
 															/>
 														) : (
@@ -673,7 +672,7 @@ const AdminUsers = () => {
 													<button
 														onClick={() => openEditModal(user)}
 														className="text-blue-600 hover:text-blue-900 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
-														title="Tahrirlash"
+														title={tx("Tahrirlash")}
 													>
 														<FiEdit size={18} />
 													</button>
@@ -682,7 +681,7 @@ const AdminUsers = () => {
 														disabled={deletingId === user._id}
 														className={`text-red-600 hover:text-red-900 p-1.5 rounded-full hover:bg-red-50 transition-colors ${deletingId === user._id ? 'opacity-50 cursor-not-allowed' : ''
 															}`}
-														title="O'chirish"
+														title={tx("O'chirish")}
 													>
 														{deletingId === user._id ? (
 															<div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
@@ -697,7 +696,7 @@ const AdminUsers = () => {
 								) : (
 									<tr>
 										<td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
-											Hech qanday xodim topilmadi
+											{tx("Hech qanday xodim topilmadi")}
 										</td>
 									</tr>
 								)}
@@ -720,8 +719,8 @@ const AdminUsers = () => {
 			<div style={{ position: 'fixed', top: 0, left: '-10000px', width: '780px', zIndex: -1 }}>
 				<div ref={reportRef} style={{ background: '#ffffff', padding: '32px', fontFamily: 'Arial, sans-serif', color: '#111111' }}>
 					<div style={{ textAlign: 'center', marginBottom: '6px' }}><img src="/logo-256.png" alt="" style={{ height: '64px', width: '64px', objectFit: 'contain' }} /></div>
-					<h1 style={{ textAlign: 'center', fontSize: '22px', margin: '0 0 4px' }}>{org.orgName || 'School Supervision'}</h1>
-					<p style={{ textAlign: 'center', fontSize: '14px', color: '#666666', margin: '0 0 4px' }}>Xodimlar ro'yxati</p>
+					<h1 style={{ textAlign: 'center', fontSize: '22px', margin: '0 0 4px' }}>{org.orgName || tx("School Supervision")}</h1>
+					<p style={{ textAlign: 'center', fontSize: '14px', color: '#666666', margin: '0 0 4px' }}>{tx("Xodimlar ro'yxati")}</p>
 					<p style={{ textAlign: 'center', fontSize: '12px', color: '#999999', margin: '0 0 24px' }}>{formatUzShortDate(new Date())}</p>
 					<table style={{ width: '100%', borderCollapse: 'collapse' }}>
 						<thead>

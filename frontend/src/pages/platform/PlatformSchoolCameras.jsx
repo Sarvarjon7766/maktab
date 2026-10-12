@@ -99,12 +99,12 @@ const PlatformSchoolCameras = () => {
 	return (
 		<div className="p-4 md:p-6 space-y-5">
 			<div className="flex flex-wrap gap-3">
-				<Chip label="Biriktirilgan" value={assigned.length} active={school === '' && view === 'schools'} onClick={() => { setSchool(''); setType(''); setView('schools') }} />
-				<Chip label="Oddiy kamera" value={assigned.filter(c => roleOf(c) === 'monitor').length} active={type === 'monitor'} tone="text-blue-700" onClick={() => setType(type === 'monitor' ? '' : 'monitor')} />
-				<Chip label="FaceControl" value={assigned.filter(c => roleOf(c) !== 'monitor').length} active={type === 'facecontrol'} tone="text-emerald-700" onClick={() => setType(type === 'facecontrol' ? '' : 'facecontrol')} />
-				<Chip label="Online" value={assigned.filter(c => c.online === true).length} active={status === 'online'} tone="text-green-700" onClick={() => setStatus(status === 'online' ? '' : 'online')} />
-				<Chip label="Offline" value={assigned.filter(c => c.online !== true).length} active={status === 'offline'} tone="text-red-700" onClick={() => setStatus(status === 'offline' ? '' : 'offline')} />
-				<Chip label="Biriktirilmagan" value={base.filter(c => !c.schoolId).length} active={school === NONE} tone="text-amber-700" onClick={() => open(school === NONE ? '' : NONE)} />
+				<Chip label={tx("Biriktirilgan")} value={assigned.length} active={school === '' && view === 'schools'} onClick={() => { setSchool(''); setType(''); setView('schools') }} />
+				<Chip label={tx("Oddiy kamera")} value={assigned.filter(c => roleOf(c) === 'monitor').length} active={type === 'monitor'} tone="text-blue-700" onClick={() => setType(type === 'monitor' ? '' : 'monitor')} />
+				<Chip label={tx("FaceControl")} value={assigned.filter(c => roleOf(c) !== 'monitor').length} active={type === 'facecontrol'} tone="text-emerald-700" onClick={() => setType(type === 'facecontrol' ? '' : 'facecontrol')} />
+				<Chip label={tx("Online")} value={assigned.filter(c => c.online === true).length} active={status === 'online'} tone="text-green-700" onClick={() => setStatus(status === 'online' ? '' : 'online')} />
+				<Chip label={tx("Offline")} value={assigned.filter(c => c.online !== true).length} active={status === 'offline'} tone="text-red-700" onClick={() => setStatus(status === 'offline' ? '' : 'offline')} />
+				<Chip label={tx("Biriktirilmagan")} value={base.filter(c => !c.schoolId).length} active={school === NONE} tone="text-amber-700" onClick={() => open(school === NONE ? '' : NONE)} />
 			</div>
 
 			<section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -120,25 +120,25 @@ const PlatformSchoolCameras = () => {
 					{accounts.length > 1 && <SearchableSelect value={account} onChange={setAccount} options={accountOptions} className="min-w-[170px] max-w-[220px]" />}
 					<div className="relative flex-1 min-w-[200px]">
 						<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-						<input value={query} onChange={e => setQuery(e.target.value)} placeholder="Kamera, serial, hudud yoki maktab" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm text-black outline-none focus:border-blue-400 bg-white" />
+						<input value={query} onChange={e => setQuery(e.target.value)} placeholder={tx("Kamera, serial, hudud yoki maktab")} className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm text-black outline-none focus:border-blue-400 bg-white" />
 					</div>
-					<Link to="/platform/hik-cameras" className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">Biriktirish</Link>
+					<Link to="/platform/hik-cameras" className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">{tx("Biriktirish")}</Link>
 				</div>
 
 				{view === 'cameras' && picked.size > 0 && (
 					<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-blue-50 border-b border-blue-100 text-sm">
 						<span className="text-blue-900">{tx('{{n}} ta kamera tanlandi', { n: picked.size })}</span>
 						<div className="flex gap-2">
-							<button onClick={() => setPicked(new Set())} className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">Bekor qilish</button>
-							<button onClick={() => setConfirm({ ids: [...picked], text: tx('{{n}} ta kamera biriktirilgan maktab(lar)idan ajratiladi.', { n: picked.size }) })} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"><FiLink2 size={13} /> Maktabdan ajratish</button>
+							<button onClick={() => setPicked(new Set())} className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">{tx("Bekor qilish")}</button>
+							<button onClick={() => setConfirm({ ids: [...picked], text: tx('{{n}} ta kamera biriktirilgan maktab(lar)idan ajratiladi.', { n: picked.size }) })} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"><FiLink2 size={13} /> {tx("Maktabdan ajratish")}</button>
 						</div>
 					</div>
 				)}
-				{loading ? <p className="p-10 text-center text-sm text-gray-500">Yuklanmoqda...</p> : view === 'schools' ? (
+				{loading ? <p className="p-10 text-center text-sm text-gray-500">{tx("Yuklanmoqda...")}</p> : view === 'schools' ? (
 					<>
 						<div className="overflow-x-auto">
 							<table className="min-w-full">
-								<thead><tr><th className={th}>Maktab</th><th className={`${th} text-right`}>Oddiy</th><th className={`${th} text-right`}>Kirish</th><th className={`${th} text-right`}>Chiqish</th><th className={`${th} text-right`}>Online</th><th className={`${th} text-right`}>Offline</th></tr></thead>
+								<thead><tr><th className={th}>{tx("Maktab")}</th><th className={`${th} text-right`}>{tx("Oddiy")}</th><th className={`${th} text-right`}>{tx("Kirish")}</th><th className={`${th} text-right`}>{tx("Chiqish")}</th><th className={`${th} text-right`}>{tx("Online")}</th><th className={`${th} text-right`}>{tx("Offline")}</th></tr></thead>
 								<tbody className="divide-y divide-gray-100">
 									{pagedSchools.items.map(r => (
 										<tr key={r._id} onClick={() => open(r._id)} className="cursor-pointer hover:bg-gray-50/70">
@@ -147,7 +147,7 @@ const PlatformSchoolCameras = () => {
 											<td className={`${num} text-green-700`}>{r.online}</td><td className={`${num} ${r.offline ? 'text-red-700 font-medium' : 'text-gray-400'}`}>{r.offline}</td>
 										</tr>
 									))}
-									{perSchool.length === 0 && <tr><td colSpan={6} className="p-10 text-center text-sm text-gray-500">Mos maktab topilmadi</td></tr>}
+									{perSchool.length === 0 && <tr><td colSpan={6} className="p-10 text-center text-sm text-gray-500">{tx("Mos maktab topilmadi")}</td></tr>}
 								</tbody>
 							</table>
 						</div>
@@ -157,24 +157,24 @@ const PlatformSchoolCameras = () => {
 					<>
 						<div className="overflow-x-auto">
 							<table className="min-w-full">
-								<thead><tr><th className={`${th} w-10`}><input type="checkbox" checked={allOnPage} onChange={togglePage} disabled={!pageAssigned.length} className="w-4 h-4" aria-label="Sahifadagilarni tanlash" /></th><th className={th}>Maktab</th><th className={th}>Kamera</th><th className={th}>Hudud</th><th className={th}>Tur</th><th className={th}>Akkaunt</th><th className={th}>Holat</th><th className={th} /></tr></thead>
+								<thead><tr><th className={`${th} w-10`}><input type="checkbox" checked={allOnPage} onChange={togglePage} disabled={!pageAssigned.length} className="w-4 h-4" aria-label={tx("Sahifadagilarni tanlash")} /></th><th className={th}>{tx("Maktab")}</th><th className={th}>{tx("Kamera")}</th><th className={th}>{tx("Hudud")}</th><th className={th}>{tx("Tur")}</th><th className={th}>{tx("Akkaunt")}</th><th className={th}>{tx("Holat")}</th><th className={th} /></tr></thead>
 								<tbody className="divide-y divide-gray-100">
 									{pagedCams.items.map(c => {
 										const st = statusOf(c)
 										return (
 											<tr key={c._id} className={picked.has(c._id) ? 'bg-blue-50/50' : 'hover:bg-gray-50/70'}>
 												<td className="px-4 py-2.5">{c.schoolId && <input type="checkbox" checked={picked.has(c._id)} onChange={() => toggle(c._id)} className="w-4 h-4" />}</td>
-												<td className="px-4 py-2.5 text-sm">{c.schoolId ? <button onClick={() => setSchool(c.schoolId)} className="text-blue-700 hover:underline text-left">{c.schoolName}</button> : <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Biriktirilmagan</span>}</td>
+												<td className="px-4 py-2.5 text-sm">{c.schoolId ? <button onClick={() => setSchool(c.schoolId)} className="text-blue-700 hover:underline text-left">{c.schoolName}</button> : <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">{tx("Biriktirilmagan")}</span>}</td>
 												<td className="px-4 py-2.5 text-sm"><p className="font-medium text-gray-900 flex items-center gap-1.5"><FiVideo size={13} className="text-gray-400" />{c.name || c.cameraId}</p><p className="text-xs text-gray-500">{c.serial || '—'}</p></td>
 												<td className="px-4 py-2.5 text-sm text-gray-600">{c.areaName || '—'}</td>
 												<td className="px-4 py-2.5"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_CHIP[roleOf(c)]}`}>{ROLE_LABEL[roleOf(c)]}</span></td>
 												<td className="px-4 py-2.5 text-sm text-gray-600">{c.accountName}</td>
 												<td className="px-4 py-2.5"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${st.chip}`}>{st.text}</span></td>
-												<td className="px-4 py-2.5 text-right whitespace-nowrap">{c.schoolId && <button onClick={() => setConfirm({ ids: [c._id], text: tx('"{{cam}}" kamerasi "{{school}}" maktabidan ajratiladi.', { cam: c.name || c.cameraId, school: c.schoolName }) })} className="inline-flex items-center gap-1 px-2.5 py-1.5 mr-2 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50"><FiLink2 size={11} /> Ajratish</button>}<button disabled={c.online !== true || !c.serial} onClick={() => setLive({ id: c._id, name: c.name, areaName: c.areaName, schoolName: c.schoolName })} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"><FiPlay size={11} /> Jonli</button></td>
+												<td className="px-4 py-2.5 text-right whitespace-nowrap">{c.schoolId && <button onClick={() => setConfirm({ ids: [c._id], text: tx('"{{cam}}" kamerasi "{{school}}" maktabidan ajratiladi.', { cam: c.name || c.cameraId, school: c.schoolName }) })} className="inline-flex items-center gap-1 px-2.5 py-1.5 mr-2 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50"><FiLink2 size={11} /> {tx("Ajratish")}</button>}<button disabled={c.online !== true || !c.serial} onClick={() => setLive({ id: c._id, name: c.name, areaName: c.areaName, schoolName: c.schoolName })} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"><FiPlay size={11} /> {tx("Jonli")}</button></td>
 											</tr>
 										)
 									})}
-									{list.length === 0 && <tr><td colSpan={8} className="p-10 text-center text-sm text-gray-500">Mos kamera topilmadi</td></tr>}
+									{list.length === 0 && <tr><td colSpan={8} className="p-10 text-center text-sm text-gray-500">{tx("Mos kamera topilmadi")}</td></tr>}
 								</tbody>
 							</table>
 						</div>
@@ -186,14 +186,14 @@ const PlatformSchoolCameras = () => {
 				<div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4" onClick={() => !busy && setConfirm(null)}>
 					<div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
 						<div className="flex items-start justify-between gap-3">
-							<h3 className="text-base font-semibold text-gray-900">Kamerani maktabdan ajratish</h3>
+							<h3 className="text-base font-semibold text-gray-900">{tx("Kamerani maktabdan ajratish")}</h3>
 							<button onClick={() => setConfirm(null)} disabled={busy} className="text-gray-400 hover:text-gray-600"><FiX size={18} /></button>
 						</div>
 						<p className="mt-3 text-sm text-gray-600">{confirm.text}</p>
-						<p className="mt-2 text-xs text-gray-500">Kamera Hik akkauntida qoladi va qayta biriktirilishi mumkin. Maktabdagi sinf bog'lanishi va avtomatik davomat o'chadi, eski hodisalar saqlanadi.</p>
+						<p className="mt-2 text-xs text-gray-500">{tx("Kamera Hik akkauntida qoladi va qayta biriktirilishi mumkin. Maktabdagi sinf bog'lanishi va avtomatik davomat o'chadi, eski hodisalar saqlanadi.")}</p>
 						<div className="mt-5 flex justify-end gap-2">
-							<button onClick={() => setConfirm(null)} disabled={busy} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">Bekor qilish</button>
-							<button onClick={detach} disabled={busy} className="px-4 py-2 rounded-lg bg-red-600 text-sm text-white hover:bg-red-700 disabled:opacity-60">{busy ? 'Ajratilmoqda...' : 'Ajratish'}</button>
+							<button onClick={() => setConfirm(null)} disabled={busy} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">{tx("Bekor qilish")}</button>
+							<button onClick={detach} disabled={busy} className="px-4 py-2 rounded-lg bg-red-600 text-sm text-white hover:bg-red-700 disabled:opacity-60">{busy ? tx("Ajratilmoqda...") : tx("Ajratish")}</button>
 						</div>
 					</div>
 				</div>

@@ -8,7 +8,7 @@ const hikCameraEventModel = require('../models/hik.cameraevent.model')
 const Vision = require('./vision.service')
 const { schoolFilter, schoolCond } = require('../utils/monitorScope')
 
-const ALERTS = ['vision_empty', 'vision_surge', 'vision_overcrowd']
+const { ALERT_KINDS: ALERTS } = require('../ai/kinds')
 const KINDS = [...ALERTS, 'vision_sample']
 const todayStr = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 const { isDate } = require('../utils/dateStr')

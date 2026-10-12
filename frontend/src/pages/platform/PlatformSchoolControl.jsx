@@ -51,29 +51,29 @@ const PlatformSchoolControl = () => {
 
 	return <main className="min-h-full bg-slate-50 p-4 md:p-6">
 		<header className="flex justify-end gap-2 mb-6">
-			<button onClick={load} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} /> Yangilash</button>
+			<button onClick={load} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} /> {tx("Yangilash")}</button>
 		</header>
 
 		<div className="grid grid-cols-2 xl:grid-cols-6 gap-3 mb-6">
-			<TotalCard label="Maktab" value={schools.length} icon={<FaSchool />} color="blue" />
-			<TotalCard label="Admin" value={totals.admins} icon={<FiUsers />} color="violet" />
-			<TotalCard label="Xodim" value={totals.staff} icon={<FaChalkboardTeacher />} color="indigo" />
-			<TotalCard label="O‘quvchi" value={totals.students} icon={<FaUserGraduate />} color="amber" />
-			<TotalCard label="Sinf" value={totals.classes} icon={<FiUsers />} color="green" />
-			<TotalCard label="Kamera online" value={`${totals.camerasOnline}/${totals.cameras}`} icon={<FaVideo />} color="cyan" />
+			<TotalCard label={tx("Maktab")} value={schools.length} icon={<FaSchool />} color="blue" />
+			<TotalCard label={tx("Admin")} value={totals.admins} icon={<FiUsers />} color="violet" />
+			<TotalCard label={tx("Xodim")} value={totals.staff} icon={<FaChalkboardTeacher />} color="indigo" />
+			<TotalCard label={tx("O‘quvchi")} value={totals.students} icon={<FaUserGraduate />} color="amber" />
+			<TotalCard label={tx("Sinf")} value={totals.classes} icon={<FiUsers />} color="green" />
+			<TotalCard label={tx("Kamera online")} value={`${totals.camerasOnline}/${totals.cameras}`} icon={<FaVideo />} color="cyan" />
 		</div>
 
 		<section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 			<div className="p-4 md:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
-				<div><h2 className="font-semibold text-slate-900">Maktablar bo‘yicha to‘liq ko‘rinish</h2><p className="text-xs text-slate-500 mt-1">{tx('{{n}} ta maktab ko‘rsatilmoqda · tokenlar xavfsizlik uchun yashirilgan', { n: visibleSchools.length })}</p></div>
+				<div><h2 className="font-semibold text-slate-900">{tx("Maktablar bo‘yicha to‘liq ko‘rinish")}</h2><p className="text-xs text-slate-500 mt-1">{tx('{{n}} ta maktab ko‘rsatilmoqda · tokenlar xavfsizlik uchun yashirilgan', { n: visibleSchools.length })}</p></div>
 				<div className="flex flex-col sm:flex-row gap-2">
-					<label className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Maktab yoki hudud qidirish" className="w-full sm:w-64 rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" /></label>
+					<label className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder={tx("Maktab yoki hudud qidirish")} className="w-full sm:w-64 rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" /></label>
 					<SearchableSelect variant="outline" icon={false} className="min-w-[160px] max-w-[260px]" value={status} onChange={setStatus} options={[{ value: 'all', label: tx('Barcha holatlar') }, { value: 'active', label: tx('Faol') }, { value: 'inactive', label: tx('To‘xtatilgan') }]} />
 				</div>
 			</div>
-			{error ? <div className="p-10 text-center text-sm text-red-600">Maktab ma’lumotlarini olishda xatolik yuz berdi.</div> : loading ? <div className="p-10 text-center text-sm text-slate-400">Yuklanmoqda...</div> : visibleSchools.length ? <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 p-4">
+			{error ? <div className="p-10 text-center text-sm text-red-600">{tx("Maktab ma’lumotlarini olishda xatolik yuz berdi.")}</div> : loading ? <div className="p-10 text-center text-sm text-slate-400">{tx("Yuklanmoqda...")}</div> : visibleSchools.length ? <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 p-4">
 				{visibleSchools.map(school => <SchoolCard key={school._id} school={school} onOpen={() => school.isActive && navigate(`/platform/schools/${school._id}`)} />)}
-			</div> : <div className="p-10 text-center text-sm text-slate-500">Qidiruv bo‘yicha maktab topilmadi.</div>}
+			</div> : <div className="p-10 text-center text-sm text-slate-500">{tx("Qidiruv bo‘yicha maktab topilmadi.")}</div>}
 		</section>
 	</main>
 }
@@ -89,10 +89,10 @@ const SchoolCard = ({ school, onOpen }) => {
 	const cameraSeen = stats.cameraLastSeenAt ? new Date(stats.cameraLastSeenAt).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : tx('Heartbeat kelmagan')
 	const tokenUpdated = school.apiTokenRotatedAt ? new Date(school.apiTokenRotatedAt).toLocaleDateString('uz-UZ') : tx('Ma’lumot yo‘q')
 	return <article className="rounded-xl border border-slate-200 bg-white overflow-hidden hover:border-slate-300 transition">
-		<div className="flex items-start justify-between gap-3 p-4 border-b border-slate-100"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-slate-900">{school.name}</h3><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${school.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{school.isActive ? 'Faol' : 'To‘xtatilgan'}</span></div><p className="text-xs text-slate-500 mt-1">{tx('Kod: {{code}}', { code: school.code })}</p></div><button onClick={onOpen} disabled={!school.isActive} className="shrink-0 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40">Maktabni ochish</button></div>
-		<div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-600 border-b border-slate-100"><div className="flex items-center gap-1.5 min-w-0"><FiMapPin className="shrink-0 text-slate-400" /><span className="truncate">{[school.region, school.district].filter(Boolean).join(', ') || 'Hudud ko‘rsatilmagan'}</span></div><div className="flex items-center gap-1.5 min-w-0"><FiPhone className="shrink-0 text-slate-400" /><span className="truncate">{school.phone || 'Telefon kiritilmagan'}</span></div></div>
+		<div className="flex items-start justify-between gap-3 p-4 border-b border-slate-100"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-slate-900">{school.name}</h3><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${school.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{school.isActive ? tx("Faol") : tx("To‘xtatilgan")}</span></div><p className="text-xs text-slate-500 mt-1">{tx('Kod: {{code}}', { code: school.code })}</p></div><button onClick={onOpen} disabled={!school.isActive} className="shrink-0 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40">{tx("Maktabni ochish")}</button></div>
+		<div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-600 border-b border-slate-100"><div className="flex items-center gap-1.5 min-w-0"><FiMapPin className="shrink-0 text-slate-400" /><span className="truncate">{[school.region, school.district].filter(Boolean).join(', ') || tx("Hudud ko‘rsatilmagan")}</span></div><div className="flex items-center gap-1.5 min-w-0"><FiPhone className="shrink-0 text-slate-400" /><span className="truncate">{school.phone || tx("Telefon kiritilmagan")}</span></div></div>
 		<div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100 border-b border-slate-100"><MiniMetric icon={<FaChalkboardTeacher />} name={tx('Xodim')} value={stats.staffTotal || 0} /><MiniMetric icon={<FaUserGraduate />} name={tx('O‘quvchi')} value={stats.studentTotal || 0} /><MiniMetric icon={<FiUsers />} name={tx('Admin / sinf')} value={`${stats.adminTotal || 0} / ${stats.classTotal || 0}`} /><MiniMetric icon={<FaVideo />} name={tx('Kameralar')} value={`${stats.cameraOnline || 0}/${stats.cameraTotal || 0}`} /></div>
-		<div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 gap-3"><div><p className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">Bugungi davomat</p><p className="text-xs text-slate-600">Xodim <b className="text-slate-900">{stats.staffPresent || 0}/{stats.staffTotal || 0}</b> · O‘quvchi <b className="text-slate-900">{stats.studentPresent || 0}/{stats.studentTotal || 0}</b></p></div><div><p className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">Kamera va token holati</p><p className="text-xs text-slate-600">Kamera: <b className="text-slate-800">{cameraSummary}</b></p><p className="text-xs text-slate-500 mt-0.5">{tx('Oxirgi heartbeat: {{when}}', { when: cameraSeen })}</p><p className="text-xs text-slate-500 mt-0.5">Token {school.apiTokenPrefix ? `${school.apiTokenPrefix}…` : 'mavjud emas'} · yangilangan {tokenUpdated}</p></div></div>
+		<div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 gap-3"><div><p className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">{tx("Bugungi davomat")}</p><p className="text-xs text-slate-600">{tx("Xodim")} <b className="text-slate-900">{stats.staffPresent || 0}/{stats.staffTotal || 0}</b> {tx("· O‘quvchi")} <b className="text-slate-900">{stats.studentPresent || 0}/{stats.studentTotal || 0}</b></p></div><div><p className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">{tx("Kamera va token holati")}</p><p className="text-xs text-slate-600">{tx("Kamera:")} <b className="text-slate-800">{cameraSummary}</b></p><p className="text-xs text-slate-500 mt-0.5">{tx('Oxirgi heartbeat: {{when}}', { when: cameraSeen })}</p><p className="text-xs text-slate-500 mt-0.5">{tx("Token {{prefix}} · yangilangan {{when}}", { prefix: school.apiTokenPrefix ? `${school.apiTokenPrefix}…` : tx("mavjud emas"), when: tokenUpdated })}</p></div></div>
 	</article>
 }
 

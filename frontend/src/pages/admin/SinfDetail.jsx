@@ -1,10 +1,12 @@
 import axios from 'axios'
 import { useEffect, useState } from 'react'
-import { FiArrowLeft, FiUser } from 'react-icons/fi'
+import { FiArrowLeft } from 'react-icons/fi'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PulseLoader } from 'react-spinners'
 import { toast } from 'react-toastify'
 import StudentEntryExit from './StudentEntryExit'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
+import { tx } from '../../i18n'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -46,12 +48,12 @@ const SinfDetail = () => {
 	if (!sinf) {
 		return (
 			<div className="p-6 text-center">
-				<p className="text-gray-500 mb-4">Sinf topilmadi</p>
+				<p className="text-gray-500 mb-4">{tx("Sinf topilmadi")}</p>
 				<button
 					onClick={() => navigate(-1)}
 					className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
 				>
-					<FiArrowLeft size={16} /> Orqaga
+					<FiArrowLeft size={16} /> {tx("Orqaga")}
 				</button>
 			</div>
 		)
@@ -64,7 +66,7 @@ const SinfDetail = () => {
 					onClick={() => navigate(-1)}
 					className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-3"
 				>
-					<FiArrowLeft size={14} /> Sinflarga qaytish
+					<FiArrowLeft size={14} /> {tx("Sinflarga qaytish")}
 				</button>
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 					<div className="flex items-center gap-3">
@@ -78,19 +80,9 @@ const SinfDetail = () => {
 					</div>
 					{sinf.head && (
 						<div className="flex items-center gap-2.5 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
-							<div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-								{sinf.head.photo ? (
-									<img
-										src={`${BASE_URL}/uploads/${sinf.head.photo}`}
-										alt={sinf.head.fullName}
-										className="h-full w-full object-cover"
-									/>
-								) : (
-									<FiUser className="text-purple-500" size={14} />
-								)}
-							</div>
+							<PersonPhotoPreview photo={sinf.head.photo} name={sinf.head.fullName} size="md" className="!h-10 !w-10 !bg-purple-100 !text-purple-600" />
 							<div className="leading-tight">
-								<p className="text-xs text-purple-500">Sinf rahbari</p>
+								<p className="text-xs text-purple-500">{tx("Sinf rahbari")}</p>
 								<p className="text-sm font-medium text-gray-800">{sinf.head.fullName}</p>
 							</div>
 						</div>

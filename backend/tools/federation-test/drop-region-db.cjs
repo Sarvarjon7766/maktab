@@ -1,0 +1,11 @@
+const path = require('path')
+const B = path.resolve(__dirname, '../..')
+const mongoose = require(path.join(B, 'node_modules/mongoose'))
+;(async () => {
+	const c = await mongoose.createConnection('mongodb://localhost:27017/facecontrol_region').asPromise()
+	const cols = (await c.db.listCollections().toArray()).map((x) => x.name)
+	console.log('facecontrol_region kolleksiyalari:', cols.join(', '))
+	await c.dropDatabase()
+	console.log('sinov bazasi (facecontrol_region) o\'chirildi')
+	await c.close()
+})()

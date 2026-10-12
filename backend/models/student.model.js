@@ -67,6 +67,8 @@ const studentSchema = new Schema({
 
 studentSchema.index({ schoolId: 1, studentIdNumber: 1 }, { unique: true, sparse: true })
 studentSchema.index({ schoolId: 1, parentPhoneKey: 1 })
+// Sinf bo'yicha o'quvchilar ro'yxati/soni (sinfxona sahifalari, davomat): indekssiz butun jadval o'qilardi
+studentSchema.index({ sinf: 1, isActive: 1 })
 
 // ---- parentPhoneKey yuritish (saqlash / yangilash / ommaviy qo'shishda) ----
 const phoneKeyOf = (v) => { const d = String(v || '').replace(/\D/g, ''); return d.length >= 9 ? d.slice(-9) : '' }

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { FiAlertTriangle, FiCheckCircle, FiVideo } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { tx } from '../../i18n'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
 import { DateField, Empty, KpiLink, Page, PageHeader, SchoolLink, SchoolSelect, SearchBox, SelectBox, exportXlsx, fmt, matchText, todayStr, useMonitorData } from './monitorKit'
 
 // Sinfxonalar tahlili (tuman monitori): kamerali sinflar ball va darajasi bo'yicha, e'tibor talab qilganlari yuqorida
@@ -60,7 +61,7 @@ const MonitorClassroomAnalysis = () => {
 								const total = c.students ?? c.total ?? 0
 								return (
 									<tr key={`${c.schoolId}-${c._id}`} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30">
-										<td className="px-4 py-2.5 font-semibold text-gray-900">{c.name}</td>
+										<td className="px-4 py-2.5"><span className="flex items-center gap-2.5"><PersonPhotoPreview photo={c.headPhoto} name={c.head || c.name} size="sm" /><span><span className="block font-semibold text-gray-900">{c.name}</span>{c.head && <span className="block text-xs font-normal text-gray-500">{c.head}</span>}</span></span></td>
 										<td className="px-4 py-2.5"><SchoolLink id={c.schoolId} name={c.schoolName} className="text-sm" /></td>
 										<td className="px-4 py-2.5"><span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${lv.badge}`}>{lv.label}</span></td>
 										<td className="px-4 py-2.5 font-semibold text-gray-800">{keyOf(c) === 'nodata' ? '—' : c.analysis?.score}</td>

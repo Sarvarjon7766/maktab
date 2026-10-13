@@ -40,7 +40,11 @@ const deleteuserSchema = new Schema({
 	createdAt: {
 		type: Date,
 		default: Date.now
-	}
+	},
+	// Hik-Connect'dan o'chirish urinishlari (xato bo'lsa kutib qayta uriniladi)
+	attempts: { type: Number, default: 0 },
+	lastAttemptAt: { type: Date, default: null },
+	lastError: { type: String, default: null }
 })
 
 module.exports = model('deleteuser', deleteuserSchema)

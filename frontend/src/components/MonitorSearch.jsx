@@ -11,7 +11,7 @@ const PAGES = monitorMenuGroups.flatMap(g => g.items)
 const norm = (t) => String(t || '').toLowerCase().replace(/['‘’ʻʼ`´]/g, '')
 
 // Butun tizim bo'yicha qidiruv: sahifalar, maktab, sinf, o'quvchi, xodim. Klaviatura: ↑ ↓ Enter Esc, "/" — qidiruvga o'tish
-const MonitorSearch = () => {
+const MonitorSearch = ({ dark = false }) => {
 	const navigate = useNavigate()
 	const [q, setQ] = useState('')
 	const [open, setOpen] = useState(false)
@@ -77,8 +77,8 @@ const MonitorSearch = () => {
 		<div className="relative w-full max-w-md" ref={boxRef}>
 			<FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
 			<input ref={inputRef} value={q} onFocus={() => setOpen(true)} onKeyDown={onKey} onChange={e => { setQ(e.target.value); setOpen(true) }} placeholder={tx("Maktab, sinf, o'quvchi yoki xodim qidirish")}
-				className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-100 border border-transparent text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-400" />
-			{!q && <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-block rounded border border-slate-200 bg-white px-1.5 text-[10px] text-slate-400">/</kbd>}
+				className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm outline-none transition ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400 focus:border-blue-400' : 'bg-slate-100/80 border-transparent text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100'}`} />
+			{!q && <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-block rounded border px-1.5 text-[10px] ${dark ? 'border-slate-600 bg-slate-700 text-slate-300' : 'border-slate-200 bg-white text-slate-400'}`}>/</kbd>}
 			{showBox && (
 				<div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-[70vh] overflow-y-auto z-50 py-1">
 					{loading && flat.length === 0 && <p className="px-4 py-3 text-sm text-gray-500">{tx("Qidirilmoqda...")}</p>}

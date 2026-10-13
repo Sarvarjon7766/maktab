@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { FiDownload, FiPlus, FiSearch } from 'react-icons/fi'
 import { EXCUSE, ExcuseChip, Page, PageHeader, PersonLink, RangePicker, SchoolLink, SchoolSelect, Segmented, exportXlsx, fmt, todayStr, useMonitorData, usePanel } from './monitorKit'
 import SearchableSelect from '../../components/SearchableSelect'
-import { FaUmbrellaBeach } from 'react-icons/fa'
+import { FaHome, FaNotesMedical, FaPlane, FaRegCommentDots, FaTrophy, FaUmbrellaBeach, FaUsers } from 'react-icons/fa'
 import { tx } from '../../i18n'
 
 // O'quvchilar sabablari (sinf rahbari kiritadi) — xodimlar sabablaridan farqli turlar
@@ -14,6 +14,35 @@ const S_TYPES = {
 	boshqa: { label: 'Boshqa sabab', dot: 'bg-slate-400', cls: 'bg-slate-100 text-slate-700 ring-slate-200' }
 }
 const StudentChip = ({ type }) => { const e = S_TYPES[type] || S_TYPES.boshqa; return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${e.cls}`}><i className={`h-1.5 w-1.5 rounded-full ${e.dot}`} />{e.label}</span> }
+const COLOR = { tatil: 'sky', safar: 'violet', kasallik: 'rose', oilaviy: 'amber', musobaqa: 'emerald', boshqa: 'slate' }
+const ICON = { tatil: <FaUmbrellaBeach />, safar: <FaPlane />, kasallik: <FaNotesMedical />, oilaviy: <FaHome />, musobaqa: <FaTrophy />, boshqa: <FaRegCommentDots /> }
+// Tailwind klasslari to'liq yozilishi shart (dinamik qurilmaydi)
+const TINT = {
+	slate: { icon: 'bg-slate-100 text-slate-700', bar: 'bg-slate-500', on: 'border-slate-300 bg-slate-50 ring-2 ring-slate-200' },
+	sky: { icon: 'bg-sky-50 text-sky-600', bar: 'bg-sky-500', on: 'border-sky-300 bg-sky-50/60 ring-2 ring-sky-100' },
+	violet: { icon: 'bg-violet-50 text-violet-600', bar: 'bg-violet-500', on: 'border-violet-300 bg-violet-50/60 ring-2 ring-violet-100' },
+	rose: { icon: 'bg-rose-50 text-rose-600', bar: 'bg-rose-500', on: 'border-rose-300 bg-rose-50/60 ring-2 ring-rose-100' },
+	amber: { icon: 'bg-amber-50 text-amber-600', bar: 'bg-amber-500', on: 'border-amber-300 bg-amber-50/60 ring-2 ring-amber-100' },
+	emerald: { icon: 'bg-emerald-50 text-emerald-600', bar: 'bg-emerald-500', on: 'border-emerald-300 bg-emerald-50/60 ring-2 ring-emerald-100' }
+}
+// Filtr vazifasini bajaradigan ko'rsatkich kartasi: rangli belgi, katta son, ulushi; tanlanganda yumshoq rangli ramka
+const StatCard = ({ active, color, icon, label, value, share, note, onClick }) => {
+	const t = TINT[color] || TINT.slate
+	return (
+		<button type="button" onClick={onClick} aria-pressed={active} className={`group flex flex-col gap-3 rounded-2xl border p-4 text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${active ? t.on : 'border-gray-100 bg-white'}`}>
+			<div className="flex items-center gap-3">
+				<span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base ${t.icon}`}>{icon}</span>
+				<span className="min-w-0 truncate text-xs font-medium text-gray-500" title={label}>{label}</span>
+			</div>
+			<div className="flex items-end justify-between gap-2">
+				<span className="text-3xl font-bold leading-none text-gray-900">{fmt(value)}</span>
+				{note ? <span className="text-[11px] text-gray-400">{note}</span> : share !== undefined && <span className="text-[11px] text-gray-400">{share}%</span>}
+			</div>
+			{share !== undefined && <div className="h-1 overflow-hidden rounded-full bg-gray-100"><div className={`h-full rounded-full ${t.bar}`} style={{ width: `${share}%` }} /></div>}
+		</button>
+	)
+}
+const shiftDay = (d, n) => { const x = new Date(`${d}T00:00:00Z`); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10) }
 const daysBetween = (a, b) => Math.max(1, Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / 86400000) + 1)
 
 // Sababli kelmaganlar: xodimlar (ta'til, safar, kasallik) va o'quvchilar (kasallik, oilaviy, musobaqa). Standart: bugun faol bo'lganlar.
@@ -52,6 +81,7 @@ const MonitorLeaves = () => {
 		const t = q.trim().toLowerCase()
 		return all.filter(r => (!type || r.type === type) && (!state || (state === 'active' ? r.active : !r.active)) && (!sinf || r.group === sinf)
 			&& (!t || `${r.person.fullName} ${r.sub} ${r.schoolName} ${r.comment}`.toLowerCase().includes(t)))
+			.sort((a, b) => (b.active - a.active) || String(b.startDate).localeCompare(String(a.startDate)))
 	}, [all, type, state, sinf, q])
 
 	const switchKind = (k) => { setKind(k); setType(''); setSinf(''); setState('') }
@@ -73,19 +103,14 @@ const MonitorLeaves = () => {
 			<p className="mb-4 text-sm text-gray-500">{isStudent ? tx("Darsga kelmagan, ammo sababi sinf rahbari tomonidan kiritilgan o'quvchilar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi.") : tx("Ta'til, xizmat safari, kasallik kabi sabab bilan ishga kelmagan xodimlar. Ular davomat foizini tushirmaydi va \"kelmagan\" qatoriga kirmaydi.")} {tx("Sabab qo'shish yoki yopish uchun «Sabab qo'shish» tugmasi orqali {{section}} bo'limiga o'ting.", { section: isStudent ? tx("Kirish-chiqish") : tx("Izohlar") })}</p>
 			<div className="mb-5 flex flex-wrap items-center gap-3"><RangePicker {...range} onChange={setRange} />{!isToday && <button onClick={() => setRange({ from: today, to: today })} className="text-sm text-blue-600 hover:underline">{tx("Faqat bugun")}</button>}</div>
 
-			<div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-5">
-				<button onClick={() => { setType(''); setState('') }} className={`text-left rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${type === '' ? 'border-slate-900 ring-1 ring-slate-900' : 'border-gray-100'}`}>
-					<p className="text-xs text-gray-500">{isToday ? tx("Bugun sababli kelmagan") : tx("Jami (davrda)")}</p><p className="mt-1 text-3xl font-bold text-gray-900">{fmt(all.length)}</p><p className="mt-1 text-xs text-gray-400">{tx("hozir faol: {{n}}", { n: fmt(activeCount) })}</p>
-				</button>
+			<div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+				<StatCard active={type === ''} color="slate" icon={<FaUsers />} label={isToday ? tx("Bugun sababli kelmagan") : tx("Jami (davrda)")} value={all.length} note={tx("hozir faol: {{n}}", { n: fmt(activeCount) })} onClick={() => { setType(''); setState('') }} />
 				{Object.entries(typeDefs).map(([key, e]) => (
-					<button key={key} onClick={() => setType(type === key ? '' : key)} className={`text-left rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${type === key ? 'border-slate-900 ring-1 ring-slate-900' : 'border-gray-100'}`}>
-						<div className="flex items-center gap-2 text-xs text-gray-500"><i className={`h-2 w-2 rounded-full ${e.dot}`} />{e.label}</div>
-						<p className="mt-1 text-3xl font-bold text-gray-900">{fmt(byType[key] ?? 0)}</p>
-					</button>
+					<StatCard key={key} active={type === key} color={COLOR[key] || 'slate'} icon={ICON[key] || <FaRegCommentDots />} label={e.label} value={byType[key] ?? 0} share={all.length ? Math.round(((byType[key] ?? 0) / all.length) * 100) : 0} onClick={() => setType(type === key ? '' : key)} />
 				))}
 			</div>
 
-			<div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
+			<div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
 					<h2 className="font-semibold text-gray-900">{tx("{{who}} ro'yxati ({{n}})", { who: isStudent ? tx("O'quvchilar") : tx("Xodimlar"), n: fmt(rows.length) })}</h2>
 					<div className="flex flex-wrap items-center gap-2">
@@ -96,7 +121,7 @@ const MonitorLeaves = () => {
 				</div>
 				<div className="overflow-x-auto">
 					<table className="w-full text-sm">
-						<thead><tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
+						<thead><tr className="bg-gray-50/70 text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
 							{[isStudent ? "O'quvchi" : 'Xodim', ...(isStudent ? ['Sinf'] : []), ...(scoped ? [] : ['Maktab']), 'Sabab', 'Izoh', 'Muddat', 'Kun', 'Holat'].map(h => <th key={h} className="px-5 py-3 font-semibold whitespace-nowrap">{h}</th>)}
 						</tr></thead>
 						<tbody>
@@ -112,9 +137,9 @@ const MonitorLeaves = () => {
 									<td className="px-5 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${r.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{r.active ? tx("Hozir faol") : tx("Yakunlangan")}</span></td>
 								</tr>
 							))}
-							{!loading && rows.length === 0 && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500"><FaUmbrellaBeach className="mx-auto mb-3 text-gray-300" size={30} />{all.length ? tx("Filtrga mos yozuv topilmadi") : isToday ? `Bugun sababli kelmagan ${noun} yo'q` : `Bu davrda sababli kelmagan ${noun} yo'q`}</td></tr>}
+							{!loading && !error && rows.length === 0 && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500"><FaUmbrellaBeach className="mx-auto mb-3 text-gray-300" size={30} />{all.length ? tx("Filtrga mos yozuv topilmadi") : isToday ? `Bugun sababli kelmagan ${noun} yo'q` : `Bu davrda sababli kelmagan ${noun} yo'q`}{!all.length && isToday && <button onClick={() => setRange({ from: shiftDay(today, -29), to: today })} className="mt-3 block mx-auto text-sm text-blue-600 hover:underline">{tx("Oxirgi 30 kunni ko'rish")}</button>}</td></tr>}
 							{loading && !data && <tr><td colSpan={8} className="px-5 py-14 text-center text-gray-500">{tx("Yuklanmoqda...")}</td></tr>}
-							{error && <tr><td colSpan={8} className="px-5 py-14 text-center text-red-600">{tx("Ma'lumotni yuklab bo'lmadi")}</td></tr>}
+							{error && !data && <tr><td colSpan={8} className="px-5 py-14 text-center"><p className="text-red-600">{tx("Ma'lumotni yuklab bo'lmadi")}</p><button onClick={reload} className="mt-3 inline-flex h-9 items-center rounded-lg border border-gray-200 px-4 text-sm text-gray-700 hover:bg-gray-50">{tx("Qayta urinish")}</button></td></tr>}
 						</tbody>
 					</table>
 				</div>

@@ -384,6 +384,29 @@ class HikConnectService {
 		if (!serial) return
 		offlineSerials.set(serial, Date.now() + OFFLINE_HOLD_MS)
 		await hikCameraModel.updateMany({ accountId, serial }, { $set: { online: false } }).catch(() => { })
+		await hikCameraModel.updateMany({ accountId, serial, offlineSince: null }, { $set: { offlineSince: new Date() } }).catch(() => { })
+	}
+	// Qurilma qayta ulandi (jonli ko'rish ochildi): offline belgisini olib tashlaydi
+	async markDeviceOnline(accountId, serial) {
+		if (!serial) return
+		offlineSerials.delete(serial)
+		await hikCameraModel.updateMany({ accountId, serial, offlineSince: { $ne: null } }, { $set: { offlineSince: null, online: true, lastSeenAt: new Date() } }).catch(() => { })
+	}
+	// Offline deb belgilangan har qurilmadan bitta kameraning jonli manzilini so'rab ko'radi: ochilsa qurilma qaytgan
+	async reprobeDown(accountId, creds, serials) {
+		for (const serial of serials) {
+			const cam = await hikCameraModel.findOne({ accountId, serial, inCloud: true }).select('cameraId').lean()
+			if (!cam) continue
+			try {
+				const body = { resourceId: cam.cameraId, deviceSerial: serial, type: '1', protocol: '1' }
+				if (creds.code) body.code = creds.code
+				const r = await hik(accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
+				if (r.url) await this.markDeviceOnline(accountId, serial)
+			} catch (e) {
+				if (OFFLINE_RE.test(e.message || '')) await this.markDeviceOffline(accountId, serial)
+			}
+			await new Promise((r) => setTimeout(r, 300))
+		}
 	}
 	friendly(message) { return friendly(message) }
 
@@ -453,16 +476,20 @@ class HikConnectService {
 				const cameras = await fetchAllCameras(id, creds)
 				const now = new Date()
 				const ids = cameras.map(c => c.cameraId)
+				// Bulut "online" deydi, lekin qurilma jonli ko'rishda offline chiqqan bo'lsa — qayta tekshirib ko'rilmaguncha offline
+				const downSerials = new Set((await hikCameraModel.distinct('serial', { accountId: id, offlineSince: { $ne: null } })).filter(Boolean))
+				const isDown = (c) => !!c.serial && (downSerials.has(c.serial) || isHeldOffline(c.serial))
 				const existing = new Set((await hikCameraModel.find({ accountId: id, cameraId: { $in: ids } }).select('cameraId').lean()).map(c => c.cameraId))
 				if (cameras.length) {
 					await hikCameraModel.bulkWrite(cameras.map(c => ({
 						updateOne: {
 							filter: { accountId: id, cameraId: c.cameraId },
-							update: { $set: { serial: c.serial, channelNo: c.channelNo, name: c.name, areaName: c.areaName, online: c.serial && isHeldOffline(c.serial) ? false : c.online, inCloud: true, syncedAt: now, ...(c.online === true ? { lastSeenAt: now } : {}) } },
+							update: { $set: { serial: c.serial, channelNo: c.channelNo, name: c.name, areaName: c.areaName, online: isDown(c) ? false : c.online, inCloud: true, syncedAt: now, ...(c.online === true && !isDown(c) ? { lastSeenAt: now } : {}) } },
 							upsert: true
 						}
 					})))
 				}
+				if (downSerials.size) await this.reprobeDown(id, creds, downSerials).catch((e) => console.log('Hik qayta tekshiruv xatosi:', e.message))
 				// Bo'sh yoki to'liq bo'lmagan ro'yxat bo'yicha kameralarni "bulutda yo'q" deb belgilamaymiz
 				let gone = { modifiedCount: 0 }
 				if (cameras.length && !cameras.partial) gone = await hikCameraModel.updateMany({ accountId: id, cameraId: { $nin: ids }, inCloud: true }, { $set: { inCloud: false, online: null } })
@@ -950,6 +977,7 @@ class HikConnectService {
 			if (creds.code) body.code = creds.code
 			const live = await hik(camera.accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
 			if (!live.url) return { success: false, message: 'Jonli oqim manzili qaytmadi' }
+			if (camera.offlineSince) await this.markDeviceOnline(camera.accountId, camera.serial)
 			return { success: true, name: camera.name, streamToken: stream.appToken, domain: stream.streamAreaDomain, url: live.url }
 		} catch (error) {
 			console.log('Hik live xatosi:', error.message)

@@ -9,6 +9,9 @@ const Classroom = require('../services/hik.classroom.service')
 const Vision = require('../services/vision.service')
 const { isDate } = require('../utils/dateStr')
 const { fresh } = require('../utils/ttlCache')
+const { monitorScopeMiddleware, inScope } = require('../utils/monitorScope')
+const hikCameraModel = require('../models/hik.camera.model')
+const hikCameraEventModel = require('../models/hik.cameraevent.model')
 // Bir maktabning bir nechta admini bir xil sahifani ochib tursa (har 15-20 soniyada so'raladi) hisob-kitob 5 soniya ichida BIR marta bajariladi
 const SHORT_MS = 5000
 
@@ -22,6 +25,31 @@ const handle = (fn) => async (req, res) => {
 	}
 }
 const owner = [verifyToken, requireRole('superadmin')]
+
+// Monitor (tuman/viloyat nazoratchisi) faqat o'z hududidagi maktab, kamera va hodisalarni ko'radi:
+// hudud ALS'ga qo'yiladi, so'rovdagi schoolId / kamera / hodisa shu hududga kirmasa — 403
+const outOfScope = (res) => res.status(403).json({ success: false, message: "Bu maktab sizning hududingizga kirmaydi" })
+const monitorGuard = (target) => async (req, res, next) => {
+	if (req.user?.role !== 'monitor') return next()
+	try {
+		if (req.query.schoolId && !inScope(req.query.schoolId)) return outOfScope(res)
+		if (target) {
+			const id = req.params[target.param]
+			if (!/^[a-f\d]{24}$/i.test(String(id || ''))) return res.status(400).json({ success: false, message: "Id noto'g'ri" })
+			const doc = target.kind === 'event'
+				? await hikCameraEventModel.findById(id).select('schoolId').lean()
+				: await hikCameraModel.findById(id).select('schoolId').lean()
+			if (!doc || !doc.schoolId || !inScope(doc.schoolId)) return outOfScope(res)
+		}
+		return next()
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ success: false, message: 'Server xatosi' })
+	}
+}
+const scoped = (target) => [verifyToken, monitorScopeMiddleware, monitorGuard(target)]
+const CAM = { kind: 'camera', param: 'id' }
+const EVT = { kind: 'event', param: 'id' }
 
 // Tizim egasi: Hik akkauntlari (bir nechta bo'lishi mumkin)
 router.get('/accounts', ...owner, handle(() => HikService.accountsOverview()))
@@ -51,6 +79,10 @@ router.put('/schools/:schoolId/assignment', ...owner, handle(req => HikService.s
 router.get('/my-cameras', verifyToken, requireRole('user', 'admin'), handle(req => HikService.listForSchool(req.user.school)))
 
 // Maktab admini: kamerani sinfga bog'lash, vazifasini (monitor | in | out) va avto-davomatni belgilash
+// Hik-Connect shaxslar sinxronizatsiyasi (xodim/o'quvchilarni bulutga yuborish): holat va "hammasini yuborish"
+const HikPersons = require('../services/hik.person.service')
+router.get('/persons/status', verifyToken, requireRole('user', 'admin'), handle(req => HikPersons.status(req.user.school)))
+router.post('/persons/sync', verifyToken, requireRole('user', 'admin'), handle(async (req) => ({ success: true, ...(await HikPersons.enqueueAll(req.user.school)) })))
 router.put('/my-cameras-bulk', verifyToken, requireRole('user', 'admin'), handle(req => HikService.bulkUpdateCameras(req.user.school, req.body?.ids, req.body || {})))
 router.put('/my-cameras/:id', verifyToken, requireRole('user', 'admin'), handle(req => HikService.updateCameraSettings(req.user.school, req.params.id, req.body || {})))
 
@@ -66,10 +98,10 @@ router.get('/classrooms', verifyToken, requireRole('user', 'admin'), handle(req 
 	const date = require('../utils/dateStr').isDate(req.query.date) ? req.query.date : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 	return HikService.classrooms(req.user.school, date, { all: true })
 }))
-router.get('/cameras/:id/snapshot', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.snapshot(req.params.id, req.user)))
+router.get('/cameras/:id/snapshot', ...scoped(CAM), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.snapshot(req.params.id, req.user)))
 
 // Sinfxonaning to'liq tahlili: maktab admini o'z maktabi, monitor/tizim egasi istalgan maktab (schoolId bilan)
-router.get('/classroom-detail', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => {
+router.get('/classroom-detail', ...scoped(), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => {
 	const school = ['user', 'admin'].includes(req.user.role) ? req.user.school : req.query.schoolId
 	const date = require('../utils/dateStr').isDate(req.query.date) ? req.query.date : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 	return Classroom.detail(school, req.query.sinfId, date)
@@ -79,23 +111,23 @@ router.get('/classroom-detail', verifyToken, requireRole('superadmin', 'monitor'
 // Maktab admini o'z maktabi, monitor/tizim egasi istalgan maktab (schoolId bilan)
 const visionSchool = (req) => ['user', 'admin'].includes(req.user.role) ? req.user.school : req.query.schoolId
 const visionRoles = requireRole('superadmin', 'monitor', 'user', 'admin')
-router.get('/vision/live', verifyToken, visionRoles, handle(fresh(SHORT_MS, req => {
+router.get('/vision/live', ...scoped(), visionRoles, handle(fresh(SHORT_MS, req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.live(school)
 }, req => `vlive|${visionSchool(req)}`)))
-router.get('/vision/day', verifyToken, visionRoles, handle(req => {
+router.get('/vision/day', ...scoped(), visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	const date = require('../utils/dateStr').isDate(req.query.date) ? req.query.date : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date())
 	return Vision.day(school, date, req.query.sinfId || null)
 }))
-router.get('/vision/overview', verifyToken, visionRoles, handle(fresh(SHORT_MS, req => {
+router.get('/vision/overview', ...scoped(), visionRoles, handle(fresh(SHORT_MS, req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.overview(school, require('../utils/dateStr').isDate(req.query.date) ? req.query.date : null)
 }, req => `vover|${visionSchool(req)}|${req.query.date || ''}`)))
-router.get('/vision/evidence', verifyToken, visionRoles, handle(req => {
+router.get('/vision/evidence', ...scoped(), visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.evidence(school, { date: req.query.date, sinfId: req.query.sinfId || null, group: req.query.group, page: req.query.page })
@@ -119,18 +151,18 @@ router.get('/reports/download/:name', verifyToken, reportRoles, async (req, res)
 // Maktabni ishga tushirish bosqichlari (bosh sahifadagi "Tizimni sozlash" kartasi)
 router.get('/setup', verifyToken, requireRole('user', 'admin'), handle(req => require('../services/setup.service').status(req.user.school)))
 // Dalillar necha kun saqlanishi (sahifalarda izoh uchun)
-router.get('/vision/retention', verifyToken, visionRoles, handle(() => require('../services/retention.service').info()))
-router.get('/vision/summary', verifyToken, visionRoles, handle(req => {
+router.get('/vision/retention', ...scoped(), visionRoles, handle(() => require('../services/retention.service').info()))
+router.get('/vision/summary', ...scoped(), visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.summary(school, req.query.date)
 }))
-router.get('/vision/recent', verifyToken, visionRoles, handle(req => {
+router.get('/vision/recent', ...scoped(), visionRoles, handle(req => {
 	const school = visionSchool(req)
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.evidenceRecent(school, { date: req.query.date, per: req.query.per })
 }))
-router.get('/vision/frame/:cameraId', verifyToken, visionRoles, async (req, res) => {
+router.get('/vision/frame/:cameraId', ...scoped({ kind: 'camera', param: 'cameraId' }), visionRoles, async (req, res) => {
 	try {
 		const file = await Vision.frameFor(req.params.cameraId, req.user)
 		if (!file) return res.status(404).json({ success: false, message: 'Kadr topilmadi' })
@@ -143,9 +175,9 @@ router.get('/vision/frame/:cameraId', verifyToken, visionRoles, async (req, res)
 })
 
 // Kadrlar: hozirgi kadrni galereyaga saqlash va saqlangan kadrni (faqat huquqi borga) olish
-router.post('/cameras/:id/capture', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => Snapshots.capture(req.params.id, req.user)))
+router.post('/cameras/:id/capture', ...scoped(CAM), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => Snapshots.capture(req.params.id, req.user)))
 // Sun'iy intellekt isboti: qisqa lavha (animatsiyali WebP)
-router.get('/events/:id/clip', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), async (req, res) => {
+router.get('/events/:id/clip', ...scoped(EVT), requireRole('superadmin', 'monitor', 'user', 'admin'), async (req, res) => {
 	try {
 		const file = await Vision.clipFor(req.params.id, req.user)
 		if (!file) return res.status(404).json({ success: false, message: 'Lavha topilmadi' })
@@ -156,7 +188,7 @@ router.get('/events/:id/clip', verifyToken, requireRole('superadmin', 'monitor',
 		return res.status(500).json({ success: false, message: 'Server xatosi' })
 	}
 })
-router.get('/events/:id/snapshot', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), async (req, res) => {
+router.get('/events/:id/snapshot', ...scoped(EVT), requireRole('superadmin', 'monitor', 'user', 'admin'), async (req, res) => {
 	try {
 		const file = await Snapshots.fileFor(req.params.id, req.user)
 		if (!file) return res.status(404).json({ success: false, message: 'Kadr topilmadi' })
@@ -169,6 +201,6 @@ router.get('/events/:id/snapshot', verifyToken, requireRole('superadmin', 'monit
 })
 
 // Jonli ko'rish — tizim egasi va monitor istalgan kamerani, maktab admini faqat o'zinikini
-router.get('/cameras/:id/live', verifyToken, requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user, { fresh: req.query.fresh === '1' })))
+router.get('/cameras/:id/live', ...scoped(CAM), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user, { fresh: req.query.fresh === '1' })))
 
 module.exports = router

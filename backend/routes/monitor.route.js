@@ -5,14 +5,38 @@ const requireRole = require('../middlewares/requireRole')
 const MonitorService = require('../services/monitor.service')
 const Analytics = require('../services/monitor.analytics.service')
 const { cached, byUrlAndSchool } = require('../utils/ttlCache')
-const { monitorScopeMiddleware, excludeInactiveSchools, loadScope, scopeIds, scopeLevel } = require('../utils/monitorScope')
+const { monitorScopeMiddleware, excludeInactiveSchools, loadScope, scopeIds, scopeLevel, inScope } = require('../utils/monitorScope')
 const schoolModel = require('../models/school.model')
 
 
 
+
+// Hudud tekshiruvi: so'rovdagi maktab (`schoolId`, `/school/:id`) yoki shaxs (`/person/:kind/:id`) monitor hududiga kirmasa — rad etiladi.
+// (Ro'yxat/hisobotlar maktablarni hudud bo'yicha o'zi cheklaydi; bu qatlam id bilan to'g'ridan-to'g'ri so'rashni yopadi)
+const SCHOOL_PATH = /^\/school\/([a-f\d]{24})(\/|$)/i
+const PERSON_PATH = /^\/person(?:-day)?\/(student|staff)\/([a-f\d]{24})$/i
+const scopeGuard = async (req, res, next) => {
+	try {
+		const sid = req.query.schoolId
+		const m = SCHOOL_PATH.exec(req.path)
+		if ((sid && mongoose.isValidObjectId(sid) && !inScope(sid)) || (m && !inScope(m[1]))) return res.status(403).json({ success: false, message: "Bu maktab sizning hududingizga kirmaydi" })
+		const p = PERSON_PATH.exec(req.path)
+		if (p) {
+			const model = p[1] === 'student' ? require('../models/student.model') : require('../models/user.model')
+			const doc = await model.findById(p[2]).select('schoolId').lean()
+			if (!doc || !inScope(doc.schoolId)) return res.status(404).json({ success: false, message: 'Topilmadi' })
+		}
+		return next()
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ success: false, message: 'Hisobotni yuklashda xatolik' })
+	}
+}
+
 // Monitor hisobotlari yo'llari bitta joyda: ikkita router ulanadi — oddiy monitor/superadmin (JWT, hudud bo'yicha) va
 // federatsiya (viloyat serveri kaliti bilan, serverdagi hamma maktab). Federatsiyada /me yo'q (u foydalanuvchiga bog'liq).
 function register(router, { federation = false } = {}) {
+	router.use(scopeGuard)
 	const handle = (fn) => async (req, res) => {
 		try {
 			const result = await fn(req)
@@ -73,12 +97,14 @@ function register(router, { federation = false } = {}) {
 	// Chuqur tahlillar (tafsilotli): butun tizim bo'yicha ro'yxatlar va reytinglar
 	const q = (req) => req.query
 	router.get('/people-all', handle(cached(30000, req => Analytics.peopleAll({ kind: q(req).kind, status: q(req).status, date: q(req).date, schoolId: q(req).schoolId, sinfId: q(req).sinfId, q: q(req).q, page: q(req).page, limit: q(req).limit }))))
+	// Sababli kelmaganlar (ta'til, safar, kasallik; o'quvchilar uchun sinf rahbari kiritgan sabablar)
+	router.get('/leaves', handle(cached(45000, req => Analytics.leaves({ date: q(req).date, from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, type: q(req).type }))))
 	router.get('/late-people', handle(cached(60000, req => Analytics.latePeople({ kind: q(req).kind, from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, limit: q(req).limit, page: q(req).page, pageSize: q(req).pageSize, q: q(req).q, group: q(req).group, sort: q(req).sort, all: q(req).all }))))
 	router.get('/at-risk', handle(cached(60000, req => Analytics.atRisk({ from: q(req).from, to: q(req).to, schoolId: q(req).schoolId, minStreak: q(req).minStreak, limit: q(req).limit }))))
 	router.get('/classes-all', handle(cached(60000, req => Analytics.classesAll({ date: q(req).date, schoolId: q(req).schoolId }))))
 	router.get('/arrival', handle(cached(120000, req => Analytics.arrival({ from: q(req).from, to: q(req).to, schoolId: q(req).schoolId }))))
 	router.get('/camera-events', handle(cached(30000, req => Analytics.cameraEvents({ schoolId: q(req).schoolId, kind: q(req).kind, from: q(req).from, to: q(req).to, page: q(req).page, limit: q(req).limit }))))
-	router.get('/classrooms-all', handle(req => Analytics.classroomsAll({ date: q(req).date, schoolId: q(req).schoolId })))
+	router.get('/classrooms-all', handle(cached(30000, req => Analytics.classroomsAll({ date: q(req).date, schoolId: q(req).schoolId }))))
 	router.get('/grades', handle(cached(45000, req => Analytics.gradesReport({ from: q(req).from, to: q(req).to, grade: q(req).grade }))))
 	router.get('/grade-class', handle(req => Analytics.gradeClassDetail({ sinfId: q(req).sinfId, from: q(req).from, to: q(req).to })))
 	router.get('/alerts', handle(cached(45000, req => Analytics.alerts({ date: q(req).date }))))

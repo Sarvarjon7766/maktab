@@ -1,4 +1,5 @@
 import { tx } from '../../i18n'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
 import AutoSelect from '../../components/AutoSelect'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
@@ -21,7 +22,6 @@ const STATE = {
 	absent: { text: 'Kelmagan', cls: 'bg-red-50 text-red-700' }
 }
 
-const initials = (name) => (name || '?').split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase()
 
 // Maktabning xodimlari yoki o'quvchilari: qidiruv, holat va sinf filtri, sahifalash. Qatorni bosish — shaxs profiliga
 const MonitorPeopleTab = ({ schoolId, kind, initialStatus = '', initialSinf = '' }) => {
@@ -105,7 +105,7 @@ const MonitorPeopleTab = ({ schoolId, kind, initialStatus = '', initialSinf = ''
 								<tr key={p._id} onClick={() => navigate(`/monitor/people/${kind}/${p._id}`)} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/40 cursor-pointer">
 									<td className="px-4 py-2.5">
 										<div className="flex items-center gap-3">
-											<span className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold flex items-center justify-center shrink-0">{initials(p.fullName)}</span>
+											<PersonPhotoPreview photo={p.photo} name={p.fullName} size="sm" />
 											<span className="font-medium text-gray-900">{p.fullName}</span>
 										</div>
 									</td>

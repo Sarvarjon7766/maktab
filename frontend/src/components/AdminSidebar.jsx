@@ -76,7 +76,7 @@ const AdminSidebar = ({ collapsed = false, onClose }) => {
 	]
 
 	return (
-		<aside className="h-full flex flex-col bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+		<aside className="h-full flex flex-col bg-[#0b1325] text-white">
 			{/* MOBILE HEADER */}
 			{onClose && (
 				<div className="lg:hidden p-4 border-b border-slate-700 flex justify-between">

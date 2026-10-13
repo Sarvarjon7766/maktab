@@ -13,6 +13,9 @@
 const schoolService = require('../services/school.service')
 
 module.exports = async function resolveSchoolProxyToken(req, res, next) {
+	// server_proxy endi ishlatilmaydi (Hik-Connect bulut API bevosita): bu yo'llar sukut bo'yicha yopiq.
+	// Eski proxy hali ishlatilsa, .env ga LEGACY_PROXY=1 qo'ying
+	if (process.env.LEGACY_PROXY !== '1') return res.status(410).json({ success: false, message: "Bu yo'l o'chirilgan: Hik-Connect bulut API ishlatiladi" })
 	try {
 		const token = req.headers['authorization'] // faqat token olingan header, checkToken.js bilan bir xil
 

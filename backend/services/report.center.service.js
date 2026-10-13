@@ -42,10 +42,7 @@ const CATALOG = [
 	{ key: 'late_staff', group: 'Intizom', title: 'Kech qoluvchi xodimlar', desc: "Davr ichida kechikkan xodimlar va kechikish kunlari.", params: ['range'] },
 	{ key: 'at_risk', group: 'Intizom', title: 'Xavf guruhi', desc: "Ketma-ket yoki tez-tez kelmayotgan o'quvchilar: ketma-ket kunlar, oxirgi kelgan sana.", params: ['range', 'minStreak'] },
 	{ key: 'excuses', group: 'Intizom', title: 'Sababli kelmaganlar', desc: "Ta'til, safar, kasallik: xodimlar va o'quvchilar ro'yxati davri bilan.", params: ['range'] },
-	{ key: 'alerts', group: 'Intizom', title: 'Ogohlantirishlar', desc: "Tanlangan kundagi ogohlantirishlar: davomat pasayishi, kameralar, aqlli kuzatuv.", params: ['date'] },
 
-	{ key: 'cameras', group: 'Kamera va tizim', title: 'Kameralar holati', desc: "Barcha kameralar: sinfi, vazifasi, online/offline va oxirgi aloqa vaqti.", params: [] },
-	{ key: 'camera_sync', group: 'Kamera va tizim', title: 'Yuz rasmlarining kameradagi holati', desc: "Xodim va o'quvchilar rasmlari kameraga qabul qilinganmi, rad etilgan sabab va urinishlar.", params: [] },
 	{ key: 'parents', group: 'Ota-onalar', title: 'Ota-onalar boti qamrovi', desc: "Sinflar bo'yicha: nechta o'quvchining ota-onasi botga ulangan, telefoni yo'qlar.", params: [] },
 	{ key: 'parents_list', group: 'Ota-onalar', title: 'Ulangan ota-onalar ro‘yxati', desc: "Telegram botga ulangan ota-onalar, farzandlari, holati va oxirgi xabar vaqti.", params: [] },
 	{ key: 'students_all', group: 'Ro‘yxatlar', title: "O'quvchilar to‘liq ro‘yxati", desc: "Barcha o'quvchilar: sinf, ota-ona, telefon, rasmi bor-yo'qligi.", params: ['sinf'] },

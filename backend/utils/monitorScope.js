@@ -18,7 +18,7 @@ async function schoolsOf(scope) {
 	const filter = {}
 	if (norm(scope.region)) filter.region = new RegExp('^\\s*' + esc(norm(scope.region)) + '\\s*$', 'i')
 	if (norm(scope.district)) filter.district = new RegExp('^\\s*' + esc(norm(scope.district)) + '\\s*$', 'i')
-	return (await schoolModel.find(filter).select('_id').lean()).map((s) => s._id)
+	return (await schoolModel.find(filter).setOptions({ unscoped: true }).select('_id').lean()).map((s) => s._id)
 }
 
 // Foydalanuvchining hududi: { schoolIds, region, district } yoki null (cheklovsiz)
@@ -119,7 +119,7 @@ let activeCache = null
 async function activeSchoolIds() {
 	if (activeCache && Date.now() - activeCache.at < TTL) return activeCache.value
 	const schoolModel = require('../models/school.model')
-	const [active, inactive] = await Promise.all([schoolModel.find({ isActive: { $ne: false } }).select('_id').lean(), schoolModel.exists({ isActive: false })])
+	const [active, inactive] = await Promise.all([schoolModel.find({ isActive: { $ne: false } }).setOptions({ unscoped: true }).select('_id').lean(), schoolModel.exists({ isActive: false }).setOptions({ unscoped: true })])
 	const value = { ids: active.map((x) => x._id), hasInactive: !!inactive }
 	activeCache = { at: Date.now(), value }
 	return value

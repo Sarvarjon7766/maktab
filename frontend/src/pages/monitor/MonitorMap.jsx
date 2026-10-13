@@ -30,10 +30,6 @@ const MonitorMap = () => {
 	}, [schools, q, M])
 	const openSchool = useCallback((s) => navigate(platform ? `/platform/schools/${s._id}` : `/monitor/schools/${s._id}`), [navigate, platform])
 
-	const sum = (k) => schools.reduce((a, s) => a + s[k], 0)
-	const cameAll = sum('studentCame'), totalAll = sum('studentTotal')
-	const located = schools.filter(s => s.location).length
-
 	if (error && !data) return <div className="p-6"><div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Xaritani yuklab bo'lmadi")}</div></div>
 
 	return (
@@ -42,18 +38,12 @@ const MonitorMap = () => {
 				<button onClick={refresh} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50"><FiRefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> {tx("Yangilash")}</button>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-				{[['Maktablar', schools.length, `${located} tasi xaritada`, '/monitor/schools'], ["O'quvchi davomati", totalAll ? fmtPct((cameAll / totalAll) * 100) : '—', `${cameAll} / ${totalAll}`, '/monitor/students'], ['Kech qolganlar', sum('studentLate'), "o'quvchi", '/monitor/lists?kind=student&status=late'], ["Xaritada yo'q", data?.unlocated ?? '—', 'joylashuvi belgilanmagan']].map(([l, v, sub, to]) => (
-					<Tile key={l} to={platform ? null : to}><p className="text-xs font-medium text-slate-500">{l}</p><p className="mt-1.5 text-2xl font-bold leading-none text-slate-900">{v}</p><p className="mt-1.5 text-xs text-slate-400">{sub}</p></Tile>
-				))}
-			</div>
-
 			<div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
 				<div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-					<SchoolsMapPanel data={data} metric={metric} onMetric={setMetric} selectedId={selected} focus={focus} height="max(560px, calc(100vh - 380px))" onOpenSchool={openSchool} />
+					<SchoolsMapPanel data={data} metric={metric} onMetric={setMetric} selectedId={selected} focus={focus} height="max(560px, calc(100vh - 210px))" onOpenSchool={openSchool} />
 				</div>
 
-				<aside className="flex max-h-[max(610px,calc(100vh-300px))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+				<aside className="flex max-h-[max(610px,calc(100vh-140px))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 					<div className="relative border-b border-slate-100 p-3">
 						<FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
 						<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx("Maktab qidirish")} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:bg-white" />

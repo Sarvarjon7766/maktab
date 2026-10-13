@@ -31,11 +31,13 @@ npm test                    # birlik testlar (AI qoidalari, xavfsizlik, kesh)
 | `tests/` | `node --test` testlari |
 | `uploads/`, `private/` | yuklangan rasmlar (himoyalangan) va dalil kadrlari (git'ga kirmaydi) |
 
+## Hik-Connect
+Hodisalar va xodim/o'quvchilar (qo'shish, yangilash, o'chirish) to'g'ridan-to'g'ri Hik-Connect bulut API orqali (`services/hikevents.service.js`, `services/hik.person.service.js`); maktabda alohida proxy xizmati kerak emas. Shaxslar qurilmalarga Hik-Connect'dagi kirish huquqi (access level) orqali tushadi. Holat: `GET /api/hik/persons/status`.
+
 ## Qo'shimcha qismlar (shu papka ichida)
 
 | Papka | Nima |
 |---|---|
-| `server_proxy/` | har maktabda ishlaydigan Python xizmati: kameradan hodisa olib, backend bilan sinxronlaydi (o'z `README.md` va `config.example.json` bor) |
 | `deploy/` | production: `ecosystem.config.cjs` (pm2), nginx namunasi, `.env` namunalari, tuman/viloyat o'rnatish qo'llanmasi (`deploy/README.md`) |
 | `tools/federation-test/` | viloyat ↔ tuman ulanishini mahalliy sinash skriptlari |
 | `tools/hik/` | Hik-Connect API bilan ishlash namuna skriptlari (Python) |
@@ -44,6 +46,6 @@ npm test                    # birlik testlar (AI qoidalari, xavfsizlik, kesh)
 Desktop mijoz (Electron) — `../frontend/desktop/`.
 
 ## Xavfsizlik eslatmalari
-- `.env` va `server_proxy/config.json` git'ga kirmaydi.
+- `.env` git'ga kirmaydi.
 - `/uploads` rasmlari faqat token (`?t=`), maktab proxy tokeni yoki imzolangan havola (`?sig=`) bilan beriladi.
 - Productionda `NODE_ENV=production`, `FRONTEND_URL` va `TRUST_PROXY` (nginx ortida) sozlang.

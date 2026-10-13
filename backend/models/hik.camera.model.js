@@ -33,6 +33,8 @@ const hikCameraSchema = new Schema({
 	online: { type: Boolean, default: null },
 	// Oxirgi marta bulut online deb qaytargan vaqt
 	lastSeenAt: { type: Date, default: null },
+	// Bulut "online" desa ham qurilma jonli ko'rishda offline chiqqan vaqt: tekshiruv muvaffaqiyatli bo'lguncha offline hisoblanadi
+	offlineSince: { type: Date, default: null },
 	// Oxirgi muvaffaqiyatli sinxronlash vaqti (kamera ro'yxatda ko'ringan)
 	syncedAt: { type: Date, default: null },
 	// Sinxronlashda bulut ro'yxatida topilmasa false (o'chirilgan/ajratilgan)

@@ -29,7 +29,7 @@ const MonitorLayout = () => {
 			{isMobile && sidebarOpen && (
 				<>
 					<div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} />
-					<aside className="fixed top-0 left-0 z-50 h-full w-64 bg-slate-900">
+					<aside className="fixed top-0 left-0 z-50 h-full w-64 bg-[#0b1325]">
 						<MonitorSidebar collapsed={false} onClose={() => setSidebarOpen(false)} />
 					</aside>
 				</>
@@ -37,7 +37,7 @@ const MonitorLayout = () => {
 
 			<div className="flex h-full">
 				{!isMobile && (
-					<aside className={`bg-slate-900 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
+					<aside className={`bg-[#0b1325] transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
 						<MonitorSidebar collapsed={!sidebarOpen} />
 					</aside>
 				)}

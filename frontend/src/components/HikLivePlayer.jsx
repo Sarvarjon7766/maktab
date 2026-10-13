@@ -18,6 +18,7 @@ const STALL_MS = 20000
 const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus }) => {
 	const containerId = useRef(`hik-live-${Math.random().toString(36).slice(2)}`).current
 	const boxRef = useRef(null)
+	const [layoutKey, setLayoutKey] = useState(0) // panel o'lchami o'zgarganda pleyer yangi o'lcham bilan qayta yaratiladi
 	const [visible, setVisible] = useState(!lazy)
 	const [attempt, setAttempt] = useState(0)
 	const [state, setState] = useState({ status: 'loading', message: '' })
@@ -39,6 +40,26 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 		observer.observe(el)
 		return () => observer.disconnect()
 	}, [lazy])
+
+	// Panel kengligi o'zgarsa (2/3/4 ustunli tur, oyna o'lchami) pleyer yangi o'lcham bilan qayta yaratiladi: u yaratilgan o'lchamini o'zgartirmagani uchun
+	// aks holda qora maydon yoki qirqilgan kadr qoladi
+	useEffect(() => {
+		const el = boxRef.current
+		if (!el || typeof ResizeObserver === 'undefined') return
+		let timer = null
+		let last = { w: el.clientWidth, h: el.clientHeight }
+		const observer = new ResizeObserver(() => {
+			clearTimeout(timer)
+			timer = setTimeout(() => {
+				const w = Math.round(el.clientWidth), h = Math.round(el.clientHeight)
+				if (!w || !h || (Math.abs(w - last.w) < 8 && Math.abs(h - last.h) < 8)) return
+				last = { w, h }
+				setLayoutKey(k => k + 1)
+			}, 400)
+		})
+		observer.observe(el)
+		return () => { clearTimeout(timer); observer.disconnect() }
+	}, [])
 
 	const active = visible && !tabHidden
 
@@ -109,7 +130,7 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 			try { player?.destroy?.() } catch { /* pleyer allaqachon yopilgan */ }
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [active, cameraId, containerId, tokenKey, attempt, forced])
+	}, [active, cameraId, containerId, tokenKey, attempt, forced, layoutKey])
 
 	// Oxirgi kadr — faqat foydalanuvchi so'rasa (qurilmaga qo'shimcha yuk tushirmaslik uchun avtomatik emas)
 	const showStill = async () => {

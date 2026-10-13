@@ -284,7 +284,7 @@ class MonitorService {
 		const dateString = isDate(date) ? date : todayString()
 		const sid = oid(schoolId)
 		const [classes, students, present] = await Promise.all([
-			sinfModel.find({ schoolId: sid }).populate('head', 'fullName').sort({ name: 1 }).lean(),
+			sinfModel.find({ schoolId: sid }).populate('head', 'fullName photo').sort({ name: 1 }).lean(),
 			studentModel.aggregate([{ $match: { schoolId: sid, isActive: { $ne: false } } }, { $group: { _id: '$sinf', total: { $sum: 1 } } }]),
 			studentAttendanceModel.aggregate([
 				{ $match: { schoolId: sid, dateString, status: { $in: CAME } } },
@@ -301,7 +301,7 @@ class MonitorService {
 				const total = totalMap.get(String(c._id)) || 0
 				const came = camMap.get(String(c._id))?.came || 0
 				return {
-					_id: c._id, name: c.name, description: c.description, head: c.head?.fullName || null,
+					_id: c._id, name: c.name, description: c.description, head: c.head?.fullName || null, headPhoto: c.head?.photo || null, headId: c.head?._id || null,
 					total, came, inside: camMap.get(String(c._id))?.inside || 0,
 					absent: Math.max(0, total - came), percent: pct(came, total)
 				}
@@ -318,12 +318,12 @@ class MonitorService {
 		const came = await studentAttendanceModel.find({ schoolId: sid, dateString, status: { $in: CAME } }).select('student').lean()
 		filter._id = { $nin: came.map(r => r.student) }
 		const [list, total] = await Promise.all([
-			studentModel.find(filter).select('fullName sinf gender').populate('sinf', 'name').sort({ fullName: 1 }).limit(1000).lean(),
+			studentModel.find(filter).select('fullName sinf gender photo').populate('sinf', 'name').sort({ fullName: 1 }).limit(1000).lean(),
 			studentModel.countDocuments(filter)
 		])
 		return {
 			success: true, dateString, total, truncated: total > list.length,
-			students: list.map(s => ({ _id: s._id, fullName: s.fullName, sinf: s.sinf?.name || '', gender: s.gender }))
+			students: list.map(s => ({ _id: s._id, fullName: s.fullName, photo: s.photo || null, sinf: s.sinf?.name || '', gender: s.gender }))
 		}
 	}
 
@@ -428,7 +428,7 @@ class MonitorService {
 			const firstIn = hhmm(lg?.firstIn)
 			const late = came && firstIn && limitMin !== null && minutesOf(firstIn) > limitMin
 			return {
-				_id: p._id, fullName: p.fullName, code: kind === 'staff' ? publicCode(p.hodimID) : publicCode(p.studentIdNumber), position: p.position || '', sinf: p.sinf?.name || '', gender: p.gender || null,
+				_id: p._id, fullName: p.fullName, photo: p.photo || null, code: kind === 'staff' ? publicCode(p.hodimID) : publicCode(p.studentIdNumber), position: p.position || '', sinf: p.sinf?.name || '', gender: p.gender || null,
 				status: !came ? 'absent' : a.status === 'ishda' ? 'inside' : 'out', late: !!late, firstIn, lastOut: hhmm(lg?.lastOut), totalTime: a?.totalTime || null
 			}
 		})

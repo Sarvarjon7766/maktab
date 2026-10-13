@@ -6,6 +6,7 @@ const vision = require("../services/vision.service");
 const reports = require("../services/report.service");
 const parents = require("../services/parent.service");
 const retention = require("../services/retention.service");
+const hikPersons = require("../services/hik.person.service");
 
 // Har bir vazifa uchun: oldingisi tugamagan bo'lsa qayta ishga tushmaydi, xato esa faqat log qilinadi
 const guarded = (name, fn) => {
@@ -32,6 +33,9 @@ const startCronJobs = () => {
 
   // Hik-Connect yuz aniqlash hodisalarini olib turadi (FaceControl kameralari bo'lsagina ish qiladi)
   hikEvents.start();
+
+  // Xodim/o'quvchilarni Hik-Connect bulutiga yuborish: qo'shish, yangilash, rasm, o'chirish (navbat — adduser/deleteuser)
+  hikPersons.start();
 
   // Sinfxona kameralarida odamlarni sanash (faqat visionEnabled kameralar)
   vision.start();
@@ -66,7 +70,7 @@ const startCronJobs = () => {
   return {
     stop() {
       for (const t of tasks) { try { t.stop(); } catch { /* ignore */ } }
-      for (const svc of [hikEvents, vision, reports, parents]) { try { svc.stop && svc.stop(); } catch { /* ignore */ } }
+      for (const svc of [hikEvents, vision, reports, parents, hikPersons]) { try { svc.stop && svc.stop(); } catch { /* ignore */ } }
     },
   };
 };

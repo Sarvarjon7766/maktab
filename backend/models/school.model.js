@@ -34,14 +34,10 @@ const schoolSchema = new Schema({
 		updatedAt: { type: Date, default: null },
 		updatedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
 	},
-	// Maktab joylashuvi (xarita uchun): maktab admini o'z panelidan belgilaydi
-	location: {
-		lat: { type: Number, default: null },
-		lng: { type: Number, default: null },
-		address: { type: String, default: '', trim: true },
-		updatedAt: { type: Date, default: null },
-		updatedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
-	},
+	// Hik-Connect: xodim/o'quvchilar qaysi shaxs guruhiga va qaysi kirish huquqiga (access level) qo'shiladi.
+	// Bo'sh bo'lsa xizmat o'zi topadi va shu yerga yozadi (services/hik.person.service.js)
+	hikGroupId: { type: String, default: null },
+	hikAccessLevelId: { type: String, default: null },
 	phone: {
 		type: String,
 		default: ''
@@ -87,5 +83,15 @@ const schoolSchema = new Schema({
 }, {
 	timestamps: true
 })
+
+// Monitor so'rovi davomida (utils/monitorScope: AsyncLocalStorage) maktab so'rovlari avtomatik monitor hududi bilan cheklanadi:
+// monitor xizmatlari maktablarni qanday so'rashidan qat'i nazar boshqa tuman maktablari ko'rinmaydi. Hududni o'zi aniqlaydigan
+// so'rovlar `.setOptions({ unscoped: true })` bilan chetlab o'tadi
+function limitToMonitorScope() {
+	if (this.getOptions().unscoped) return
+	const ids = require('../utils/monitorScope').scopeIds()
+	if (ids) this.and([{ _id: { $in: ids } }])
+}
+for (const op of ['find', 'findOne', 'countDocuments', 'distinct']) schoolSchema.pre(op, limitToMonitorScope)
 
 module.exports = model('School', schoolSchema)

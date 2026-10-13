@@ -10,7 +10,14 @@ const KINDS = {
 	people: { label: "Odamlar soni g'ayritabiiy", color: '#dc2626', chip: 'bg-red-50 text-red-700' },
 	enter: { label: 'Hududga kirish', color: '#16a34a', chip: 'bg-green-50 text-green-700' },
 	exit: { label: 'Hududdan chiqish', color: '#ea580c', chip: 'bg-orange-50 text-orange-700' },
-	multi: { label: "Ko'p turdagi obyekt", color: '#7c3aed', chip: 'bg-violet-50 text-violet-700' }
+	multi: { label: "Ko'p turdagi obyekt", color: '#7c3aed', chip: 'bg-violet-50 text-violet-700' },
+	// Aqlli kuzatuv (AI) hodisalari; `hint` — nima degani (sichqoncha olib borilganda ko'rinadi)
+	vision_restless: { label: 'Sinf notinch', color: '#d97706', chip: 'bg-amber-50 text-amber-700', hint: "Sinfda ko'pchilik tez harakatlanyapti yoki o'rnidan turib ketgan (ketma-ket ikki tekshiruvda). Dars tartibi buzilgan bo'lishi mumkin — kadrni ko'rib tekshiring" },
+	vision_commotion: { label: 'Zalda tartibsizlik', color: '#e11d48', chip: 'bg-rose-50 text-rose-700', hint: "Zal yoki koridorda ko'pchilik tez harakatlanyapti: to'polon yoki janjal bo'lishi mumkin (taxminiy, kadr orqali)" },
+	vision_overcrowd: { label: 'Ortiqcha odam', color: '#7c3aed', chip: 'bg-violet-50 text-violet-700', hint: "Kamerada odam soni belgilangan chegaradan oshdi (sinfda ro'yxatdan ko'p, zalda zich to'planish)" },
+	vision_surge: { label: 'Odamlar keskin oshdi', color: '#0891b2', chip: 'bg-orange-50 text-orange-700', hint: "Odamlar soni qisqa vaqtda keskin ko'paydi" },
+	vision_empty: { label: "Sinf bo'sh qoldi", color: '#f59e0b', chip: 'bg-red-50 text-red-700', hint: "Dars vaqtida sinfda odam qolmadi" },
+	vision_sample: { label: 'Avtomatik namuna', color: '#2563eb', chip: 'bg-blue-50 text-blue-700', hint: "Muammo emas: tizim kamerani vaqti-vaqti bilan tekshirib, odam sonini yozib boradi" }
 }
 const FALLBACK_COLORS = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#0891b2']
 const kindMeta = (k, i = 0) => KINDS[k] || { label: k, color: FALLBACK_COLORS[i % FALLBACK_COLORS.length], chip: 'bg-slate-100 text-slate-700' }
@@ -41,6 +48,7 @@ const MonitorCameraEvents = () => {
 			<PageHeader onReload={reload} loading={loading}><SchoolSelect schools={overview?.schools || []} value={schoolId} onChange={v => update({ school: v })} /></PageHeader>
 			<div className="mb-4"><RangePicker {...range} onChange={r => update({ from: r.from, to: r.to })} /></div>
 			<div className="mb-6"><Chips value={kind} onChange={v => update({ kind: v })} options={[{ key: '', label: 'Hammasi', count: total }, ...allKinds.map((k, i) => ({ key: k, label: kindMeta(k, i).label, count: kindCounts[k] || 0 }))]} /></div>
+			{kindMeta(kind).hint && <p className="-mt-3 mb-6 rounded-lg bg-slate-50 px-4 py-2.5 text-sm text-slate-600"><b className="text-slate-800">{kindMeta(kind).label}:</b> {tx(kindMeta(kind).hint)}</p>}
 			{error && <Empty text={tx("Ma'lumotni yuklab bo'lmadi")} />}
 
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
@@ -80,7 +88,7 @@ const MonitorCameraEvents = () => {
 							{events.map(e => (
 								<tr key={e._id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30">
 									<td className="px-4 py-2.5 whitespace-nowrap text-gray-700">{timeOf(e.time)}</td>
-									<td className="px-4 py-2.5"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${kindMeta(e.kind).chip}`}>{kindMeta(e.kind).label}</span></td>
+									<td className="px-4 py-2.5"><span title={kindMeta(e.kind).hint ? tx(kindMeta(e.kind).hint) : undefined} className={`px-2.5 py-1 rounded-full text-xs font-medium ${kindMeta(e.kind).chip}`}>{kindMeta(e.kind).label}</span></td>
 									<td className="px-4 py-2.5"><SchoolLink id={e.schoolId} name={e.schoolName} className="text-sm" /></td>
 									<td className="px-4 py-2.5 text-gray-600">{e.sinf ? <Link to={`/monitor/schools/${e.schoolId}?tab=students&sinf=${e.sinfId}`} className="hover:text-blue-600">{e.sinf}</Link> : '—'}</td>
 									<td className="px-4 py-2.5"><Link to={`/monitor/cameras?school=${e.schoolId}`} className="text-gray-800 hover:text-blue-600">{e.camera || '—'}</Link>{e.area && <span className="ml-2 text-xs text-gray-400">{e.area}</span>}</td>

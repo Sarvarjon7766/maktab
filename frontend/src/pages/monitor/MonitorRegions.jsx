@@ -24,7 +24,7 @@ const MonitorRegions = () => {
 	const chart = groups.map(g => ({ name: g.name, "O'quvchilar": g.studentCame, Xodimlar: g.staffCame }))
 	const download = () => exportXlsx(`hududlar-${data?.dateString || date}`, [{
 		name: 'Hududlar',
-		rows: groups.map(g => ({ Hudud: g.name, Maktablar: g.schools, "O'quvchi jami": g.studentTotal, "O'quvchi kelgan": g.studentCame, 'Xodim jami': g.staffTotal, 'Xodim kelgan': g.staffCame, 'Kamera online': `${g.cameraOnline}/${g.cameraTotal}` }))
+		rows: groups.map(g => ({ Hudud: g.name, Maktablar: g.schools, "O'quvchi jami": g.studentTotal, "O'quvchi kelgan": g.studentCame, 'Xodim jami': g.staffTotal, 'Xodim kelgan': g.staffCame }))
 	}])
 
 	return (

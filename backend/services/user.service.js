@@ -440,11 +440,11 @@ class UserService {
 				isActive: true
 			}).select('+password')
 			if (!user) {
-				return { success: false, message: "Bunday foydalanuvchi nomi mavjud emas" }
+				return { success: false, message: "Login yoki parol noto'g'ri" }
 			}
 			const isPasswordMatch = await bcrypt.compare(password, user.password)
 			if (!isPasswordMatch) {
-				return { success: false, message: "Parol noto‘g‘ri" }
+				return { success: false, message: "Login yoki parol noto'g'ri" }
 			}
 			const token = jwt.sign(
 				{ userId: user._id, username: user.username, role: user.role, school: user.schoolId || null },

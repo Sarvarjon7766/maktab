@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { FaChalkboardTeacher, FaClock, FaUserGraduate, FaVideo } from 'react-icons/fa'
-import { FiArrowLeft, FiDownload } from 'react-icons/fi'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { FiArrowLeft, FiDownload, FiMapPin } from 'react-icons/fi'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Donut } from './MonitorDashboard'
 import MonitorPeopleTab from './MonitorPeopleTab'
 import { Badge, CHART_COLORS, ChartBox, LoadState, Page, Panel, Progress, RangePicker, KpiLink, Table, Td, Tr, WEEKDAYS, exportXlsx, fmt, pct, schoolPlace, shiftDate, todayStr, useMonitorData } from './monitorKit'
 import { tx } from '../../i18n'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
 
 const TABS = [
 	{ key: 'overview', label: 'Umumiy' },
@@ -17,8 +18,16 @@ const TABS = [
 ]
 
 // Bitta maktab: umumiy holat, o'quvchilar va xodimlar (har biriga kirish mumkin), sinflar, kameralar
+// Google Maps: aniq koordinata bo'lsa — shu nuqta, aks holda maktab nomi va hududi bo'yicha qidiruv
+const mapsUrl = (s) => {
+	const loc = s.location
+	const query = loc && loc.lat != null && loc.lng != null ? `${loc.lat},${loc.lng}` : [s.name, s.district, s.region].filter(Boolean).join(', ')
+	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
 const MonitorSchoolDetail = () => {
 	const { id } = useParams()
+	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
 	const tab = TABS.some(t => t.key === params.get('tab')) ? params.get('tab') : 'overview'
 	const [range, setRange] = useState({ from: shiftDate(todayStr(), -29), to: todayStr() })
@@ -41,7 +50,11 @@ const MonitorSchoolDetail = () => {
 					<div className="flex flex-wrap items-center justify-between gap-3 mb-5">
 						<div className="min-w-0">
 							<h1 className="text-2xl font-semibold text-gray-900 truncate">{s.name}</h1>
-							<p className="text-sm text-gray-500 mt-1">{schoolPlace(s)}{s.phone ? ` · ${s.phone}` : ''}</p>
+							<p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+								<span>{schoolPlace(s)}{s.phone ? ` · ${s.phone}` : ''}</span>
+								<span aria-hidden="true">·</span>
+								<a href={mapsUrl(s)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline"><FiMapPin size={13} />{tx("Joylashuv")}</a>
+							</p>
 						</div>
 						<div className="flex items-center gap-2"><Badge ok={s.isActive} />{tab === 'overview' && <button onClick={download} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700"><FiDownload size={14} /> {tx("Excel")}</button>}</div>
 					</div>
@@ -107,7 +120,16 @@ const MonitorSchoolDetail = () => {
 					{tab === 'classes' && (
 						<Panel>
 							<Table head={['Sinf', 'Rahbar', 'Davomat', { label: "O'quvchilar", right: true }]}>
-								{data.classes.map(c => <Tr key={c._id}><Td className="font-medium text-gray-900">{c.name}</Td><Td className="text-gray-600">{c.head || '—'}</Td><Td><Progress present={c.came} total={c.total} percent={c.percent} /></Td><Td right>{fmt(c.total)}</Td></Tr>)}
+								{data.classes.map(c => (
+									<Tr key={c._id} onClick={() => navigate(`/monitor/grades/${parseInt(c.name) || 0}/${c._id}`)} className="cursor-pointer hover:bg-blue-50/40">
+										<Td className="font-medium text-blue-700">{c.name} →</Td>
+										<Td className="text-gray-600">{c.head ? (c.headId
+											? <Link to={`/monitor/people/staff/${c.headId}`} onClick={e => e.stopPropagation()} className="flex items-center gap-2 hover:text-blue-600 hover:underline"><PersonPhotoPreview photo={c.headPhoto} name={c.head} size="sm" />{c.head}</Link>
+											: <span className="flex items-center gap-2"><PersonPhotoPreview photo={c.headPhoto} name={c.head} size="sm" />{c.head}</span>) : '—'}</Td>
+										<Td><Progress present={c.came} total={c.total} percent={c.percent} /></Td>
+										<Td right>{fmt(c.total)}</Td>
+									</Tr>
+								))}
 								{data.classes.length === 0 && <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-500">{tx("Sinflar yo'q")}</td></tr>}
 							</Table>
 						</Panel>
@@ -115,13 +137,13 @@ const MonitorSchoolDetail = () => {
 
 					{tab === 'cameras' && (
 						<Panel>
-							<Table head={['Kamera', 'Joyi', 'Turi', 'Holat']}>
+							<Table head={['Kamera', 'Sinfxona', 'Holat']}>
 								{data.cameras.map(c => (
-									<Tr key={c._id}><Td className="font-medium text-gray-900">{c.name}</Td><Td className="text-gray-600">{c.place || '—'}</Td>
-										<Td className="text-gray-600">{c.source === 'hikconnect' ? tx("Hik-Connect") : tx("Lokal")}</Td>
+									<Tr key={c._id}><Td className="font-medium text-gray-900">{c.name}</Td>
+										<Td className="text-gray-700">{c.sinf ? c.sinf : <span className="text-gray-400">{c.role === 'in' ? tx("Kirish eshigi") : c.role === 'out' ? tx("Chiqish eshigi") : tx("Biriktirilmagan")}</span>}</Td>
 										<Td><Badge ok={c.online === true} yes="Online" no={c.online === false ? 'Offline' : "Noma'lum"} /></Td></Tr>
 								))}
-								{data.cameras.length === 0 && <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-500">{tx("Kamera yo'q")}</td></tr>}
+								{data.cameras.length === 0 && <tr><td colSpan={3} className="px-4 py-10 text-center text-gray-500">{tx("Kamera yo'q")}</td></tr>}
 							</Table>
 						</Panel>
 					)}

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { ToastContainer } from "react-toastify"
+import { setupToasts } from "./utils/toastSetup"
 import "react-toastify/dist/ReactToastify.css"
 import Login from "./components/Login"
 import Logout from "./components/Logout"
@@ -98,7 +99,6 @@ const PlatformHome = lazy(() => import("./pages/platform/PlatformHome"))
 const PlatformMonitors = lazy(() => import("./pages/platform/PlatformMonitors"))
 const PlatformSchools = lazy(() => import("./pages/platform/PlatformSchools"))
 const PlatformSchoolCameras = lazy(() => import("./pages/platform/PlatformSchoolCameras"))
-const PlatformStatistics = lazy(() => import("./pages/platform/PlatformStatistics"))
 const PlatformSchoolControl = lazy(() => import("./pages/platform/PlatformSchoolControl"))
 const PlatformTelegram = lazy(() => import("./pages/platform/PlatformTelegram"))
 const PlatformDistricts = lazy(() => import("./pages/platform/PlatformDistricts"))
@@ -106,12 +106,14 @@ const UserAttandance = lazy(() => import("./pages/user/UserAttandance"))
 const UserComments = lazy(() => import("./pages/user/UserComments"))
 const UserSinf = lazy(() => import("./pages/user/UserSinf"))
 
+setupToasts()
+
 const App = () => {
   return (
     <BrowserRouter>
       <StickyTables />
       <GlobalPhotoViewer />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={3000} limit={3} newestOnTop pauseOnFocusLoss={false} />
 
       <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -128,7 +130,7 @@ const App = () => {
         >
           <Route index element={<PlatformHome />} />
           <Route path="schools" element={<PlatformSchools />} />
-          <Route path="statistics" element={<PlatformStatistics />} />
+          <Route path="statistics" element={<Navigate to="/platform/school-control" replace />} />
           <Route path="school-control" element={<PlatformSchoolControl />} />
           <Route path="grades" element={<PlatformGrades />} />
           <Route path="monitors" element={<PlatformMonitors />} />
@@ -223,8 +225,8 @@ const App = () => {
           <Route path="camera-health" element={<ByLevel region={<RegionCameras />} district={<MonitorCameraHealth />} />} />
           <Route path="map" element={<MonitorMap />} />
           <Route path="schools-map" element={<MonitorMap panel />} />
-          <Route path="districts" element={<MonitorDistricts />} />
-          <Route path="districts/:name" element={<MonitorDistrictHub />} />
+          <Route path="districts" element={<ByLevel region={<MonitorDistricts />} district={<Navigate to="/monitor" replace />} />} />
+          <Route path="districts/:name" element={<ByLevel region={<MonitorDistrictHub />} district={<Navigate to="/monitor" replace />} />} />
           <Route path="ai" element={<MonitorAI />} />
           <Route path="profile" element={<MonitorProfile />} />
         </Route>

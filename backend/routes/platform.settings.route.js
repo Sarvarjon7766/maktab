@@ -7,6 +7,18 @@ const requireRole = require('../middlewares/requireRole')
 const requireSuperAdmin = requireRole('superadmin')
 
 router.get('/', verifyToken, requireSuperAdmin, get)
+
+// Tizim egasi bosh sahifasi: butun tizim holati (maktablar, davomat, Hik-Connect, AI, bot, xotira). 20 soniya keshlanadi
+const PlatformOverview = require('../services/platform.overview.service')
+const { fresh } = require('../utils/ttlCache')
+const overviewCached = fresh(20000, () => PlatformOverview.build(), () => 'platform-overview')
+const healthCached = fresh(20000, () => PlatformOverview.schoolsHealth(), () => 'platform-schools-health')
+router.get('/schools-health', verifyToken, requireSuperAdmin, async (req, res) => {
+	try { return res.json(await healthCached(req)) } catch (error) { console.log(error); return res.status(500).json({ success: false, message: 'Server xatosi' }) }
+})
+router.get('/overview', verifyToken, requireSuperAdmin, async (req, res) => {
+	try { return res.json(await overviewCached(req)) } catch (error) { console.log(error); return res.status(500).json({ success: false, message: 'Server xatosi' }) }
+})
 router.put('/update', verifyToken, requireSuperAdmin, update)
 
 // Dalil (rasm/lavha) va hodisalarni saqlash muddati: sozlash, holat va qo'lda tozalash (faqat tizim egasi)

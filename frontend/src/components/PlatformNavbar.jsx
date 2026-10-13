@@ -1,5 +1,6 @@
 import BrandLogo from './BrandLogo'
 import { tx } from '../i18n'
+import LanguageSwitcher from './LanguageSwitcher'
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi'
@@ -7,11 +8,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { schoolPageTitle } from '../utils/schoolPages'
 
 // Sahifa nomi (sahifalarning o'zida alohida sarlavha yo'q, shuning uchun shu yerda ko'rsatiladi)
-const TITLES = [['/platform/school-control', 'Maktablar nazorati'], ['/platform/school-cameras', 'Maktab kameralari'], ['/platform/hik-accounts', 'Hik akkauntlari'], ['/platform/hik-cameras', "Oddiy kameralarni bog'lash"], ['/platform/hik-facecontrol', "FaceControl kameralarni bog'lash"], ['/platform/region-monitors', 'Viloyat monitorlari'], ['/platform/monitors', 'Tuman monitorlari'], ['/platform/districts', 'Tumanlar'], ['/platform/map', 'Maktablar xaritasi'], ['/platform/audit-log', 'Audit jurnali'], ['/platform/branding', 'Platforma sozlamalari'], ['/platform/telegram', 'Telegram bot'], ['/platform/grades', 'Sinf darajalari'], ['/platform/statistics', 'Statistika'], ['/platform/schools', 'Maktablar']]
+const TITLES = [['/platform/school-control', 'Maktablar nazorati'], ['/platform/school-cameras', 'Maktab kameralari'], ['/platform/hik-accounts', 'Akkauntlar'], ['/platform/hik-cameras', 'Barcha kameralar'], ['/platform/hik-facecontrol', 'FaceControl'], ['/platform/region-monitors', 'Viloyat monitorlari'], ['/platform/monitors', 'Monitorlar'], ['/platform/districts', 'Tumanlar'], ['/platform/map', 'Maktablar xaritasi'], ['/platform/audit-log', 'Audit jurnali'], ['/platform/branding', 'Platforma sozlamalari'], ['/platform/telegram', 'Telegram bot'], ['/platform/grades', 'Sinf darajalari'], ['/platform/schools', 'Maktablar']]
 const platformTitle = (pathname) => {
 	const m = /^\/platform\/schools\/([^/]+)/.exec(pathname)
 	if (m) return pathname === `/platform/schools/${m[1]}` ? tx('Maktab') : schoolPageTitle(`/platform/schools/${m[1]}`, pathname)
-	return TITLES.find(([p]) => pathname === p || pathname.startsWith(`${p}/`))?.[1] || 'Bosh sahifa'
+	return TITLES.find(([p]) => pathname === p || pathname.startsWith(`${p}/`))?.[1] || 'Tizim nazorati'
 }
 
 const PlatformNavbar = ({ onToggleSidebar, sidebarOpen }) => {
@@ -41,29 +42,31 @@ const PlatformNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	}, [])
 
 	return (
-		<header className="bg-slate-900 text-white sticky top-0 z-20">
+		<header className="bg-white text-slate-800 sticky top-0 z-20 border-b border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
 			<div className="flex items-center justify-between px-4 py-3">
 				<div className="flex items-center gap-3">
-					<button onClick={onToggleSidebar} className="p-2 rounded hover:bg-slate-800">
+					<button onClick={onToggleSidebar} className="p-2 rounded-lg text-slate-700 hover:bg-slate-100">
 						<FiMenu size={22} />
 					</button>
 					<div className="hidden lg:flex items-center gap-3 min-w-0">
-						<span className="h-6 w-1 rounded-full bg-cyan-400" />
-						<p className="truncate text-lg font-semibold tracking-tight text-white max-w-[320px]">{platformTitle(pathname)}</p>
+						<span className="h-6 w-1 rounded-full bg-blue-500" />
+						<p className="truncate text-lg font-semibold tracking-tight text-slate-900 max-w-[320px]">{platformTitle(pathname)}</p>
 					</div>
 					{!sidebarOpen && (
 						<span className="font-bold transition-opacity">
-							<BrandLogo className="w-7 h-7 shrink-0" /> {tx("School Supervision")} <span className="text-slate-400 font-normal">{tx("· Platforma")}</span>
+							<BrandLogo className="w-7 h-7 shrink-0" /> {tx("School Supervision")} <span className="text-slate-500 font-normal">{tx("· Platforma")}</span>
 						</span>
 					)}
 				</div>
 
-				<div className="relative" ref={dropdownRef}>
+				<div className="flex items-center gap-2">
+					<LanguageSwitcher className="hidden sm:block" />
+					<div className="relative" ref={dropdownRef}>
 					<button
 						onClick={() => setOpen(prev => !prev)}
-						className="flex items-center gap-2 p-2 rounded hover:bg-slate-800"
+						className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100"
 					>
-						<div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center">
+						<div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-500/30 flex items-center justify-center overflow-hidden">
 							<FiUser />
 						</div>
 					</button>
@@ -83,6 +86,7 @@ const PlatformNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 							</button>
 						</div>
 					)}
+				</div>
 				</div>
 			</div>
 		</header>

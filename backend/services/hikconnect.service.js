@@ -384,6 +384,29 @@ class HikConnectService {
 		if (!serial) return
 		offlineSerials.set(serial, Date.now() + OFFLINE_HOLD_MS)
 		await hikCameraModel.updateMany({ accountId, serial }, { $set: { online: false } }).catch(() => { })
+		await hikCameraModel.updateMany({ accountId, serial, offlineSince: null }, { $set: { offlineSince: new Date() } }).catch(() => { })
+	}
+	// Qurilma qayta ulandi (jonli ko'rish ochildi): offline belgisini olib tashlaydi
+	async markDeviceOnline(accountId, serial) {
+		if (!serial) return
+		offlineSerials.delete(serial)
+		await hikCameraModel.updateMany({ accountId, serial, offlineSince: { $ne: null } }, { $set: { offlineSince: null, online: true, lastSeenAt: new Date() } }).catch(() => { })
+	}
+	// Offline deb belgilangan har qurilmadan bitta kameraning jonli manzilini so'rab ko'radi: ochilsa qurilma qaytgan
+	async reprobeDown(accountId, creds, serials) {
+		for (const serial of serials) {
+			const cam = await hikCameraModel.findOne({ accountId, serial, inCloud: true }).select('cameraId').lean()
+			if (!cam) continue
+			try {
+				const body = { resourceId: cam.cameraId, deviceSerial: serial, type: '1', protocol: '1' }
+				if (creds.code) body.code = creds.code
+				const r = await hik(accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
+				if (r.url) await this.markDeviceOnline(accountId, serial)
+			} catch (e) {
+				if (OFFLINE_RE.test(e.message || '')) await this.markDeviceOffline(accountId, serial)
+			}
+			await new Promise((r) => setTimeout(r, 300))
+		}
 	}
 	friendly(message) { return friendly(message) }
 
@@ -453,16 +476,20 @@ class HikConnectService {
 				const cameras = await fetchAllCameras(id, creds)
 				const now = new Date()
 				const ids = cameras.map(c => c.cameraId)
+				// Bulut "online" deydi, lekin qurilma jonli ko'rishda offline chiqqan bo'lsa — qayta tekshirib ko'rilmaguncha offline
+				const downSerials = new Set((await hikCameraModel.distinct('serial', { accountId: id, offlineSince: { $ne: null } })).filter(Boolean))
+				const isDown = (c) => !!c.serial && (downSerials.has(c.serial) || isHeldOffline(c.serial))
 				const existing = new Set((await hikCameraModel.find({ accountId: id, cameraId: { $in: ids } }).select('cameraId').lean()).map(c => c.cameraId))
 				if (cameras.length) {
 					await hikCameraModel.bulkWrite(cameras.map(c => ({
 						updateOne: {
 							filter: { accountId: id, cameraId: c.cameraId },
-							update: { $set: { serial: c.serial, channelNo: c.channelNo, name: c.name, areaName: c.areaName, online: c.serial && isHeldOffline(c.serial) ? false : c.online, inCloud: true, syncedAt: now, ...(c.online === true ? { lastSeenAt: now } : {}) } },
+							update: { $set: { serial: c.serial, channelNo: c.channelNo, name: c.name, areaName: c.areaName, online: isDown(c) ? false : c.online, inCloud: true, syncedAt: now, ...(c.online === true && !isDown(c) ? { lastSeenAt: now } : {}) } },
 							upsert: true
 						}
 					})))
 				}
+				if (downSerials.size) await this.reprobeDown(id, creds, downSerials).catch((e) => console.log('Hik qayta tekshiruv xatosi:', e.message))
 				// Bo'sh yoki to'liq bo'lmagan ro'yxat bo'yicha kameralarni "bulutda yo'q" deb belgilamaymiz
 				let gone = { modifiedCount: 0 }
 				if (cameras.length && !cameras.partial) gone = await hikCameraModel.updateMany({ accountId: id, cameraId: { $nin: ids }, inCloud: true }, { $set: { inCloud: false, online: null } })
@@ -585,15 +612,15 @@ class HikConnectService {
 
 	// Maktab admini uchun: faqat o'z maktabiga BIRIKTIRILGANLAR (o'qish)
 	async listForSchool(schoolId) {
-		const cameras = await hikCameraModel.find({ schoolId }).sort({ areaName: 1, name: 1 }).select('cameraId serial name areaName online lastSeenAt syncedAt inCloud role zone capacity sinfId autoAttendance visionEnabled lastEventAt').populate('sinfId', 'name').lean()
-		return { success: true, cameras: cameras.map(c => ({ ...c, sinf: c.sinfId ? { _id: c.sinfId._id, name: c.sinfId.name } : null, sinfId: c.sinfId?._id || null })) }
+		const cameras = await hikCameraModel.find({ schoolId }).sort({ areaName: 1, name: 1 }).select('cameraId serial name areaName online lastSeenAt syncedAt inCloud role zone capacity sinfId autoAttendance visionEnabled faceDirection lastEventAt').populate('sinfId', 'name').lean()
+		return { success: true, cameras: cameras.map(c => ({ ...c, faceDirection: c.faceDirection || 'in', sinf: c.sinfId ? { _id: c.sinfId._id, name: c.sinfId.name } : null, sinfId: c.sinfId?._id || null })) }
 	}
 
 	// Maktab admini: o'z maktabiga biriktirilgan kamerani sinfga bog'laydi va (FaceControl kamerasida)
 	// avto-davomatni yoqadi. Vazifani (kirish/chiqish) faqat tizim egasi belgilaydi. Boshqa maktab kamerasiga tegib bo'lmaydi
 	// `role`: maktab admini faqat 'monitor' (sinfxona kamerasi) va 'hall' (zal/koridor kamerasi) o'rtasida almashtira oladi;
 	// 'in'/'out' (FaceControl) ni faqat tizim egasi belgilaydi. `capacity` — zal kamerasida "zich" hisoblanadigan odam soni
-	async updateCameraSettings(schoolId, id, { sinfId, autoAttendance, visionEnabled, role, capacity }) {
+	async updateCameraSettings(schoolId, id, { sinfId, autoAttendance, visionEnabled, role, capacity, faceDirection }) {
 		if (!validId(id)) return { success: false, message: "Kamera id noto'g'ri" }
 		const camera = await hikCameraModel.findOne({ _id: id, schoolId })
 		if (!camera) return { success: false, message: 'Kamera topilmadi' }
@@ -609,6 +636,7 @@ class HikConnectService {
 				if (!SCHOOL_ROLES.includes(camera.role)) return { success: false, message: "FaceControl kamerasi sinfga biriktirilmaydi" }
 				camera.sinfId = sinfId
 				camera.role = 'monitor' // sinfga biriktirilgan kamera — sinfxona kamerasi
+				if (camera.faceDirection === 'out') camera.faceDirection = 'in' // sinfxona kamerasi chiqishni aniqlamaydi
 				// Sinfga biriktirilgan oddiy kamerada AI odam sanash o'zi yoqiladi (xohlasa admin o'chira oladi)
 				if (visionEnabled === undefined) camera.visionEnabled = true
 			} else camera.sinfId = null
@@ -617,6 +645,12 @@ class HikConnectService {
 			const n = Number(capacity)
 			if (capacity !== null && capacity !== '' && (!Number.isFinite(n) || n < 5 || n > 5000)) return { success: false, message: "Zichlik chegarasi 5 dan 5000 gacha bo'lishi kerak" }
 			camera.capacity = capacity === null || capacity === '' ? null : Math.round(n)
+		}
+		if (faceDirection !== undefined) {
+			if (!['in', 'out', 'off'].includes(faceDirection)) return { success: false, message: "Yuz tanish yo'nalishi noto'g'ri" }
+			// «Chiqdi» faqat darvoza kamerasidan: sinfga biriktirilgan kamera chiqishni aniqlamaydi (sinfxona kamerasi = maktab hududida)
+			if (faceDirection === 'out' && (camera.sinfId || !SCHOOL_ROLES.includes(camera.role))) return { success: false, message: "Chiqishni faqat sinfga biriktirilmagan (darvoza) kamera aniqlaydi" }
+			camera.faceDirection = faceDirection
 		}
 		if (autoAttendance !== undefined) camera.autoAttendance = !SCHOOL_ROLES.includes(camera.role) && !!autoAttendance
 		// Odam sanash: sinfxona kamerasida sinfga biriktirilgan bo'lsa, zal kamerasida har doim ma'noli
@@ -627,7 +661,7 @@ class HikConnectService {
 		}
 		if (!canCount) camera.visionEnabled = false
 		await camera.save()
-		return { success: true, camera: { _id: camera._id, role: camera.role, sinfId: camera.sinfId || null, visionEnabled: camera.visionEnabled, capacity: camera.capacity ?? null } }
+		return { success: true, camera: { _id: camera._id, role: camera.role, sinfId: camera.sinfId || null, visionEnabled: camera.visionEnabled, capacity: camera.capacity ?? null, faceDirection: camera.faceDirection || 'in' } }
 	}
 
 	// Bir nechta kamerani birdan sozlash (masalan hammasini bitta sinfga biriktirish yoki sanashni yoqish)
@@ -635,7 +669,7 @@ class HikConnectService {
 		const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].filter(validId).slice(0, 200)
 		if (!list.length) return { success: false, message: 'Kamera tanlanmagan' }
 		const allowed = {}
-		for (const k of ['sinfId', 'visionEnabled', 'role']) if (settings && settings[k] !== undefined) allowed[k] = settings[k]
+		for (const k of ['sinfId', 'visionEnabled', 'role', 'faceDirection']) if (settings && settings[k] !== undefined) allowed[k] = settings[k]
 		if (!Object.keys(allowed).length) return { success: false, message: "O'zgartirish tanlanmagan" }
 		let done = 0
 		const failed = []
@@ -950,6 +984,7 @@ class HikConnectService {
 			if (creds.code) body.code = creds.code
 			const live = await hik(camera.accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
 			if (!live.url) return { success: false, message: 'Jonli oqim manzili qaytmadi' }
+			if (camera.offlineSince) await this.markDeviceOnline(camera.accountId, camera.serial)
 			return { success: true, name: camera.name, streamToken: stream.appToken, domain: stream.streamAreaDomain, url: live.url }
 		} catch (error) {
 			console.log('Hik live xatosi:', error.message)

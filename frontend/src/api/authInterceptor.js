@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { clearSession } from './sessionCleanup'
+import { markStaleFailure } from '../utils/toastSetup'
 
 // Har bir sahifa o'zi alohida axios.get/post chaqirgani uchun (markazlashgan
 // API-klient yo'q), 401 (token yo'q/muddati tugagan) holatini bitta joyda,
@@ -31,9 +32,12 @@ const tryRecoverImpersonation = (error) => {
 	return true
 }
 
+axios.interceptors.request.use((config) => { config.__path = window.location.pathname; return config })
+
 axios.interceptors.response.use(
 	(response) => response,
 	(error) => {
+		if (error.config?.__path && error.config.__path !== window.location.pathname) markStaleFailure()
 		if (error.response?.status === 401 && window.location.pathname !== '/' && !redirecting && !isExcludedUrl(error.config?.url)) {
 			redirecting = true
 			if (tryRecoverImpersonation(error)) {

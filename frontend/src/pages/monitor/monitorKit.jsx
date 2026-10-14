@@ -233,7 +233,7 @@ export const Table = ({ head, children }) => (
 	</div>
 )
 
-export const Tr = ({ children }) => <tr className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">{children}</tr>
+export const Tr = ({ children, className = 'hover:bg-gray-50/60', onClick }) => <tr onClick={onClick} className={`border-b border-gray-50 last:border-0 ${className}`}>{children}</tr>
 
 export const Td = ({ children, right, className = '' }) => <td className={`px-4 py-3 ${right ? 'text-right' : ''} ${className}`}>{children}</td>
 

@@ -5,6 +5,7 @@ import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { useOrg } from '../context/OrgContext'
 import { tx } from '../i18n'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	const navigate = useNavigate()
@@ -37,21 +38,21 @@ const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 	}, [])
 
 	return (
-		<header className="bg-slate-900 text-white sticky top-0 z-20">
+		<header className="bg-white text-slate-800 sticky top-0 z-20 border-b border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
 			<div className="flex items-center justify-between px-4 py-3">
 
 				{/* LEFT */}
 				<div className="flex items-center gap-3">
 					<button
 						onClick={onToggleSidebar}
-						className="p-2 rounded hover:bg-slate-800"
+						className="p-2 rounded-lg text-slate-700 hover:bg-slate-100"
 					>
 						<FiMenu size={22} />
 					</button>
 
 					<div className="hidden lg:flex items-center gap-3 min-w-0">
-						<span className="h-6 w-1 rounded-full bg-cyan-400" />
-						<p className="truncate text-lg font-semibold tracking-tight text-white max-w-[320px]">{pageTitle}</p>
+						<span className="h-6 w-1 rounded-full bg-blue-500" />
+						<p className="truncate text-lg font-semibold tracking-tight text-slate-900 max-w-[320px]">{pageTitle}</p>
 					</div>
 
 					{/* Maktab nomi faqat sidebar yopiq bo‘lsa ko‘rinadi */}
@@ -63,12 +64,14 @@ const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 				</div>
 
 				{/* RIGHT */}
-				<div className="relative" ref={dropdownRef}>
+				<div className="flex items-center gap-2">
+					<LanguageSwitcher className="hidden sm:block" />
+					<div className="relative" ref={dropdownRef}>
 					<button
 						onClick={() => setOpen(prev => !prev)}
-						className="flex items-center gap-2 p-2 rounded hover:bg-slate-800"
+						className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100"
 					>
-						<div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center">
+						<div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-500/30 flex items-center justify-center overflow-hidden">
 							<FiUser />
 						</div>
 					</button>
@@ -99,6 +102,7 @@ const UserAdminNavbar = ({ onToggleSidebar, sidebarOpen }) => {
 							</button>
 						</div>
 					)}
+				</div>
 				</div>
 
 			</div>

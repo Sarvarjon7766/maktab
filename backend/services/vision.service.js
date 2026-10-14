@@ -25,6 +25,8 @@ const { activityBetween } = require('../ai/activity')
 const { LESSON_START, LESSON_END } = require('../utils/lessonHours')
 const Snapshots = require('./hik.snapshot.service')
 const HikService = require('./hikconnect.service')
+const schedule = require('../ai/schedule')
+const { monitorEventLoopDelay } = require('perf_hooks')
 
 const DIR = path.join(__dirname, '..', 'private', 'hik-vision')
 const EVENT_DIR = path.join(__dirname, '..', 'private', 'hik-events') // isbot kadrlari umumiy galereya bilan bir joyda
@@ -38,12 +40,14 @@ const SMOOTH_N = 3 // jonli son — oxirgi N o'lchovning medianasi (bitta xato k
 // Qurilma yuklamasi
 let DEVICE_GAP_MS = 8 * 1000 // bir qurilmadagi ketma-ket so'rovlar orasida
 let DEVICE_PARALLEL = 3
+let TICK_MS = 60 * 1000 // sikl shuncha tez-tez uyg'onadi (kamera turi oraliqlarining eng qisqasi)
 // Tizim egasi panelidagi (AI sozlamalari) qiymatlarni o'qib, tahlil tezligini yangilaydi
 async function refreshCfg() {
 	const cfg = await AiSettings.get()
 	INTERVAL_MS = Math.max(15, Number(cfg.intervalSec) || 60) * 1000
 	DEVICE_GAP_MS = Math.max(2, Number(cfg.deviceGapSec) || 8) * 1000
 	DEVICE_PARALLEL = Math.max(1, Number(cfg.deviceParallel) || 3)
+	TICK_MS = schedule.tickMs(cfg, INTERVAL_MS)
 	return cfg
 }
 const OFFLINE_BASE_MS = 2 * 60 * 1000 // offline: 2, 4, 8, 15 daqiqa
@@ -67,7 +71,9 @@ const OVER_ROSTER = 4 // ro'yxatdagi o'quvchilardan shuncha ko'p odam (o'qituvch
 const PRE_IMAGES = 3 // hodisadan oldingi nechta kadr rasm sifatida saqlanadi
 const FOLLOW_UPS_MS = [45 * 1000, 150 * 1000] // hodisadan keyingi kadrlar (har biri shu vaqtdan keyin, navbat bilan)
 const FOLLOW_UP_EXPIRE_MS = 10 * 60 * 1000
-const ACTIVITY_GAP_MS = 8 * 60 * 1000 // ikki o'lchov orasi shundan uzoq bo'lsa harakat hisoblanmaydi
+// Ikki o'lchov orasi shundan uzoq bo'lsa harakat hisoblanmaydi: oraliq cho'zilgan sari odamlar tabiiy ravishda joyini o'zgartiradi (o'lchov: 4 daqiqadan uzoqda "faollik" 31% hollarda 0.6 dan oshadi, 2 daqiqagacha 9–13%), shuning uchun yolg'on "sinf notinch" chiqmasin
+const ACTIVITY_GAP_MS = 3 * 60 * 1000
+const CYCLE_WATCHDOG_MS = 30 * 60 * 1000
 const MASS_SHARE = 0.55 // holati aniqlangan odamlarning shuncha ulushi tik turgan bo'lsa "ko'pchilik o'rnidan turgan"
 const MASS_MIN = 6 // ... va kamida shuncha odamning holati aniqlangan bo'lsa
 const POSE_SELECT = 'kind time camera sinfId title detail count clip images scene pose'
@@ -143,6 +149,9 @@ class VisionService {
 		this.followUps = [] // hodisadan keyingi kadrlar navbati
 		this.prevBoxes = new Map() // camera -> { t, boxes }: harakat (faollik) hisoblash uchun oldingi kadr
 		this.tileTick = new Map() // camera -> sikl raqami (bo'sh xonada bo'laklab tahlilni siyrak qilish uchun)
+		this.lastAt = new Map() // camera -> oxirgi tahlil boshlangan vaqt (ms): kamera turi bo'yicha oraliq uchun
+		this.poseTick = new Map() // camera -> tahlil raqami (skeletni har N-kadrda hisoblash uchun)
+		this.lag = monitorEventLoopDelay({ resolution: 20 }) // yuklama himoyasi: event loop kechikishi
 		this.lastPurge = 0
 		this.lastCycle = null
 	}
@@ -207,11 +216,21 @@ class VisionService {
 		const { dateString, hour } = tzParts(now)
 		const activity = await this.activityOf(camera, result, now)
 		// Odam holatlari (skelet): "Har tahlilda hisoblash" yoqilgan bo'lsa shu yerda, aks holda faqat hodisa/namuna paytida (emit)
-		if (cfg.poseEnabled && cfg.poseLive) result.pose = await this.poseOf(buf, result, cfg)
+		const poseEvery = Math.max(1, Math.round(Number(cfg.poseEveryN) || 1)) // skelet qimmat (~1 s): sekin o'zgaradigan holatlar uchun har N-tahlilda
+		const poseN = (this.poseTick.get(camKey) || 0) + 1
+		this.poseTick.set(camKey, poseN)
+		if (cfg.poseEnabled && cfg.poseLive && poseN % poseEvery === 0) result.pose = await this.poseOf(buf, result, cfg)
 		await visionMetricModel.create({
 			schoolId: camera.schoolId, camera: camera._id, sinfId: camera.sinfId || null,
 			count: result.count, activity, pose: result.pose || undefined, boxes: result.boxes.flatMap((b) => [b.x1, b.y1, b.x2, b.y2]), time: now, hour, dateString, ms: Date.now() - started
 		})
+		// Yuz tanish (ixtiyoriy, sukut bo'yicha o'chiq): dars soatlarida sinfga biriktirilgan kameralarda. Xato tahlilni to'xtatmaydi
+		// Sinfxona kamerasi: dars soatlarida. Sinfsiz zal/koridor/darvoza kamerasi: butun tahlil vaqtida (chiqish dars tugagach bo'ladi), «yozmaydi» deb belgilangan bo'lsa tahlil qilinmaydi
+		const faceCam = camera.sinfId ? hour >= LESSON[0] && hour < LESSON[1] : (camera.role === 'hall' || camera.faceDirection === 'out') && camera.faceDirection !== 'off'
+		if (cfg.faceEnabled && faceCam) {
+			const Faces = require('./face.service')
+			await Faces.processFrame(camera, buf, now, cfg).catch((e) => Faces.logError(e))
+		}
 		// Panel uchun oxirgi tahlil kadri (qutilar bilan)
 		await ai.smallFrame(buf, result, 1280, '#22c55e', 72)
 			.then((jpeg) => writeAtomic(fileOf(String(camera._id)), jpeg))
@@ -318,7 +337,7 @@ class VisionService {
 		const pose = ctx.pose
 		const mass = !!(pose && pose.analyzed >= MASS_MIN && pose.standing / pose.analyzed >= MASS_SHARE)
 		const massBefore = state.lastStandMass
-		if (!ctx.hall) state.lastStandMass = mass
+		if (!ctx.hall && pose) state.lastStandMass = mass // skelet hisoblanmagan tahlil ketma-ketlikni uzmaydi
 		if (!ctx.hall && mass && massBefore) {
 			return { kind: 'vision_restless', title: 'Sinf notinch', detail: `Holati aniqlangan ${pose.analyzed} odamdan ${pose.standing} tasi tik turibdi (${Math.round(pose.standing / pose.analyzed * 100)}%): ko'pchilik o'rnidan turgan yoki yurib yuribdi` }
 		}
@@ -400,6 +419,7 @@ class VisionService {
 		const handle = async (camera, fu) => {
 			const key = String(camera._id)
 			dev.lastCapture = Date.now()
+			this.lastAt.set(key, dev.lastCapture)
 			try {
 				await this.analyze(camera, fu)
 				dev.success()
@@ -454,7 +474,7 @@ class VisionService {
 		const ids = new Set(cameras.map((c) => String(c._id)))
 		const serials = new Set(cameras.map((c) => c.serial))
 		for (const fu of this.followUps) serials.add(fu.serial)
-		for (const m of [this.failures, this.lastError, this.hist, this.frames, this.state, this.lastSample, this.prevBoxes, this.tileTick]) {
+		for (const m of [this.failures, this.lastError, this.hist, this.frames, this.state, this.lastSample, this.prevBoxes, this.tileTick, this.lastAt, this.poseTick]) {
 			for (const k of m.keys()) if (!ids.has(k)) m.delete(k)
 		}
 		for (const k of this.cooldown.keys()) if (!ids.has(k.split(':')[0])) this.cooldown.delete(k)
@@ -462,8 +482,11 @@ class VisionService {
 	}
 
 	async cycle() {
-		if (this.running) return
+		// Qotib qolgan sikl butun tahlilni abadiy to'xtatib qo'ymasin: 30 daqiqadan uzoq davom etsa, yangisi ruxsat etiladi
+		if (this.running && Date.now() - (this.cycleStartedAt || 0) < CYCLE_WATCHDOG_MS) return
+		if (this.running) console.log('Vision: oldingi sikl 30 daqiqadan beri tugamadi, yangisi boshlanmoqda')
 		this.running = true
+		this.cycleStartedAt = Date.now()
 		try {
 			const cfg = await refreshCfg()
 			if (cfg.enabled === false) return
@@ -474,11 +497,17 @@ class VisionService {
 				schoolId: { $ne: null }, role: { $in: ['monitor', 'hall'] }, serial: { $ne: '' }
 			}).lean()
 			this.evictInactive(cameras)
+			// Yuklama himoyasi: event loop kechikishi chegaradan oshsa (backend sekinlashdi) faqat darvoza kameralari tahlil qilinadi, qolganlari keyingi siklga
+			const lagMs = this.takeLag()
+			const shed = Number(cfg.shedLagMs) > 0 && lagMs > Number(cfg.shedLagMs)
+			if (shed && Date.now() - (this.shedLogAt || 0) > 10 * 60 * 1000) { this.shedLogAt = Date.now(); console.log(`Vision: yuklama yuqori (event loop kechikishi ${Math.round(lagMs)} ms): faqat darvoza kameralari tahlil qilinadi`) }
+			const dueCams = schedule.selectDue(cameras, { now: Date.now(), lastAt: this.lastAt, cfg, baseMs: INTERVAL_MS, shed })
 			const byDevice = new Map()
-			for (const c of cameras) {
+			for (const c of dueCams) {
 				if (!byDevice.has(c.serial)) byDevice.set(c.serial, [])
 				byDevice.get(c.serial).push(c)
 			}
+			for (const list of byDevice.values()) list.sort((a, b) => schedule.PRIORITY[schedule.tierOf(a)] - schedule.PRIORITY[schedule.tierOf(b)]) // darvoza birinchi
 			// Kutayotgan keyingi kadrlari bor qurilmalar kameralari bo'lmasa ham ishlanadi
 			for (const fu of this.followUps) if (!byDevice.has(fu.serial)) byDevice.set(fu.serial, [])
 			const total = { cameras: cameras.length, ok: 0, failed: 0, skipped: 0 }
@@ -486,7 +515,7 @@ class VisionService {
 				const s = await this.runDevice(serial, list)
 				total.ok += s.ok; total.failed += s.failed; total.skipped += s.skipped
 			})
-			this.lastCycle = { at: new Date(), ...total }
+			this.lastCycle = { at: new Date(), ...total, due: dueCams.length, shed, lagMs: Math.round(lagMs) }
 			if (Date.now() - this.lastPurge > PURGE_EVERY_MS) await this.purge().catch((e) => console.log('Vision tozalash xatosi:', e.message))
 		} catch (error) {
 			console.log('Vision sikl xatosi:', error.message)
@@ -495,7 +524,15 @@ class VisionService {
 		}
 	}
 
+	// Oxirgi tekshiruvdan beri event loop kechikishining 99-persentili (ms); hisoblagich nolga tushadi
+	takeLag() {
+		const v = this.lag.count ? this.lag.percentile(99) / 1e6 : 0
+		this.lag.reset()
+		return Number.isFinite(v) ? v : 0
+	}
+
 	stop() {
+		try { this.lag.disable() } catch { /* o'chiq edi */ }
 		if (this.timer) clearTimeout(this.timer)
 		this.timer = null
 		this.stopped = true
@@ -504,11 +541,12 @@ class VisionService {
 	start() {
 		this.stopped = false
 		if (this.timer || process.env.VISION_ENABLED === '0') return
+		this.lag.enable()
 		// setInterval emas: sikl tugamasdan keyingisi boshlanmasligi uchun zanjirli setTimeout
 		const loop = async () => {
 			await this.cycle()
 			if (this.stopped) return
-			this.timer = setTimeout(loop, INTERVAL_MS)
+			this.timer = setTimeout(loop, TICK_MS)
 		}
 		this.timer = setTimeout(loop, 20000)
 		console.log(`Vision: odam sanash yoqildi (har ${INTERVAL_MS / 1000}s, ${HOURS[0]}:00–${HOURS[1]}:00, qurilma pauzasi ${DEVICE_GAP_MS / 1000}s)`)

@@ -43,7 +43,7 @@ const UserSidebar = ({ collapsed = false, onClose }) => {
 	]
 
 	return (
-		<div className="h-full flex flex-col bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+		<div className="h-full flex flex-col bg-[#0b1325] text-white">
 			<div className="flex items-center justify-between px-4 py-4 border-b border-slate-700">
 				<div className={`flex items-center gap-2 overflow-hidden ${collapsed ? 'justify-center w-full' : ''}`}>
 					<BrandLogo className="w-12 h-12 shrink-0" />
@@ -73,7 +73,7 @@ const UserSidebar = ({ collapsed = false, onClose }) => {
 									key={item.path}
 									to={item.path}
 									onClick={onClose}
-									className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(item.path) ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-950/20' : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+									className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(item.path) ? 'bg-blue-500 text-white shadow-lg shadow-cyan-950/20' : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
 									title={collapsed ? item.label : undefined}
 								>
 									<item.icon size={18} />

@@ -14,7 +14,7 @@ let sessionPromise = null
 function getSession() {
 	if (!sessionPromise) {
 		const ort = require('onnxruntime-node')
-		sessionPromise = ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['cpu'], graphOptimizationLevel: 'all', intraOpNumThreads: require('./threads').AI_THREADS })
+		sessionPromise = ort.InferenceSession.create(MODEL_PATH, { executionProviders: require('./provider').providers(), graphOptimizationLevel: 'all', intraOpNumThreads: require('./threads').AI_THREADS })
 			.catch((e) => { sessionPromise = null; throw e })
 	}
 	return sessionPromise
@@ -111,6 +111,40 @@ function regionsFor(w, h, tiled) {
 	]
 }
 
+// Bitta tik turgan odam ikki bo'lakka bo'linib qolishi mumkin (tana va oyoqlari alohida quti; bo'lak chegarasi yoki to'sib turgan parta sabab).
+// IoU/ichida bo'lish tekshiruvi buni tutmaydi, natijada odam ikki marta sanaladi va «tik turgan» holati aniqlanmaydi.
+// Qoida: bir ustunda (gorizontal 70%+ mos), vertikal ulanib turgan ikki quti birlashtirilganda TIK TURGAN odam shakliga (balandlik/eni 2.5–4.5) kelsa — bitta odam.
+// O'tirgan o'quvchining ortidagisi bunday shakl bermaydi (birlashganda ~1.5–2.3), shuning uchun ular birlashmaydi.
+function mergeFragments(people) {
+	const list = people.map((p) => ({ ...p }))
+	let merged = true
+	while (merged) {
+		merged = false
+		outer: for (let i = 0; i < list.length; i++) {
+			for (let j = i + 1; j < list.length; j++) {
+				const a = list[i], b = list[j]
+				const up = a.y1 <= b.y1 ? a : b, low = up === a ? b : a
+				const wa = up.x2 - up.x1, wb = low.x2 - low.x1
+				const hOverlap = Math.max(0, Math.min(up.x2, low.x2) - Math.max(up.x1, low.x1)) / Math.max(1, Math.min(wa, wb))
+				if (hOverlap < 0.7) continue
+				const ha = up.y2 - up.y1, hb = low.y2 - low.y1
+				const vOverlap = Math.max(0, up.y2 - low.y1)
+				const gap = Math.max(0, low.y1 - up.y2)
+				const total = Math.max(up.y2, low.y2) - Math.min(up.y1, low.y1)
+				if (vOverlap > 0.6 * Math.min(ha, hb) || gap > 0.1 * total) continue
+				const x1 = Math.min(up.x1, low.x1), x2 = Math.max(up.x2, low.x2)
+				const ratio = total / Math.max(1, x2 - x1)
+				if (ratio < 2.5 || ratio > 4.5) continue
+				const box = { x1, y1: Math.min(up.y1, low.y1), x2, y2: Math.max(up.y2, low.y2), score: Math.max(up.score, low.score) }
+				list.splice(j, 1); list.splice(i, 1, box)
+				merged = true
+				break outer
+			}
+		}
+	}
+	return list
+}
+
 // buffer: JPEG/PNG. Qaytaradi { count, boxes:[{x1,y1,x2,y2,score}] } (asl rasm piksellarida)
 async function detectPeople(buffer, { tiled = true, score } = {}) {
 	const threshold = Number.isFinite(Number(score)) && Number(score) > 0 ? Number(score) : SCORE_THRESHOLD
@@ -122,7 +156,7 @@ async function detectPeople(buffer, { tiled = true, score } = {}) {
 	let all = []
 	for (const region of regionsFor(w, h, tiled)) all = all.concat(await runRegion(buffer, region, threshold))
 
-	const people = nms(all).map((b) => ({
+	const people = mergeFragments(nms(all)).map((b) => ({
 		x1: Math.max(0, Math.round(b.x1)), y1: Math.max(0, Math.round(b.y1)),
 		x2: Math.min(w, Math.round(b.x2)), y2: Math.min(h, Math.round(b.y2)),
 		score: Math.round(b.score * 100) / 100
@@ -140,4 +174,4 @@ async function detectClass(buffer, region, cls, score) {
 	return nms(boxes).map((b) => ({ x1: Math.round(b.x1), y1: Math.round(b.y1), x2: Math.round(b.x2), y2: Math.round(b.y2), score: Math.round(b.score * 100) / 100 }))
 }
 
-module.exports = { detectPeople, detectClass }
+module.exports = { detectPeople, detectClass, mergeFragments }

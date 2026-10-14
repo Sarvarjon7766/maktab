@@ -201,6 +201,8 @@ const bootstrap = async () => {
   })
   server.once('listening', () => {
     console.log(`🚀 Server http://localhost:${PORT} da ishga tushdi`)
+    // Jonli sinov uchun AI modellarini oldindan yuklash (birinchi kadr 2+ soniya kutmasligi uchun)
+    if (!isRegion) setTimeout(() => require('./services/ai.settings.service').get().then((c) => c.faceEnabled && require('./ai/aiPool').warmLive()).catch(() => {}), 8000)
     // Fon vazifalari (kamera so'rovi, AI, bot, hisobotlar) faqat TUMAN rejimida va faqat BITTA nusxada (utils/leader.js);
     // DISABLE_BACKGROUND=1 — sinov uchun o'chirish
     if (!isRegion && process.env.DISABLE_BACKGROUND !== '1') {

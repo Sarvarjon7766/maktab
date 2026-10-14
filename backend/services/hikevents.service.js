@@ -22,6 +22,7 @@ const studentModel = require('../models/student.model')
 const userModel = require('../models/user.model')
 const HikService = require('./hikconnect.service')
 const SnapshotService = require('./hik.snapshot.service')
+const HikPersons = require('./hik.person.service')
 const AttandanceService = require('./attandance.service')
 const StudentAttandanceService = require('./student.attandance.service')
 
@@ -101,7 +102,9 @@ async function processMessage(account, msg) {
 	const info = faceInfo(msg)
 	const time = eventTime(msg)
 	const humanId = str(info.humanId)
-	const person = await findPerson(camera.schoolId, humanId)
+	// Hik-Connect shaxsi bo'lsa humanId personId/personCode bo'ladi: bizning xodim/o'quvchi identifikatoriga (hodimID / studentIdNumber) o'giramiz
+	const personKey = (await HikPersons.hodimIdFor(camera.schoolId, humanId).catch(() => null)) || humanId
+	const person = await findPerson(camera.schoolId, personKey)
 	const similarity = typeof info.similarity === 'number' ? info.similarity : null
 	const threshold = typeof info.faceLibThreshold === 'number' ? info.faceLibThreshold : null
 
@@ -133,7 +136,7 @@ async function processMessage(account, msg) {
 	if (attendanceMode === 'send') {
 		let patch
 		try {
-			const payload = { employee_id: humanId, camera_time: time.toISOString(), where: camera.role === 'in' ? 2 : 1 }
+			const payload = { employee_id: personKey, camera_time: time.toISOString(), where: camera.role === 'in' ? 2 : 1 }
 			const result = person.type === 'student'
 				? await StudentAttandanceService.checkInAttendance(payload, camera.schoolId)
 				: await AttandanceService.checkInAttendance(payload, camera.schoolId)

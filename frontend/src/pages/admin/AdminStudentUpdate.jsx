@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { FiCheck, FiPhone, FiUpload, FiUser, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import SearchableSelect from '../../components/SearchableSelect'
+import FacePhotosCard from '../../components/FacePhotosCard'
 import { uploadUrl } from '../../utils/uploadUrl'
 import { tx } from '../../i18n'
 
@@ -243,6 +244,7 @@ const AdminStudentUpdate = ({ student, onClose, sinfs }) => {
 							</button>
 						</div>
 					</form>
+					{student?._id && <FacePhotosCard studentId={student._id} />}
 				</div>
 			</div>
 		</div>

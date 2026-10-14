@@ -1,0 +1,65 @@
+# Butun tizim: MongoDB + backend (AI, GPU bo'lsa GPU'da) + frontend (nginx).
+# Sozlamalar: deploy/env.deploy.example ni `.env` (shu papkada) deb nusxalab to'ldiring.
+#   docker compose up -d --build
+# Boshqa tizimlar bilan portlar to'qnashmasligi uchun faqat bitta port ochiladi (WEB_PORT, standart 8088). Baza tashqariga ochilmaydi.
+name: faceid
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_MODE: district
+      PORT: 5050
+      MONGO_URI: mongodb://mongo:27017/faceid
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET kerak}
+      HIK_SECRETS_KEY: ${HIK_SECRETS_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8088}
+      TRUST_PROXY: "2"
+      AI_PROVIDER: ${AI_PROVIDER:-cuda,cpu}
+      # AI yuki (qarang deploy/SERVER-SETUP.md, 9-bo'lim): ishchi oqimlar soni, har sessiya yadrolari (bo'sh = yadrolarning yarmi), Node ichki oqimlar puli, jonli sinov navbati
+      AI_WORKERS: ${AI_WORKERS:-1}
+      AI_THREADS: ${AI_THREADS:-}
+      UV_THREADPOOL_SIZE: ${UV_THREADPOOL_SIZE:-8}
+      AI_LIVE_QUEUE_MAX: ${AI_LIVE_QUEUE_MAX:-6}
+    volumes:
+      - uploads:/app/uploads
+      - private:/app/private
+    # Xotira chegarasi: AI ishchilari va yuz galereyasi ko'p xotira oladi; chegarasiz xotira tugasa butun server o'ladi. Serverga mos qilib BACKEND_MEM_LIMIT bilan o'zgartiring
+    mem_limit: ${BACKEND_MEM_LIMIT:-8g}
+    # GPU: NVIDIA Container Toolkit o'rnatilgan bo'lishi kerak. GPU yo'q serverda shu `deploy` blokini o'chirib, AI_PROVIDER=cpu qiling
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-8088}:80"
+
+volumes:
+  mongo_data:
+  uploads:
+  private:

@@ -7,6 +7,15 @@ import { tx } from '../i18n'
 const MAX_ACTIVE = Math.min(16, Math.max(6, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 8))
 const activeStreams = new Set()
 
+// Oqim ketayotganda qotib qolishini aniqlash (EZUIKit «oqim uzildi» hodisasini bermaydi): har WATCH_MS da pleyerdan kadr olinadi va ketma-ket
+// bir xil kadr (kameradagi vaqt yozuvi har soniya o'zgaradi) bo'lsa — oqim qotgan. Shunda o'zi qayta ulanadi (yangi oqim manzili bilan)
+const WATCH_MS = 15000
+const WATCH_SAME = 2 // shuncha ketma-ket bir xil kadr = qotgan (~30 s)
+const AUTO_RETRY_DELAYS = [20000, 40000, 80000, 120000] // xatodan keyin o'zi qayta urinish kutish vaqtlari (qurilma vaqtincha offline bo'lsa ko'rinish tiklansin)
+const AUTO_RETRY_MAX = 4 // shuncha avtomatik qayta ulanishdan keyin foydalanuvchi qo'lda «Qayta urinish» bosadi
+const AUTO_RETRY_RESET_MS = 3 * 60 * 1000 // shuncha vaqt barqaror ishlasa urinishlar hisobi nolga tushadi
+const sampleHash = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i += 61) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) } return `${str.length}:${h >>> 0}` }
+
 // Birinchi kadr shu vaqtgacha kelmasa, oqim "kelmayapti" deb e'lon qilinadi (qurilma bulutdan uzilgan yoki tarmog'i sust)
 const STALL_MS = 20000
 
@@ -15,11 +24,13 @@ const STALL_MS = 20000
 // chiqib ketganda to'xtatiladi (bir sahifada ko'p kamera bo'lganda tarmoq/CPU tejaydi).
 // `tokenKey` — localStorage'dagi qaysi token bilan so'rov yuborilishi.
 // Holatlar: loading -> waiting (pleyer yaratildi, birinchi kadr kutilmoqda) -> live | stalled | error
-const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus }) => {
-	const containerId = useRef(`hik-live-${Math.random().toString(36).slice(2)}`).current
+const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, domId, playerRef }) => {
+	const containerId = useRef(domId || `hik-live-${Math.random().toString(36).slice(2)}`).current
 	const boxRef = useRef(null)
+	const [layoutKey, setLayoutKey] = useState(0) // panel o'lchami o'zgarganda pleyer yangi o'lcham bilan qayta yaratiladi
 	const [visible, setVisible] = useState(!lazy)
 	const [attempt, setAttempt] = useState(0)
+	const autoRetry = useRef({ n: 0, lastOkAt: 0 })
 	const [state, setState] = useState({ status: 'loading', message: '' })
 	const [still, setStill] = useState({ loading: false, url: null, message: '' })
 	const [tabHidden, setTabHidden] = useState(typeof document !== 'undefined' && document.hidden)
@@ -40,6 +51,26 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 		return () => observer.disconnect()
 	}, [lazy])
 
+	// Panel kengligi o'zgarsa (2/3/4 ustunli tur, oyna o'lchami) pleyer yangi o'lcham bilan qayta yaratiladi: u yaratilgan o'lchamini o'zgartirmagani uchun
+	// aks holda qora maydon yoki qirqilgan kadr qoladi
+	useEffect(() => {
+		const el = boxRef.current
+		if (!el || typeof ResizeObserver === 'undefined') return
+		let timer = null
+		let last = { w: el.clientWidth, h: el.clientHeight }
+		const observer = new ResizeObserver(() => {
+			clearTimeout(timer)
+			timer = setTimeout(() => {
+				const w = Math.round(el.clientWidth), h = Math.round(el.clientHeight)
+				if (!w || !h || (Math.abs(w - last.w) < 8 && Math.abs(h - last.h) < 8)) return
+				last = { w, h }
+				setLayoutKey(k => k + 1)
+			}, 400)
+		})
+		observer.observe(el)
+		return () => { clearTimeout(timer); observer.disconnect() }
+	}, [])
+
 	const active = visible && !tabHidden
 
 	useEffect(() => {
@@ -50,6 +81,16 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 		let player = null
 		let cancelled = false
 		let stallTimer = null
+		let watchTimer = null
+		let retryTimer = null
+		// Xato/uzilishdan keyin foydalanuvchi tugma bosmasdan ham qayta uriniladi (cheklangan: AUTO_RETRY_MAX marta, orasi uzayib boradi)
+		const scheduleRetry = () => {
+			const r = autoRetry.current
+			if (cancelled || retryTimer || r.n >= AUTO_RETRY_MAX) return
+			const delay = AUTO_RETRY_DELAYS[r.n] || 120000
+			r.n += 1
+			retryTimer = setTimeout(() => { retryTimer = null; if (!cancelled) setAttempt(a => a + 1) }, delay)
+		}
 		// Tashqi holat (modal sarlavhasi): waiting -> loading, stalled -> error
 		const outer = { loading: 'loading', waiting: 'loading', live: 'live', stalled: 'error', error: 'error' }
 		const report = (next) => { setState(next); onStatus?.(outer[next.status] || 'loading') }
@@ -81,23 +122,54 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 					env: { domain },
 					scaleMode: 1,
 					language: 'en',
-					handleError: (e) => { if (!cancelled) report({ status: 'error', message: `Pleyer xatosi: ${e?.msg || e?.message || JSON.stringify(e)}` }) }
+					handleError: (e) => { if (!cancelled) { report({ status: 'error', message: `Pleyer xatosi: ${e?.msg || e?.message || JSON.stringify(e)}` }); scheduleRetry() } }
 				})
+				if (playerRef) playerRef.current = player // tashqaridan kadr olish (yuz tanish) uchun
 				if (player.eventEmitter?.on) {
 					// Pleyer xato bermasdan jim qolishi mumkin: birinchi kadrni kutamiz, kelmasa aniq xabar beramiz
 					report({ status: 'waiting', message: '' })
 					player.eventEmitter.on(EZUIKitPlayer.EVENTS?.firstFrameDisplay || 'firstFrameDisplay', () => {
 						clearTimeout(stallTimer)
-						if (!cancelled) report({ status: 'live', message: '' })
+						if (cancelled) return
+						report({ status: 'live', message: '' })
+						if (watchTimer || typeof player.capturePicture !== 'function') return
+						autoRetry.current.lastOkAt = Date.now()
+						let lastHash = null, same = 0, waiting = false
+						watchTimer = setInterval(() => {
+							if (cancelled || waiting) return
+							waiting = true
+							let answered = false
+							const noAnswer = setTimeout(() => { if (!answered) { waiting = false } }, 5000) // pleyer javob bermasa keyingi tekshiruvda yana uriniladi
+							try {
+								player.capturePicture('watch', (d) => {
+									answered = true; clearTimeout(noAnswer); waiting = false
+									if (cancelled) return
+									const b = d && (d.base64 || d.data || d)
+									const h = typeof b === 'string' ? sampleHash(b) : null
+									if (!h) return
+									same = h === lastHash ? same + 1 : 0
+									lastHash = h
+									if (same === 0 && Date.now() - autoRetry.current.lastOkAt > AUTO_RETRY_RESET_MS) autoRetry.current.n = 0
+									if (same >= WATCH_SAME) {
+										clearInterval(watchTimer); watchTimer = null
+										if (autoRetry.current.n < AUTO_RETRY_MAX) {
+											autoRetry.current.n += 1
+											report({ status: 'waiting', message: '' }) // «Oqim kutilmoqda...» ko'rsatiladi
+											setAttempt(a => a + 1) // yangi oqim manzili bilan qayta ulanadi
+										} else report({ status: 'stalled', message: "Jonli oqim to'xtab qoldi va qayta ulanmadi. Qurilma Hik-Connect bulutidan uzilgan bo'lishi mumkin" })
+									}
+								})
+							} catch { answered = true; clearTimeout(noAnswer); waiting = false }
+						}, WATCH_MS)
 					})
 					stallTimer = setTimeout(() => {
-						if (!cancelled) report({ status: 'stalled', message: "Jonli oqim kelmayapti. Qurilma Hik-Connect bulutidan uzilgan yoki tarmog'i sust bo'lishi mumkin" })
+						if (!cancelled) { report({ status: 'stalled', message: "Jonli oqim kelmayapti. Qurilma Hik-Connect bulutidan uzilgan yoki tarmog'i sust bo'lishi mumkin" }); scheduleRetry() }
 					}, STALL_MS)
 				} else {
 					report({ status: 'live', message: '' }) // hodisalarsiz eski pleyer: avvalgi xatti-harakat
 				}
 			} catch (e) {
-				if (!cancelled) report({ status: 'error', message: e.response?.data?.message || e.message || "Jonli oqimni ochib bo'lmadi" })
+				if (!cancelled) { report({ status: 'error', message: e.response?.data?.message || e.message || "Jonli oqimni ochib bo'lmadi" }); scheduleRetry() }
 			}
 		}
 		start()
@@ -106,10 +178,13 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 			cancelled = true
 			activeStreams.delete(containerId)
 			clearTimeout(stallTimer)
+			clearInterval(watchTimer)
+			clearTimeout(retryTimer)
+			if (playerRef) playerRef.current = null
 			try { player?.destroy?.() } catch { /* pleyer allaqachon yopilgan */ }
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [active, cameraId, containerId, tokenKey, attempt, forced])
+	}, [active, cameraId, containerId, tokenKey, attempt, forced, layoutKey])
 
 	// Oxirgi kadr — faqat foydalanuvchi so'rasa (qurilmaga qo'shimcha yuk tushirmaslik uchun avtomatik emas)
 	const showStill = async () => {

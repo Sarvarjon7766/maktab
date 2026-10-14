@@ -6,6 +6,7 @@ const vision = require("../services/vision.service");
 const reports = require("../services/report.service");
 const parents = require("../services/parent.service");
 const retention = require("../services/retention.service");
+const hikPersons = require("../services/hik.person.service");
 
 // Har bir vazifa uchun: oldingisi tugamagan bo'lsa qayta ishga tushmaydi, xato esa faqat log qilinadi
 const guarded = (name, fn) => {
@@ -33,6 +34,9 @@ const startCronJobs = () => {
   // Hik-Connect yuz aniqlash hodisalarini olib turadi (FaceControl kameralari bo'lsagina ish qiladi)
   hikEvents.start();
 
+  // Xodim/o'quvchilarni Hik-Connect bulutiga yuborish: qo'shish, yangilash, rasm, o'chirish (navbat — adduser/deleteuser)
+  hikPersons.start();
+
   // Sinfxona kameralarida odamlarni sanash (faqat visionEnabled kameralar)
   vision.start();
 
@@ -57,6 +61,7 @@ const startCronJobs = () => {
   // Har kuni 03:30 da: saqlash muddati o'tgan isbot rasmlari/lavhalari va eski kamera hodisalarini o'chirish (muddatlar platforma sozlamalarida)
   tasks.push(cron.schedule("30 3 * * *", guarded("retention", async () => {
     const r = await retention.run();
+    try { const f = await require("../services/face.service").sweep(); if (f.templates || f.files) console.log(`Yuz ma'lumotlari tozalandi: ${f.templates} iz, ${f.files} yetim rasm`); } catch (e) { console.log("Yuz tozalash xatosi:", e.message); }
     if (r.success) console.log(`Saqlash muddati: ${r.events.alerts + r.events.samples + r.events.events} hodisa, ${r.files} fayl (${Math.round(r.bytes / 1048576)} MB), ${r.metrics} o'lchov o'chirildi${r.more ? " (yana bor, ertaga davom etadi)" : ""}`);
   }), { timezone: "Asia/Tashkent" }));
 
@@ -66,7 +71,7 @@ const startCronJobs = () => {
   return {
     stop() {
       for (const t of tasks) { try { t.stop(); } catch { /* ignore */ } }
-      for (const svc of [hikEvents, vision, reports, parents]) { try { svc.stop && svc.stop(); } catch { /* ignore */ } }
+      for (const svc of [hikEvents, vision, reports, parents, hikPersons]) { try { svc.stop && svc.stop(); } catch { /* ignore */ } }
     },
   };
 };

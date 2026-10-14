@@ -12,6 +12,7 @@ const remoteDistrictSchema = new Schema({
 	lastError: { type: String, default: '' },
 	lastErrorAt: { type: Date, default: null },
 	schools: { type: Number, default: 0 },
+	districts: { type: [String], default: [] }, // tuman serveri xizmat qiladigan tumanlar nomi (/ping javobidan): hudud bo'yicha monitorlar va ?district= filtri shunga tayanadi
 	version: { type: String, default: '' }
 }, { timestamps: true })
 

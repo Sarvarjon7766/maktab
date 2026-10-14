@@ -550,23 +550,6 @@ const PlatformSchools = () => {
 		navigate(`/platform/schools/${school._id}`)
 	}
 
-	const handleRotateToken = async (school) => {
-		setBusyId(school._id)
-		try {
-			const res = await api.post(`/api/schools/${school._id}/rotate-token`, {}, authHeaders())
-			if (res.data.success) {
-				setSecretModal({
-					title: tx('"{{name}}" — yangi kamera-proxy tokeni', { name: school.name }),
-					fields: [{ key: 'token', label: "server_proxy/config.json → backend.token", value: res.data.apiToken }]
-				})
-			}
-		} catch {
-			toast.error("Xatolik yuz berdi")
-		} finally {
-			setBusyId(null)
-		}
-	}
-
 	return (
 		<div className="md:p-6 bg-gray-50 min-h-full">
 			<div className="flex justify-end gap-2 mb-6 px-4 md:px-0">
@@ -596,7 +579,6 @@ const PlatformSchools = () => {
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Maktab")}</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Hudud")}</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Hik kameralar")}</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Token")}</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Holati")}</th>
 								<th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("Amallar")}</th>
 							</tr>
@@ -648,9 +630,6 @@ const PlatformSchools = () => {
 											})()}
 										</td>
 										<td className="px-4 py-3.5">
-											<code className="text-xs bg-gray-100 px-2 py-1 rounded">{school.apiTokenPrefix}…</code>
-										</td>
-										<td className="px-4 py-3.5">
 											<span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${school.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
 												{school.isActive ? tx("Faol") : tx("To'xtatilgan")}
 											</span>
@@ -690,13 +669,6 @@ const PlatformSchools = () => {
 													<FiUsers size={16} />
 												</button>
 												<button
-													onClick={() => handleRotateToken(school)}
-													disabled={busyId === school._id}
-													className="p-2 rounded-lg text-amber-600 hover:bg-amber-50 disabled:opacity-50" title={tx("Tokenni yangilash")}
-												>
-													<FiKey size={16} />
-												</button>
-												<button
 													onClick={() => handleToggleActive(school)}
 													disabled={busyId === school._id}
 													className={`p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 ${school.isActive ? 'text-red-600' : 'text-green-600'}`}
@@ -727,14 +699,11 @@ const PlatformSchools = () => {
 							if (hikResult.success) toast.success(`Hik-Connect: ${hikResult.total} ta kamera topildi${hikResult.existed ? ' (bu akkaunt oldin qo\'shilgan edi)' : ''}. Kerakli kameralarni Hik-Connect bo'limida biriktiring`)
 							else toast.error(tx(hikResult.message || "Hik-Connect kalitlari bilan ulanib bo'lmadi — keyin qayta urinib ko'ring"))
 						}
-						setSecretModal({
-							title: tx('"{{name}}" yaratildi — kamera-proxy tokeni', { name: school.name }),
+						if (admin?.username) setSecretModal({
+							title: tx('"{{name}}" yaratildi', { name: school.name }),
 							fields: [
-								...(admin?.username ? [
-									{ key: 'username', label: tx('Maktab admini logini'), value: admin.username },
-									{ key: 'password', label: tx('Maktab admini paroli'), value: admin.password },
-								] : []),
-								{ key: 'token', label: "server_proxy/config.json → backend.token", value: apiToken }
+								{ key: 'username', label: tx('Maktab admini logini'), value: admin.username },
+								{ key: 'password', label: tx('Maktab admini paroli'), value: admin.password },
 							]
 						})
 					}}

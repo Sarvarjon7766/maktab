@@ -30,3 +30,13 @@ test('imzo deterministik va fayl nomiga bog\'liq', () => {
 	assert.notStrictEqual(sign('a.jpg'), sign('b.jpg'))
 	assert.match(signedUrl('http://x/uploads/', 'a b.jpg'), /^http:\/\/x\/uploads\/a%20b\.jpg\?sig=[0-9a-f]{32}$/)
 })
+
+test('scrub: ObjectId id sifatida saqlanadi, maxfiy maydonlar olib tashlanadi', () => {
+	const { scrub } = require('../utils/scrub')
+	const mongoose = require('mongoose')
+	const id = new mongoose.Types.ObjectId()
+	const out = JSON.parse(JSON.stringify(scrub({ _id: id, password: 'x', list: [{ schoolId: id }] })))
+	assert.equal(out._id, String(id))
+	assert.equal(out.list[0].schoolId, String(id))
+	assert.equal('password' in out, false)
+})

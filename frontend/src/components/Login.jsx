@@ -6,6 +6,7 @@ import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useOrg } from "../context/OrgContext"
 import BrandLogo from "./BrandLogo"
+import LanguageSwitcher from "./LanguageSwitcher"
 import { clearSession } from "../api/sessionCleanup"
 import { resetMonitorLevel } from "../pages/monitor/monitorLevel"
 import { tx } from '../i18n'
@@ -125,8 +126,10 @@ const Login = () => {
 	return (
 		<div className="min-h-screen grid md:grid-cols-2 bg-slate-100">
 			{/* LEFT PANEL */}
-			<div className="hidden md:flex relative bg-gradient-to-br from-blue-800 to-blue-950 text-white px-16 overflow-hidden">
+			<div className="hidden md:flex relative bg-gradient-to-br from-[#08183d] via-[#0c2a6e] to-[#35238a] text-white px-16 overflow-hidden">
+				<div className="absolute left-6 top-5 z-20"><LanguageSwitcher dark /></div>
 				<div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-white/5" />
+				<div className="absolute right-1/4 top-1/3 w-64 h-64 rounded-full bg-cyan-400/10 blur-3xl" />
 				<div className="absolute -left-16 bottom-0 w-72 h-72 rounded-full bg-white/5" />
 
 				<div className="relative z-10 flex flex-col justify-center max-w-lg">
@@ -135,23 +138,31 @@ const Login = () => {
 						<span className="text-xl font-semibold tracking-tight">{org.isPlatform ? tx("School Supervision") : org.orgName}</span>
 					</div>
 
-					<h1 className="text-4xl font-bold mb-4">
-						{org.isPlatform ? tx("Maktablar uchun yuz-nazorat tizimi") : org.orgName}
-					</h1>
+					<span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs text-blue-100">
+						<span className="h-2 w-2 rounded-full bg-emerald-400" />{tx("Maktablar uchun yagona boshqaruv tizimi")}
+					</span>
 
-					<p className="text-blue-200 text-lg">
-						{tx("Davomatni nazorat qilish va tahlil qilish uchun yagona platforma")}
+					{org.isPlatform ? (
+						<h1 className="text-5xl font-bold leading-tight mb-5">
+							{tx("Ta'lim muassasalari")} <span className="text-cyan-300">{tx("nazorati bir joyda")}</span>
+						</h1>
+					) : (
+						<h1 className="text-4xl font-bold leading-tight mb-5">{org.orgName}</h1>
+					)}
+
+					<p className="text-blue-200 text-base leading-relaxed">
+						{tx("Davomatni kuzatish, maktablar faoliyatini tahlil qilish va muhim ma'lumotlarni bir joydan ko'rish uchun yagona platforma.")}
 					</p>
 
-					<div className="mt-10 space-y-3 text-blue-100">
-						{["Avtomatlashtirilgan yuz aniqlash nazorati", "Davomatni aniq hisoblash", "Xavfsiz va yopiq tizim"].map(text => (
-							<div key={text} className="flex items-center gap-3">
-								<span className="shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-									<svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+					<div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 text-blue-50">
+						{["Davomatni real vaqtda kuzatish", "Maktablar kesimida tahlil", "Kamera holatini nazorat qilish", "Hisobotlarni bir joyda boshqarish"].map(text => (
+							<div key={text} className="flex items-start gap-3">
+								<span className="mt-0.5 shrink-0 w-6 h-6 rounded-lg bg-emerald-400/15 ring-1 ring-emerald-300/30 flex items-center justify-center">
+									<svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
 										<polyline points="20 6 9 17 4 12" />
 									</svg>
 								</span>
-								<span>{text}</span>
+								<span className="text-sm leading-snug">{tx(text)}</span>
 							</div>
 						))}
 					</div>
@@ -179,8 +190,9 @@ const Login = () => {
 			</div>
 
 			{/* RIGHT PANEL */}
-			<div className="flex items-center justify-center px-6">
-				<div className="w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl rounded-2xl p-8">
+			<div className="relative flex items-center justify-center px-6">
+				<div className="absolute right-6 top-5"><LanguageSwitcher /></div>
+				<div className="w-full max-w-md bg-white border border-slate-100 shadow-xl shadow-slate-200/70 rounded-3xl p-8 sm:p-10">
 					<div className="text-center mb-8">
 						<FaceIdMark className="w-16 h-16 mx-auto mb-4" />
 						<h2 className="text-2xl font-bold text-slate-800">
@@ -231,12 +243,12 @@ const Login = () => {
 
 						<button
 							disabled={isLoading}
-							className="w-full py-3 rounded-xl font-medium text-white
-              bg-gradient-to-r from-blue-700 to-blue-600
-              hover:from-blue-800 hover:to-blue-700
+							className="w-full py-3 rounded-xl font-semibold text-white
+              bg-gradient-to-r from-blue-600 to-indigo-600
+              hover:from-blue-700 hover:to-indigo-700
               transition-all duration-200
               hover:scale-[1.02] active:scale-[0.98]
-              shadow-lg"
+              shadow-lg shadow-blue-600/25"
 						>
 							{isLoading ? tx("Kirish...") : tx("Kirish")}
 						</button>

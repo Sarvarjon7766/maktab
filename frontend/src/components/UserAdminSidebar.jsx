@@ -18,7 +18,7 @@ const UserAdminSidebar = ({ collapsed = false, onClose }) => {
 	const menuGroups = schoolMenuGroups('/user')
 
 	return (
-		<aside className="h-full flex flex-col text-white bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+		<aside className="h-full flex flex-col text-white bg-[#0b1325]">
 			{/* ===== MOBILE HEADER ===== */}
 			{onClose && (
 				<div className="lg:hidden p-4 border-b border-white/10 flex items-center justify-between">
@@ -76,7 +76,7 @@ const UserAdminSidebar = ({ collapsed = false, onClose }) => {
 									className={`
 									group relative flex items-center gap-3 rounded-xl p-3 transition-all
                     ${isActive(path)
-										? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-blue-950/30'
+										? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
 											: 'text-slate-300 hover:bg-white/[0.07] hover:text-white'}
                   `}
 								>

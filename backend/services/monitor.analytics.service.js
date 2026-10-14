@@ -229,7 +229,7 @@ class MonitorAnalyticsService {
 		const { names } = await schoolMaps()
 		const sinfFilter = schoolCond(validId(schoolId) ? schoolId : null) ? { schoolId: schoolCond(validId(schoolId) ? schoolId : null) } : {}
 		const [sinfs, students] = await Promise.all([
-			sinfModel.find(sinfFilter).populate('head', 'fullName').lean(),
+			sinfModel.find(sinfFilter).populate('head', 'fullName photo').lean(),
 			studentModel.find({ ...sinfFilter, isActive: { $ne: false } }).select('sinf').lean()
 		])
 		// o'quvchi -> sinf xaritasi xotirada; davomat maktabma-maktab (indeksdan) olinadi, $lookup ishlatilmaydi
@@ -249,7 +249,7 @@ class MonitorAnalyticsService {
 		}, 8)
 		const classes = sinfs.map(s => {
 			const t = total.get(String(s._id)) || 0, came = att.get(String(s._id))?.came || 0
-			return { _id: s._id, name: s.name, head: s.head?.fullName || null, schoolId: s.schoolId, schoolName: names.get(String(s.schoolId)) || '', total: t, came, inside: att.get(String(s._id))?.inside || 0, absent: Math.max(0, t - came), percent: pct(came, t) }
+			return { _id: s._id, name: s.name, head: s.head?.fullName || null, headPhoto: s.head?.photo || null, headId: s.head?._id || null, schoolId: s.schoolId, schoolName: names.get(String(s.schoolId)) || '', total: t, came, inside: att.get(String(s._id))?.inside || 0, absent: Math.max(0, t - came), percent: pct(came, t) }
 		}).filter(c => c.total > 0)
 		return { success: true, dateString, classes }
 	}
@@ -430,7 +430,7 @@ class MonitorAnalyticsService {
 	async gradeClassDetail({ sinfId, from, to, schoolId, sinfIds }) {
 		if (!validId(sinfId)) return { success: false, message: "Sinf noto'g'ri" }
 		const range = resolveRange(from, to)
-		const sinf = await sinfModel.findById(sinfId).populate('head', 'fullName').lean()
+		const sinf = await sinfModel.findById(sinfId).populate('head', 'fullName photo').lean()
 		if (!sinf || !inScope(sinf.schoolId) || (validId(schoolId) && String(sinf.schoolId) !== String(schoolId)) || (Array.isArray(sinfIds) && !sinfIds.map(String).includes(String(sinf._id)))) return { success: false, message: 'Sinf topilmadi' }
 		const { names, start } = await schoolMaps()
 		const limit = start.get(String(sinf.schoolId)) || '09:00'
@@ -466,7 +466,7 @@ class MonitorAnalyticsService {
 		const total = students.length
 		return {
 			success: true, ...range, workStartTime: limit,
-			class: { _id: sinf._id, name: sinf.name, head: sinf.head?.fullName || '', schoolId: sinf.schoolId, schoolName: names.get(String(sinf.schoolId)) || '', students: total },
+			class: { _id: sinf._id, name: sinf.name, head: sinf.head?.fullName || '', headPhoto: sinf.head?.photo || null, schoolId: sinf.schoolId, schoolName: names.get(String(sinf.schoolId)) || '', students: total },
 			schoolDays: days.length, days,
 			daily: days.map(d => ({ date: d, came: dayCame.get(d) || 0, late: dayLate.get(d) || 0, absent: Math.max(0, total - (dayCame.get(d) || 0)), percent: pct(dayCame.get(d) || 0, total) })),
 			students: students.map(st => {

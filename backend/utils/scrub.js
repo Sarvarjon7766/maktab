@@ -15,6 +15,8 @@ function scrub(value, depth = 0) {
 	if (depth > 12) return value
 	if (Array.isArray(value)) return value.map((v) => scrub(v, depth + 1))
 	if (value && typeof value === 'object' && !(value instanceof Date)) {
+		// ObjectId, Decimal128 kabi turlar o'zining toJSON'i bilan seriyalanadi (aks holda ichki `buffer` maydoni oddiy obyekt bo'lib chiqib, id buziladi)
+		if (typeof value.toJSON === 'function') { const j = value.toJSON(); return j && typeof j === 'object' ? scrub(j, depth + 1) : j }
 		const out = {}
 		for (const [k, v] of Object.entries(value)) {
 			if (isSensitive(k)) continue

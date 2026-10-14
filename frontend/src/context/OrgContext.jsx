@@ -17,6 +17,9 @@ const OrgContext = createContext({ ...DEFAULT_ORG, refresh: () => {} })
 
 export function OrgProvider({ children }) {
   const [org, setOrg] = useState(DEFAULT_ORG)
+  // Server rejimi (district | region): /api/config dan bir marta olinadi; sahifalar (masalan federatsiya) shunga qarab ko'rinadi
+  const [mode, setMode] = useState('district')
+  useEffect(() => { axios.get(`${import.meta.env.VITE_BASE_URL}/api/config`).then(r => { if (r.data?.mode) setMode(r.data.mode) }).catch(() => { }) }, [])
 
   // Login-oldi: GET /api/config (neytral platforma nomi).
   // Login-keyingi: GET /api/school/me (joriy foydalanuvchining maktabi) —
@@ -61,7 +64,7 @@ export function OrgProvider({ children }) {
 
   useEffect(() => { refresh() }, [])
 
-  return <OrgContext.Provider value={{ ...org, refresh }}>{children}</OrgContext.Provider>
+  return <OrgContext.Provider value={{ ...org, mode, refresh }}>{children}</OrgContext.Provider>
 }
 
 export const useOrg = () => useContext(OrgContext)

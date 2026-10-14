@@ -64,7 +64,7 @@ const LeaderSidebar = ({ collapsed = false, onClose }) => {
 						onClick={onClose}
 						className={`group relative flex items-center gap-3 p-3 rounded-lg
               ${isActive(path)
-								? 'bg-cyan-600 text-white'
+								? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
 								: 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
 					>
 						{Icon ? (

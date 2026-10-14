@@ -101,7 +101,8 @@ class StudentAttandanceService {
 					dateString,
 					checkin: true,
 					checkout: false,
-					checkInTime: eventTime
+					checkInTime: eventTime,
+					comment: data.comment ? String(data.comment).slice(0, 200) : null
 				})
 			} else {
 				let openAttendance = attendance
@@ -134,7 +135,7 @@ class StudentAttandanceService {
 			}
 
 			// Ota-onalarga Telegram xabari (fonda; xato bo'lsa davomatga ta'sir qilmaydi)
-			try { require('./parent.service').notifyStudentEvent({ schoolId, studentId: student._id, kind: isEntering ? 'in' : 'out', time: eventTime }) } catch (e) { console.error('Ota-onaga xabar:', e.message) }
+			if (!data.silent) try { require('./parent.service').notifyStudentEvent({ schoolId, studentId: student._id, kind: isEntering ? 'in' : 'out', time: eventTime }) } catch (e) { console.error('Ota-onaga xabar:', e.message) }
 
 			return { success: true, message: isEntering ? "Kirish qayd etildi" : "Chiqish qayd etildi" }
 		} catch (error) {

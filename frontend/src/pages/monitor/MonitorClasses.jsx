@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import AutoSelect from '../../components/AutoSelect'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CHART_COLORS, ChartBox, DateField, LoadState, Page, PageHeader, Panel, Progress, KpiLink, Table, Td, Tr, exportXlsx, fmt, pct, todayStr, useMonitorData, matchText, SearchBox } from './monitorKit'
 import { FaChalkboard, FaUserGraduate, FaUserTimes } from 'react-icons/fa'
 import { tx } from '../../i18n'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
 
 // Bitta maktab: sinflar kesimida o'quvchilar davomati + kelmagan o'quvchilar ro'yxati
 // Bo'sh massiv har renderda yangi bo'lib effekt/useMemo'ni qayta ishga tushirmasligi uchun
@@ -70,8 +72,10 @@ const MonitorClasses = () => {
 						<Table head={['Sinf', 'Sinf rahbari', 'Davomat', { label: 'Kelmagan', right: true }]}>
 							{shownClasses.map(c => (
 								<Tr key={c._id}>
-									<Td><button onClick={() => setSinfId(sinfId === c._id ? '' : c._id)} className={`font-medium hover:text-blue-600 ${sinfId === c._id ? 'text-blue-600' : 'text-gray-900'}`}>{c.name}</button></Td>
-									<Td className="text-gray-600">{c.head || '—'}</Td>
+									<Td><button onClick={() => setSinfId(sinfId === c._id ? '' : c._id)} className={`font-medium hover:text-blue-600 ${sinfId === c._id ? 'text-blue-600' : 'text-gray-900'}`}>{c.name}</button> <Link to={`/monitor/grades/${parseInt(c.name) || 0}/${c._id}`} title={tx("Sinf statistikasi")} className="ml-1 text-xs text-blue-600 hover:underline">{tx("statistika →")}</Link></Td>
+									<Td className="text-gray-600">{c.head ? (c.headId
+										? <Link to={`/monitor/people/staff/${c.headId}`} className="flex items-center gap-2 hover:text-blue-600 hover:underline"><PersonPhotoPreview photo={c.headPhoto} name={c.head} size="sm" />{c.head}</Link>
+										: <span className="flex items-center gap-2"><PersonPhotoPreview photo={c.headPhoto} name={c.head} size="sm" />{c.head}</span>) : '—'}</Td>
 									<Td><Progress present={c.came} total={c.total} percent={c.percent} /></Td>
 									<Td right className="text-red-600 font-medium">{fmt(c.absent)}</Td>
 								</Tr>
@@ -84,7 +88,7 @@ const MonitorClasses = () => {
 							<div className="max-h-[420px] overflow-y-auto">
 								<div className="mb-3"><SearchBox value={aq} onChange={setAq} placeholder={tx("O'quvchi qidirish...")} /></div>
 								<Table head={['F.I.Sh', 'Sinf']}>
-									{shownAbsent.map(s => <Tr key={s._id}><Td>{s.fullName}</Td><Td className="text-gray-600">{s.sinf}</Td></Tr>)}
+									{shownAbsent.map(s => <Tr key={s._id}><Td><span className="flex items-center gap-2"><PersonPhotoPreview photo={s.photo} name={s.fullName} size="sm" />{s.fullName}</span></Td><Td className="text-gray-600">{s.sinf}</Td></Tr>)}
 									{absent.data?.students?.length > 0 && shownAbsent.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-slate-500">{tx("Topilmadi")}</td></tr>}
 									{absent.data?.students?.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-green-600">{tx("Hamma kelgan")}</td></tr>}
 								</Table>

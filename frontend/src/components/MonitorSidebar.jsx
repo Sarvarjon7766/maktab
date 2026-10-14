@@ -16,8 +16,7 @@ import {
 	FaUserGraduate,
 	FaUmbrellaBeach,
 	FaUserSlash,
-	FaVideo
-} from 'react-icons/fa'
+	FaVideo, FaMapMarkedAlt } from 'react-icons/fa'
 import { FiLogOut, FiX } from 'react-icons/fi'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
@@ -29,6 +28,7 @@ export const monitorMenuGroups = [
 		items: [
 			{ path: '/monitor', icon: FaHome, label: tx('Bosh sahifa') },
 			{ path: '/monitor/schools', icon: FaSchool, label: tx('Maktablar') },
+			{ path: '/monitor/map', icon: FaMapMarkedAlt, label: tx('Xarita') },
 			{ path: '/monitor/grades', icon: FaLayerGroup, label: tx('Umumiy statistika') },
 			{ path: '/monitor/alerts', icon: FaBell, label: tx('Ogohlantirishlar') },
 		],
@@ -76,7 +76,7 @@ const MonitorSidebar = ({ collapsed = false, onClose }) => {
 		location.pathname === path || (path !== '/monitor' && location.pathname.startsWith(path))
 
 	return (
-		<div className="h-full flex flex-col text-white bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+		<div className="h-full flex flex-col text-white bg-[#0b1325]">
 			<div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
 				<div className={`flex items-center gap-2 overflow-hidden ${collapsed ? 'justify-center w-full' : ''}`}>
 					<BrandLogo className="w-12 h-12 shrink-0" />
@@ -102,7 +102,7 @@ const MonitorSidebar = ({ collapsed = false, onClose }) => {
 									key={item.path}
 									to={item.path}
 									onClick={onClose}
-									className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${isActive(item.path) ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-blue-950/30' : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+									className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${isActive(item.path) ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30/30' : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
 									title={collapsed ? item.label : undefined}
 								>
 									<item.icon size={18} className="shrink-0" />

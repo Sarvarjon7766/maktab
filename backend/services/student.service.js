@@ -111,6 +111,8 @@ class StudentService {
 			}
 			// O'chirilgan o'quvchining ota-onalariga endi xabar bormasligi uchun Telegram ulanishlari o'chiriladi
 			require('../models/parent.model').ParentLink.updateMany({ student: student._id }, { active: false }).catch(() => {})
+			// Biometrik ma'lumot: yuz izlari va qo'shimcha yuz suratlari ham o'chadi
+			require('./face.service').removeStudent(student._id, schoolId).catch(() => {})
 			return { success: true, message: "O'quvchi o'chirildi" }
 		} catch (error) {
 			console.error("Student remove xatolik:", error)

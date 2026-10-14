@@ -31,9 +31,7 @@ export const GROUPS = [
 	{ key: 'school', label: 'Maktablar', color: 'sky' },
 	{ key: 'student', label: "O'quvchilar", color: 'green' },
 	{ key: 'staff', label: 'Xodimlar', color: 'violet' },
-	{ key: 'class', label: 'Sinflar', color: 'amber' },
-	{ key: 'camera', label: 'Kameralar va AI', color: 'orange' },
-	{ key: 'watch', label: 'Nazorat', color: 'red' }
+	{ key: 'class', label: 'Sinflar', color: 'amber' }
 ]
 
 // ---------- Shaxslar ro'yxati (kunlik) ----------
@@ -58,13 +56,15 @@ const latePeople = (kind, name, title) => async ({ range }) => {
 
 export function buildCatalog({ region }) {
 	const R = []
-	const add = (r) => R.push(r)
+	// Excel hisobotlarda tizim ma'lumotlari (kamera holati, Hik-Connect xatolari, hodisa va ogohlantirishlar) bo'lmaydi
+	const NO_EXPORT = new Set(['d_cameras', 'd_events', 'd_alerts', 'cam_list', 'cam_offline', 'cam_schools', 'cam_events', 'cam_events_list', 'w_alerts'])
+	const add = (r) => { if (!NO_EXPORT.has(r.key)) R.push(r) }
 
 	// ================= TUMANLAR (faqat viloyat monitori) =================
 	if (region) {
-		add({ key: 'districts', group: 'district', scope: 'range', title: 'Tumanlar solishtiruvi', text: "Har bir tuman: o'rin, maktab, o'quvchi, xodim soni, davomat (davr va bugun), kech qolish, kameralar.", run: async ({ range }) => {
+		add({ key: 'districts', group: 'district', scope: 'range', title: 'Tumanlar solishtiruvi', text: "Har bir tuman: o'rin, maktab, o'quvchi, xodim soni, davomat (davr va bugun), kech qolish.", run: async ({ range }) => {
 			const d = await get('districts', range)
-			return [{ name: 'Tumanlar', title: `Tumanlar solishtiruvi — ${range2(range)}`, totals: true, rows: d.rows.map(r => ({ "O'rin": r.rank ?? '', Tuman: r.name, Maktablar: r.schools, "O'quvchilar": r.students, Xodimlar: r.staff, "O'quvchi davomati % (davr)": p(r.studentPeriod), "O'quvchi bugun %": p(r.studentToday), 'Xodim davomati % (davr)': p(r.staffPeriod), 'Kech qolish %': p(r.latePercent), 'Kameralar online': `${r.cameraOnline}/${r.cameraTotal}`, 'Joylashuvi belgilangan maktablar': `${r.located}/${r.schools}` })) }]
+			return [{ name: 'Tumanlar', title: `Tumanlar solishtiruvi — ${range2(range)}`, totals: true, rows: d.rows.map(r => ({ "O'rin": r.rank ?? '', Tuman: r.name, Maktablar: r.schools, "O'quvchilar": r.students, Xodimlar: r.staff, "O'quvchi davomati % (davr)": p(r.studentPeriod), "O'quvchi bugun %": p(r.studentToday), 'Xodim davomati % (davr)': p(r.staffPeriod), 'Kech qolish %': p(r.latePercent), 'Joylashuvi belgilangan maktablar': `${r.located}/${r.schools}` })) }]
 		} })
 		add({ key: 'd_trend', group: 'district', scope: 'range', title: 'Tumanlar dinamikasi (kunma-kun)', text: "Viloyat va har bir tuman davomati har bir kun bo'yicha.", run: async ({ range }) => {
 			const d = await get('region/trend', range)
@@ -113,7 +113,7 @@ export function buildCatalog({ region }) {
 	}
 
 	// ================= MAKTABLAR =================
-	add({ key: 's_day', group: 'school', scope: 'day', title: 'Maktablar: kunlik hisobot', text: "Tanlangan kun: har bir maktabda o'quvchi va xodimlar kelgani, kelmagani, kech qolgani, kameralar.", run: async ({ day }) => {
+	add({ key: 's_day', group: 'school', scope: 'day', title: 'Maktablar: kunlik hisobot', text: "Tanlangan kun: har bir maktabda o'quvchi va xodimlar kelgani, kelmagani, kech qolgani.", run: async ({ day }) => {
 		const d = await get('overview', { date: day })
 		return [{ name: 'Maktablar', title: `Maktablar kunlik hisoboti — ${d.dateString}`, totals: true, rows: d.schools.map(s => ({
 			Maktab: s.name, Hudud: schoolPlace(s), Faol: s.isActive ? 'Ha' : "Yo'q",
@@ -121,7 +121,7 @@ export function buildCatalog({ region }) {
 			"O'quvchi davomati %": s.stats.studentTotal ? Math.round((s.stats.studentCame / s.stats.studentTotal) * 1000) / 10 : '',
 			'Xodim jami': s.stats.staffTotal, 'Xodim kelgan': s.stats.staffCame, 'Xodim sababli kelmagan': s.stats.staffExcused || 0, 'Xodim kelmagan (sababsiz)': s.stats.staffAbsent, 'Xodim kech qolgan': s.stats.staffLate,
 			'Xodim davomati %': s.stats.staffTotal ? Math.round((s.stats.staffCame / Math.max(s.stats.staffTotal - (s.stats.staffExcused || 0), 1)) * 1000) / 10 : '',
-			Sinflar: s.stats.classTotal, 'Kamera online': `${s.stats.cameraOnline}/${s.stats.cameraTotal}`
+			Sinflar: s.stats.classTotal
 		})) }]
 	} })
 	add({ key: 's_period', group: 'school', scope: 'range', title: 'Maktablar: davr hisoboti', text: "Davrdagi o'rtacha davomat, o'quv kunlari, eng yaxshi va eng yomon kun.", run: async ({ range }) => {
@@ -195,7 +195,7 @@ export function buildCatalog({ region }) {
 			{ name: 'Daraja dinamikasi', title: 'Sinf darajalari kunma-kun davomati', rows: [...new Set(d.grades.flatMap(g => g.daily.map(x => x.date)))].sort().map(date => ({ Sana: date, Kun: wd(date), ...Object.fromEntries(d.grades.map(g => [`${g.grade}-sinf %`, g.daily.find(x => x.date === date)?.percent ?? ''])) })) }
 		]
 	} })
-	add({ key: 'c_ai', group: 'class', scope: 'day', title: 'Sinfxonalar AI tahlili', text: "Kamerali sinflar bali va darajasi: e'tibor talab, o'rta, yaxshi, ma'lumot yo'q.", run: async ({ day }) => {
+	add({ key: 'c_ai', group: 'class', scope: 'day', title: 'Sinfxonalar AI tahlili', text: "Kamerali sinflar bali va darajasi: e'tibor talab, o'rta, yaxshi.", run: async ({ day }) => {
 		const d = await get('classrooms-all', { date: day })
 		return [{ name: 'Sinfxonalar AI', title: `Sinfxonalar AI tahlili — ${d.dateString}`, rows: d.classes.map(c => ({ Maktab: c.schoolName, Sinf: c.name, Daraja: LEVEL[c.analysis?.level] || '', Ball: p(c.analysis?.score), 'Kameralar soni': Array.isArray(c.cameras) ? c.cameras.length : p(c.cameras) })) }]
 	} })
@@ -241,10 +241,9 @@ export function buildCatalog({ region }) {
 	// ================= PAKETLAR (bir faylda ko'p varaq) =================
 	const keys = (...k) => k.filter(x => R.some(r => r.key === x))
 	const bundles = [
-		region && { key: 'b_region', title: "Viloyat to'liq hisoboti", tone: 'from-blue-700 to-indigo-800', text: "Tumanlar solishtiruvi, dinamika, sinf darajalari, kech qolish, xavf guruhi, sabablar, ogohlantirishlar, kameralar, xodim va o'quvchilar — har biri alohida varaqda.", keys: keys('districts', 'd_trend', 'd_grades', 'd_late', 'd_risk', 'd_leaves', 'd_alerts', 'd_staff', 'd_students', 'd_classrooms', 'd_cameras', 'd_events'), scope: 'both' },
-		{ key: 'b_day', title: "Kunlik paket", tone: 'from-emerald-600 to-teal-700', text: "Maktablar kunlik, barcha sinflar, kelmagan o'quvchilar va xodimlar, kech qolganlar, ogohlantirishlar — bir faylda.", keys: keys('s_day', 'c_day', 'st_absent', 'st_late', 'sf_absent', 'sf_late', 'w_alerts'), scope: 'day' },
+		region && { key: 'b_region', title: "Viloyat to'liq hisoboti", tone: 'from-blue-700 to-indigo-800', text: "Tumanlar solishtiruvi, dinamika, sinf darajalari, kech qolish, xavf guruhi, sabablar, xodim va o'quvchilar — har biri alohida varaqda.", keys: keys('districts', 'd_trend', 'd_grades', 'd_late', 'd_risk', 'd_leaves', 'd_alerts', 'd_staff', 'd_students', 'd_classrooms', 'd_cameras', 'd_events'), scope: 'both' },
+		{ key: 'b_day', title: "Kunlik paket", tone: 'from-emerald-600 to-teal-700', text: "Maktablar kunlik, barcha sinflar, kelmagan o'quvchilar va xodimlar, kech qolganlar — bir faylda.", keys: keys('s_day', 'c_day', 'st_absent', 'st_late', 'sf_absent', 'sf_late'), scope: 'day' },
 		{ key: 'b_period', title: 'Davr paketi', tone: 'from-violet-600 to-purple-800', text: "Maktablar davr hisoboti, dinamika, hafta kunlari, kech qolish reytinglari, xavf guruhi, sinf darajalari, sabablar.", keys: keys('s_period', 's_trend', 's_weekday', 'st_late_top', 'sf_late_top', 'st_risk', 'c_grades', 'sf_leaves', 'st_leaves'), scope: 'range' },
-		{ key: 'b_camera', title: 'Kameralar paketi', tone: 'from-orange-500 to-red-600', text: "Kameralar ro'yxati, offline kameralar, maktablar xulosasi, hodisalar xulosasi va ro'yxati.", keys: keys('cam_list', 'cam_offline', 'cam_schools', 'cam_events', 'cam_events_list'), scope: 'range' }
 	].filter(Boolean)
 
 	return { reports: R, bundles }

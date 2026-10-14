@@ -23,7 +23,7 @@ function getSession(model) {
 	const file = path.join(MODELS_DIR, path.basename(model || 'rtmpose_m.onnx'))
 	if (!sessions.has(file)) {
 		const ort = require('onnxruntime-node')
-		sessions.set(file, ort.InferenceSession.create(file, { executionProviders: ['cpu'], graphOptimizationLevel: 'all', intraOpNumThreads: require('./threads').AI_THREADS })
+		sessions.set(file, ort.InferenceSession.create(file, { executionProviders: require('./provider').providers(), graphOptimizationLevel: 'all', intraOpNumThreads: require('./threads').AI_THREADS })
 			.catch((e) => { sessions.delete(file); throw e }))
 	}
 	return sessions.get(file)

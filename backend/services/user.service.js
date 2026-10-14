@@ -440,11 +440,11 @@ class UserService {
 				isActive: true
 			}).select('+password')
 			if (!user) {
-				return { success: false, message: "Bunday foydalanuvchi nomi mavjud emas" }
+				return { success: false, message: "Login yoki parol noto'g'ri" }
 			}
 			const isPasswordMatch = await bcrypt.compare(password, user.password)
 			if (!isPasswordMatch) {
-				return { success: false, message: "Parol noto‘g‘ri" }
+				return { success: false, message: "Login yoki parol noto'g'ri" }
 			}
 			const token = jwt.sign(
 				{ userId: user._id, username: user.username, role: user.role, school: user.schoolId || null },
@@ -823,6 +823,8 @@ class UserService {
 				}
 			}
 
+			// Xodim o'chirildi: biometrik yuz izlari ham o'chiriladi
+			require("./face.service").removeStudent(user._id, schoolId).catch(() => {})
 			if (user.hodimID) {
 				await deleteUserModel.deleteMany({ hodimID: user.hodimID, schoolId })
 				await adduserModel.deleteMany({ hodimID: user.hodimID, schoolId })

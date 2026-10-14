@@ -33,6 +33,8 @@ const hikCameraSchema = new Schema({
 	online: { type: Boolean, default: null },
 	// Oxirgi marta bulut online deb qaytargan vaqt
 	lastSeenAt: { type: Date, default: null },
+	// Bulut "online" desa ham qurilma jonli ko'rishda offline chiqqan vaqt: tekshiruv muvaffaqiyatli bo'lguncha offline hisoblanadi
+	offlineSince: { type: Date, default: null },
 	// Oxirgi muvaffaqiyatli sinxronlash vaqti (kamera ro'yxatda ko'ringan)
 	syncedAt: { type: Date, default: null },
 	// Sinxronlashda bulut ro'yxatida topilmasa false (o'chirilgan/ajratilgan)
@@ -49,6 +51,9 @@ const hikCameraSchema = new Schema({
 	sinfId: { type: mongoose.Schema.Types.ObjectId, ref: 'Sinf', default: null },
 	// Yoqilsa, shu kamerada aniqlangan shaxs avtomatik davomatga yoziladi (standart: o'chiq)
 	autoAttendance: { type: Boolean, default: false },
+	// Yuz tanish natijasi davomatga qanday yoziladi (faqat sinfxona kamerasida va yuz orqali davomat yoqilganda): 'in' — tanilgan o'quvchi/xodim «kirdi»
+	// (chiqqan bo'lsa qayta «kirdi»), 'out' — «chiqdi», 'off' — davomatga yozilmaydi (faqat «ko'rindi» dalili). Standart: 'in'
+	faceDirection: { type: String, enum: ['in', 'out', 'off'], default: 'in' },
 	// Yoqilsa, kameradan olingan kadrda odamlar soni sanaladi (yuz tanilmaydi, faqat son). Standart: o'chiq
 	visionEnabled: { type: Boolean, default: false },
 	lastEventAt: { type: Date, default: null },

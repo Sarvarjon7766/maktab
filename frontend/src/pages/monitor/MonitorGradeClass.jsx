@@ -4,6 +4,7 @@ import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, 
 import { Crumbs, Formula, Kpi, useGradeRange } from './MonitorGradeKit'
 import { ChartBox, LoadState, Page, PageHeader, Panel, PersonLink, RangePicker, fmt, useMonitorData, usePanel, pctFmt } from './monitorKit'
 import { tx } from '../../i18n'
+import PersonPhotoPreview from '../../components/PersonPhotoPreview'
 
 // Bitta sinf: davomat qanday hisoblangani. Kunlik grafik -> kun bo'yicha ro'yxat -> har bir o'quvchi -> shaxs profili
 const MonitorGradeClass = () => {
@@ -29,7 +30,7 @@ const MonitorGradeClass = () => {
 				{data && (
 					<div className="space-y-5">
 						<div className="flex flex-wrap items-center justify-between gap-3">
-							<div><h1 className="text-2xl font-semibold text-gray-900">{c.name}</h1><p className="text-sm text-gray-500">{scoped ? <span>{c.schoolName}</span> : <Link to={`/monitor/schools/${c.schoolId}`} className="hover:text-blue-600">{c.schoolName}</Link>}{c.head ? ` · Sinf rahbari: ${c.head}` : ''}</p></div>
+							<div className="flex items-center gap-3"><PersonPhotoPreview photo={c.headPhoto} name={c.head || c.name} size="md" /><div><h1 className="text-2xl font-semibold text-gray-900">{c.name}</h1><p className="text-sm text-gray-500">{scoped ? <span>{c.schoolName}</span> : <Link to={`/monitor/schools/${c.schoolId}`} className="hover:text-blue-600">{c.schoolName}</Link>}{c.head ? ` · Sinf rahbari: ${c.head}` : ''}</p></div></div>
 							<Link to={scoped ? `${base}/classrooms/${c._id}` : `/monitor/classrooms/${c.schoolId}/${c._id}?from=school`} className="text-sm font-medium text-blue-600 hover:underline">{tx("Sinfxona tahlili (kamera, jonli) →")}</Link>
 						</div>
 						<div className="grid grid-cols-2 xl:grid-cols-5 gap-4">

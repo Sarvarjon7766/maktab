@@ -33,7 +33,7 @@ const UserAdminLayout = () => {
 						className="fixed inset-0 bg-black/40 z-40"
 						onClick={() => setSidebarOpen(false)}
 					/>
-					<aside className="fixed top-0 left-0 z-50 h-full w-64 bg-slate-900">
+					<aside className="fixed top-0 left-0 z-50 h-full w-64 bg-[#0b1325]">
 						<UserAdminSidebar
 							collapsed={false}
 							onClose={() => setSidebarOpen(false)}
@@ -47,7 +47,7 @@ const UserAdminLayout = () => {
 				{!isMobile && (
 					<aside
 						className={`
-              bg-slate-900 transition-all duration-300
+              bg-[#0b1325] transition-all duration-300
               ${sidebarOpen ? 'w-64' : 'w-20'}
             `}
 					>

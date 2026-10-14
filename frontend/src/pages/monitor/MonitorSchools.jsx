@@ -73,8 +73,8 @@ const MonitorSchools = () => {
 		name: 'Maktablar', title: `Maktablar taqqoslash: ${range.from} — ${range.to}`,
 		rows: rows.map((s, i) => ({
 			'№': i + 1, Maktab: s.name, Hudud: schoolPlace(s), "O'quvchilar": s.students, Xodimlar: s.staff, Sinflar: s.classes, Ball: s.score ?? '',
-			"O'quvchilar davomati %": s.studentPercent ?? '', 'Xodimlar davomati %': s.staffPercent ?? '', 'Kech qolish %': s.latePercent ?? '', 'Dinamika (punkt)': s.trend ?? '', 'Kameralar online %': s.cameraPercent ?? '',
-			'Kuchli tomonlari': s.strengths.map(x => x.label).join(', '), 'Zaif tomonlari': s.weaknesses.map(x => x.label).join(', ')
+			"O'quvchilar davomati %": s.studentPercent ?? '', 'Xodimlar davomati %': s.staffPercent ?? '', 'Kech qolish %': s.latePercent ?? '', 'Dinamika (punkt)': s.trend ?? '',
+			'Kuchli tomonlari': s.strengths.filter(x => x.key !== 'cameraPercent').map(x => x.label).join(', '), 'Zaif tomonlari': s.weaknesses.filter(x => x.key !== 'cameraPercent').map(x => x.label).join(', ')
 		}))
 	}])
 	const toggleSort = (key) => setSort(p => p.key === key ? { key, dir: p.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: COLS.find(c => c.key === key).higher ? 'desc' : 'asc' })

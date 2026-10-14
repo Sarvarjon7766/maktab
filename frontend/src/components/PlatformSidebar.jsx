@@ -28,16 +28,21 @@ import {
 	FaChartLine,
 	FaUmbrellaBeach,
 	FaTachometerAlt,
+	FaMapMarkedAlt,
+	FaIdBadge,
+	FaRobot,
 } from 'react-icons/fa'
 import { FiArrowLeft, FiLogOut, FiX } from 'react-icons/fi'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import { tx } from '../i18n'
+import { useOrg } from '../context/OrgContext'
 
 const api = axios.create({ baseURL: import.meta.env.VITE_BASE_URL })
 
 const PlatformSidebar = ({ collapsed = false, onClose }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const { mode } = useOrg()
 	const schoolMatch = useMatch('/platform/schools/:schoolId/*')
 	const schoolId = schoolMatch?.params?.schoolId
 	const [schoolName, setSchoolName] = useState('')
@@ -59,21 +64,38 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 
 	const platformMenuGroups = [
 		{
-			label: tx('Platforma'),
+			label: tx('Nazorat'),
 			items: [
-				{ path: '/platform', icon: FaHome, label: tx('Bosh sahifa') },
-				{ path: '/platform/schools', icon: FaSchool, label: tx('Maktablar') },
+				{ path: '/platform', icon: FaTachometerAlt, label: tx('Tizim nazorati') },
+				{ path: '/platform/map', icon: FaMapMarkedAlt, label: tx('Xarita') },
+				{ path: '/platform/school-control', icon: FaClipboardCheck, label: tx('Maktablar nazorati') },
+				{ path: '/platform/audit-log', icon: FaHistory, label: tx('Audit jurnali') },
 			],
 		},
 		{
-			label: tx('Nazorat'),
+			label: tx('Maktablar va hududlar'),
 			items: [
-				{ path: '/platform/audit-log', icon: FaHistory, label: tx('Audit jurnali') },
+				{ path: '/platform/schools', icon: FaSchool, label: tx('Maktablar') },
+				{ path: '/platform/districts', icon: FaSitemap, label: tx('Tumanlar') },
+				{ path: '/platform/monitors', icon: FaUserShield, label: tx('Monitorlar') },
+				{ path: '/platform/grades', icon: FaLayerGroup, label: tx('Sinf darajalari') },
+			],
+		},
+		{
+			label: 'Hik-Connect',
+			items: [
+				{ path: '/platform/hik-accounts', icon: FaCloud, label: tx('Akkauntlar') },
+				{ path: '/platform/hik-cameras', icon: FaVideo, label: tx('Barcha kameralar') },
+				{ path: '/platform/school-cameras', icon: FaChalkboard, label: tx('Maktab kameralari') },
+				{ path: '/platform/hik-facecontrol', icon: FaUserCheck, label: tx('FaceControl') },
 			],
 		},
 		{
 			label: tx('Tizim'),
 			items: [
+				{ path: '/platform/federation', icon: FaSitemap, label: mode === 'region' ? tx('Tumanlar bilan ulanish') : tx('Viloyat ulanishi') },
+				{ path: '/platform/ai', icon: FaRobot, label: tx('AI sozlamalari') },
+				{ path: '/platform/telegram', icon: FaTelegramPlane, label: tx('Telegram bot') },
 				{ path: '/platform/branding', icon: FaSlidersH, label: tx('Platforma sozlamalari') },
 			],
 		},
@@ -96,6 +118,7 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 				{ path: `${base}/camera`, icon: FaVideo, label: tx('Kameralar') },
 				{ path: `${base}/facecontrol`, icon: FaUserCheck, label: tx('FaceControl') },
 				{ path: `${base}/nazorat`, icon: FaTachometerAlt, label: tx('Sinfxonalar nazorati') },
+				{ path: `${base}/faces`, icon: FaIdBadge, label: tx('Yuz tanish') },
 				{ path: `${base}/classrooms`, icon: FaChalkboard, label: tx('Sinfxonalar') },
 			],
 		},
@@ -123,7 +146,15 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 		},
 	]
 
-	const menuGroups = schoolId ? schoolMenuGroups : platformMenuGroups
+	// Viloyat serverida maktab/kamera/AI yo'q: faqat tumanlarni ulash va viloyat monitorlari
+	const regionMenuGroups = [
+		{ label: tx('Viloyat'), items: [
+			{ path: '/platform/federation', icon: FaSitemap, label: tx('Tumanlar bilan ulanish') },
+			{ path: '/platform/region-monitors', icon: FaUserShield, label: tx('Viloyat monitorlari') },
+			{ path: '/platform/branding', icon: FaSlidersH, label: tx('Platforma sozlamalari') },
+		] }
+	]
+	const menuGroups = mode === 'region' ? regionMenuGroups : schoolId ? schoolMenuGroups : platformMenuGroups
 
 	return (
 		<div className="h-full flex flex-col text-white">
@@ -167,7 +198,7 @@ const PlatformSidebar = ({ collapsed = false, onClose }) => {
 									key={item.path}
 									to={item.path}
 									onClick={onClose}
-									className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.path) ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+									className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(item.path) ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-800'
 										} ${collapsed ? 'justify-center' : ''}`}
 									title={collapsed ? item.label : undefined}
 								>

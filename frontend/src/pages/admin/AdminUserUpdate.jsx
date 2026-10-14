@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { FiKey, FiLock, FiUpload, FiUser, FiX } from 'react-icons/fi'
 import { toast } from 'react-toastify'
+import FacePhotosCard from '../../components/FacePhotosCard'
 import SearchableSelect from '../../components/SearchableSelect'
 import { uploadUrl } from '../../utils/uploadUrl'
 import { tx } from '../../i18n'
@@ -506,6 +507,7 @@ const AdminUserUpdate = ({ user, onClose, sinfs }) => {
 							</button>
 						</div>
 					</form>
+					{user?._id && user.hodimID && <FacePhotosCard studentId={user._id} kind="staff" />}
 				</div>
 			</div>
 		</div>

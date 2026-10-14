@@ -61,6 +61,7 @@ const startCronJobs = () => {
   // Har kuni 03:30 da: saqlash muddati o'tgan isbot rasmlari/lavhalari va eski kamera hodisalarini o'chirish (muddatlar platforma sozlamalarida)
   tasks.push(cron.schedule("30 3 * * *", guarded("retention", async () => {
     const r = await retention.run();
+    try { const f = await require("../services/face.service").sweep(); if (f.templates || f.files) console.log(`Yuz ma'lumotlari tozalandi: ${f.templates} iz, ${f.files} yetim rasm`); } catch (e) { console.log("Yuz tozalash xatosi:", e.message); }
     if (r.success) console.log(`Saqlash muddati: ${r.events.alerts + r.events.samples + r.events.events} hodisa, ${r.files} fayl (${Math.round(r.bytes / 1048576)} MB), ${r.metrics} o'lchov o'chirildi${r.more ? " (yana bor, ertaga davom etadi)" : ""}`);
   }), { timezone: "Asia/Tashkent" }));
 

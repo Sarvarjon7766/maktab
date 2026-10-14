@@ -132,6 +132,61 @@ router.get('/vision/evidence', ...scoped(), visionRoles, handle(req => {
 	if (!school) return { success: false, message: 'Maktab tanlanmagan' }
 	return Vision.evidence(school, { date: req.query.date, sinfId: req.query.sinfId || null, group: req.query.group, page: req.query.page })
 }))
+// Yuz tanish (sinfxona kameralari, ixtiyoriy): holat, o'quvchi suratlaridan yuz izlarini olish, "ko'rindi" dalillari (davomat EMAS)
+const Faces = require('../services/face.service')
+const faceAdmin = requireRole('user', 'admin')
+router.get('/faces/status', verifyToken, faceAdmin, handle(req => Faces.status(req.user.school)))
+router.post('/faces/enroll', verifyToken, faceAdmin, handle(req => Faces.enrollSchool(req.user.school, { force: req.body?.force === true })))
+router.get('/faces/presence', verifyToken, faceAdmin, handle(req => Faces.presence(req.user.school, { sinfId: req.query.sinfId, date: isDate(req.query.date) ? req.query.date : null })))
+// Qo'shimcha yuz suratlari (bir o'quvchiga 3–5 ta): sifat tekshiriladi, rad etilgani sababi bilan qaytadi
+const faceUpload = require('multer')({ storage: require('multer').memoryStorage(), limits: { fileSize: 8 * 1024 * 1024, files: 5 } })
+const studentOf = (req) => require('../models/student.model').findOne({ _id: req.params.id, schoolId: req.user.school, isActive: { $ne: false } }).select('_id schoolId sinf').lean()
+// Xodimlar (o'qituvchi va boshqalar): yuz suratlari va kamerada ko'ringanlari
+const staffOf = (req) => require('../models/user.model').findOne({ _id: req.params.id, schoolId: req.user.school, isActive: { $ne: false }, hodimID: { $nin: [null, ''] } }).select('_id schoolId').lean()
+router.get('/faces/staff/:id/photos', verifyToken, faceAdmin, handle(async req => (await staffOf(req)) ? Faces.listPhotos(req.params.id) : { success: false, message: "Xodim topilmadi yoki xodim ID raqami yo'q" }))
+router.post('/faces/staff/:id/photos', verifyToken, faceAdmin, (req, res, next) => faceUpload.array('images', 5)(req, res, (err) => err ? res.status(400).json({ success: false, message: "Rasm hajmi 8 MB dan oshmasin, bir vaqtda 5 tagacha" }) : next()), async (req, res) => {
+	try {
+		const person = await staffOf(req)
+		if (!person) return res.status(404).json({ success: false, message: "Xodim topilmadi yoki xodim ID raqami yo'q" })
+		const results = []
+		for (const f of req.files || []) results.push({ name: f.originalname, ...(await Faces.addPhoto(person, f.buffer, 'staff')) })
+		return res.json({ success: true, results, ...(await Faces.listPhotos(req.params.id)) })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ success: false, message: 'Server xatosi' })
+	}
+})
+router.get('/faces/staff-presence', verifyToken, faceAdmin, handle(req => Faces.staffPresence(req.user.school, { date: isDate(req.query.date) ? req.query.date : null })))
+router.get('/faces/students/:id/photos', verifyToken, faceAdmin, handle(async req => (await studentOf(req)) ? Faces.listPhotos(req.params.id) : { success: false, message: "O'quvchi topilmadi" }))
+router.post('/faces/students/:id/photos', verifyToken, faceAdmin, (req, res, next) => faceUpload.array('images', 5)(req, res, (err) => err ? res.status(400).json({ success: false, message: "Rasm hajmi 8 MB dan oshmasin, bir vaqtda 5 tagacha" }) : next()), async (req, res) => {
+	try {
+		const student = await studentOf(req)
+		if (!student) return res.status(404).json({ success: false, message: "O'quvchi topilmadi" })
+		const results = []
+		for (const f of req.files || []) results.push({ name: f.originalname, ...(await Faces.addPhoto(student, f.buffer)) })
+		return res.json({ success: true, results, ...(await Faces.listPhotos(req.params.id)) })
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({ success: false, message: 'Server xatosi' })
+	}
+})
+router.get('/faces/students', verifyToken, faceAdmin, handle(req => require('../services/face.diagnose').searchStudents(req.user.school, req.query.q)))
+// Real vaqt: brauzer jonli videodan olgan kadrni yuboradi (Hik'dan kadr olinmaydi), javobda ramkalar koordinatasi
+router.post('/faces/frame', verifyToken, faceAdmin, (req, res, next) => faceUpload.single('image')(req, res, (err) => err ? res.status(400).json({ success: false, message: 'Kadr hajmi 8 MB dan oshmasin' }) : next()), async (req, res) => {
+	try {
+		if (!req.file) return res.status(400).json({ success: false, message: 'Kadr yuborilmadi' })
+		// Yuklama chegarasi: jonli yo'lakda navbat to'lib qolsa yangi kadr qabul qilinmaydi (ko'p foydalanuvchi bir vaqtda ochsa server bosimga tushmasin)
+		if (require('../ai/aiPool').queueSize('live') >= (Number(process.env.AI_LIVE_QUEUE_MAX) || 6)) return res.status(429).json({ success: false, message: 'Server band, keyingi kadrda qayta uriniladi' })
+		return res.json(await require('../services/face.diagnose').diagnose(req.user.school, { cameraId: req.body?.cameraId, studentId: req.body?.studentId || null, buffer: req.file.buffer }))
+	} catch (error) {
+		console.log(error.message)
+		return res.status(500).json({ success: false, message: 'Server xatosi' })
+	}
+})
+router.post('/faces/diagnose', verifyToken, faceAdmin, handle(req => require('../services/face.diagnose').diagnose(req.user.school, { cameraId: req.body?.cameraId, studentId: req.body?.studentId || null, sinfId: req.body?.sinfId || null })))
+router.delete('/faces/templates/:id', verifyToken, faceAdmin, handle(req => Faces.removeTemplate(req.params.id, req.user.school)))
+router.put('/faces/presence/:id/verdict', verifyToken, faceAdmin, handle(req => Faces.setVerdict(req.user.school, req.params.id, req.body?.verdict ?? null)))
+router.delete('/faces', verifyToken, requireRole('user'), handle(async req => ({ success: true, ...(await Faces.purgeSchool(req.user.school)) })))
 // Aqlli kuzatuv hisobotlari (Excel): arxiv, qo'lda yaratish, yuklab olish. Har kuni 18:30 va shanba 18:45 avtomatik yaratiladi
 const Reports = require('../services/report.service')
 const reportRoles = requireRole('user', 'admin', 'leader')

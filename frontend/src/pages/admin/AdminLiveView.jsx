@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { FaFolder, FaFolderOpen, FaThLarge } from 'react-icons/fa'
 import { FiChevronRight, FiMaximize2, FiSearch, FiVideo } from 'react-icons/fi'
 import { useSearchParams } from 'react-router-dom'
@@ -22,7 +22,11 @@ const AdminLiveView = () => {
 	const org = useOrg()
 	const [params, setParams] = useSearchParams()
 	const folder = params.get('folder') || ''
-	const [cameras, setCameras] = useState([])
+	const [rawCameras, setCameras] = useState([])
+	// Pleyer "qurilma offline" xatosini bersa, nuqta va hisoblagich ham darhol offline bo'lsin (server ro'yxatni keyingi yangilashda o'zi tasdiqlaydi)
+	const [failed, setFailed] = useState(() => new Set())
+	const cameras = useMemo(() => rawCameras.map(c => (failed.has(c._id) ? { ...c, online: false } : c)), [rawCameras, failed])
+	const reloadTimer = useRef(null)
 	const [sinfs, setSinfs] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
@@ -38,10 +42,17 @@ const AdminLiveView = () => {
 			])
 			setCameras((c.data.cameras || []).filter(x => ['monitor', 'hall'].includes(x.role || 'monitor')))
 			setSinfs(s.data.sinfs || [])
+			setFailed(new Set())
 			setError(false)
 		} catch { setError(true) } finally { setLoading(false) }
 	}, [])
 	useEffect(() => { load(); const t = setVisibleInterval(load, 60000); return () => clearInterval(t) }, [load])
+	useEffect(() => () => clearTimeout(reloadTimer.current), [])
+	const reportLive = useCallback((id, st) => {
+		if (st !== 'error' && st !== 'live') return
+		setFailed(prev => { if (st === 'error' ? prev.has(id) : !prev.has(id)) return prev; const next = new Set(prev); if (st === 'error') next.add(id); else next.delete(id); return next })
+		if (st === 'error') { clearTimeout(reloadTimer.current); reloadTimer.current = setTimeout(load, 2500) }
+	}, [load])
 
 	const sinfName = useMemo(() => new Map(sinfs.map(s => [String(s._id), s.name])), [sinfs])
 	// Papkalar: har bir sinfxona + umumiy kameralar (faqat kamerasi borlari)
@@ -67,7 +78,7 @@ const AdminLiveView = () => {
 		return (
 			<div className="rounded-xl border border-gray-100 overflow-hidden bg-white shadow-sm">
 				<div className="relative">
-					{live ? <HikLivePlayer cameraId={c._id} lazy /> : (
+					{live ? <HikLivePlayer cameraId={c._id} lazy onStatus={st => reportLive(c._id, st)} /> : (
 						<div className="flex flex-col items-center justify-center gap-2 bg-slate-900 text-slate-400 text-sm" style={{ aspectRatio: '16 / 9' }}>
 							<FiVideo size={26} /><span>{c.inCloud === false ? tx("Bulutda yo'q") : c.online === false ? tx("Kamera offline") : tx("Holat noma'lum")}</span>
 						</div>

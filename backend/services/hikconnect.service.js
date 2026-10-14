@@ -612,15 +612,15 @@ class HikConnectService {
 
 	// Maktab admini uchun: faqat o'z maktabiga BIRIKTIRILGANLAR (o'qish)
 	async listForSchool(schoolId) {
-		const cameras = await hikCameraModel.find({ schoolId }).sort({ areaName: 1, name: 1 }).select('cameraId serial name areaName online lastSeenAt syncedAt inCloud role zone capacity sinfId autoAttendance visionEnabled lastEventAt').populate('sinfId', 'name').lean()
-		return { success: true, cameras: cameras.map(c => ({ ...c, sinf: c.sinfId ? { _id: c.sinfId._id, name: c.sinfId.name } : null, sinfId: c.sinfId?._id || null })) }
+		const cameras = await hikCameraModel.find({ schoolId }).sort({ areaName: 1, name: 1 }).select('cameraId serial name areaName online lastSeenAt syncedAt inCloud role zone capacity sinfId autoAttendance visionEnabled faceDirection lastEventAt').populate('sinfId', 'name').lean()
+		return { success: true, cameras: cameras.map(c => ({ ...c, faceDirection: c.faceDirection || 'in', sinf: c.sinfId ? { _id: c.sinfId._id, name: c.sinfId.name } : null, sinfId: c.sinfId?._id || null })) }
 	}
 
 	// Maktab admini: o'z maktabiga biriktirilgan kamerani sinfga bog'laydi va (FaceControl kamerasida)
 	// avto-davomatni yoqadi. Vazifani (kirish/chiqish) faqat tizim egasi belgilaydi. Boshqa maktab kamerasiga tegib bo'lmaydi
 	// `role`: maktab admini faqat 'monitor' (sinfxona kamerasi) va 'hall' (zal/koridor kamerasi) o'rtasida almashtira oladi;
 	// 'in'/'out' (FaceControl) ni faqat tizim egasi belgilaydi. `capacity` — zal kamerasida "zich" hisoblanadigan odam soni
-	async updateCameraSettings(schoolId, id, { sinfId, autoAttendance, visionEnabled, role, capacity }) {
+	async updateCameraSettings(schoolId, id, { sinfId, autoAttendance, visionEnabled, role, capacity, faceDirection }) {
 		if (!validId(id)) return { success: false, message: "Kamera id noto'g'ri" }
 		const camera = await hikCameraModel.findOne({ _id: id, schoolId })
 		if (!camera) return { success: false, message: 'Kamera topilmadi' }
@@ -636,6 +636,7 @@ class HikConnectService {
 				if (!SCHOOL_ROLES.includes(camera.role)) return { success: false, message: "FaceControl kamerasi sinfga biriktirilmaydi" }
 				camera.sinfId = sinfId
 				camera.role = 'monitor' // sinfga biriktirilgan kamera — sinfxona kamerasi
+				if (camera.faceDirection === 'out') camera.faceDirection = 'in' // sinfxona kamerasi chiqishni aniqlamaydi
 				// Sinfga biriktirilgan oddiy kamerada AI odam sanash o'zi yoqiladi (xohlasa admin o'chira oladi)
 				if (visionEnabled === undefined) camera.visionEnabled = true
 			} else camera.sinfId = null
@@ -644,6 +645,12 @@ class HikConnectService {
 			const n = Number(capacity)
 			if (capacity !== null && capacity !== '' && (!Number.isFinite(n) || n < 5 || n > 5000)) return { success: false, message: "Zichlik chegarasi 5 dan 5000 gacha bo'lishi kerak" }
 			camera.capacity = capacity === null || capacity === '' ? null : Math.round(n)
+		}
+		if (faceDirection !== undefined) {
+			if (!['in', 'out', 'off'].includes(faceDirection)) return { success: false, message: "Yuz tanish yo'nalishi noto'g'ri" }
+			// «Chiqdi» faqat darvoza kamerasidan: sinfga biriktirilgan kamera chiqishni aniqlamaydi (sinfxona kamerasi = maktab hududida)
+			if (faceDirection === 'out' && (camera.sinfId || !SCHOOL_ROLES.includes(camera.role))) return { success: false, message: "Chiqishni faqat sinfga biriktirilmagan (darvoza) kamera aniqlaydi" }
+			camera.faceDirection = faceDirection
 		}
 		if (autoAttendance !== undefined) camera.autoAttendance = !SCHOOL_ROLES.includes(camera.role) && !!autoAttendance
 		// Odam sanash: sinfxona kamerasida sinfga biriktirilgan bo'lsa, zal kamerasida har doim ma'noli
@@ -654,7 +661,7 @@ class HikConnectService {
 		}
 		if (!canCount) camera.visionEnabled = false
 		await camera.save()
-		return { success: true, camera: { _id: camera._id, role: camera.role, sinfId: camera.sinfId || null, visionEnabled: camera.visionEnabled, capacity: camera.capacity ?? null } }
+		return { success: true, camera: { _id: camera._id, role: camera.role, sinfId: camera.sinfId || null, visionEnabled: camera.visionEnabled, capacity: camera.capacity ?? null, faceDirection: camera.faceDirection || 'in' } }
 	}
 
 	// Bir nechta kamerani birdan sozlash (masalan hammasini bitta sinfga biriktirish yoki sanashni yoqish)
@@ -662,7 +669,7 @@ class HikConnectService {
 		const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].filter(validId).slice(0, 200)
 		if (!list.length) return { success: false, message: 'Kamera tanlanmagan' }
 		const allowed = {}
-		for (const k of ['sinfId', 'visionEnabled', 'role']) if (settings && settings[k] !== undefined) allowed[k] = settings[k]
+		for (const k of ['sinfId', 'visionEnabled', 'role', 'faceDirection']) if (settings && settings[k] !== undefined) allowed[k] = settings[k]
 		if (!Object.keys(allowed).length) return { success: false, message: "O'zgartirish tanlanmagan" }
 		let done = 0
 		const failed = []

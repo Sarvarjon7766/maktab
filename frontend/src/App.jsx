@@ -97,6 +97,10 @@ const PlatformHikCameras = lazy(() => import("./pages/platform/PlatformHikCamera
 const PlatformHikFaceControl = lazy(() => import("./pages/platform/PlatformHikFaceControl"))
 const PlatformHome = lazy(() => import("./pages/platform/PlatformHome"))
 const PlatformMonitors = lazy(() => import("./pages/platform/PlatformMonitors"))
+const AdminFaces = lazy(() => import("./pages/admin/AdminFaces"))
+const AdminFaceLive = lazy(() => import("./pages/admin/AdminFaceLive"))
+const PlatformAI = lazy(() => import("./pages/platform/PlatformAI"))
+const PlatformFederation = lazy(() => import("./pages/platform/PlatformFederation"))
 const PlatformSchools = lazy(() => import("./pages/platform/PlatformSchools"))
 const PlatformSchoolCameras = lazy(() => import("./pages/platform/PlatformSchoolCameras"))
 const PlatformSchoolControl = lazy(() => import("./pages/platform/PlatformSchoolControl"))
@@ -134,6 +138,8 @@ const App = () => {
           <Route path="school-control" element={<PlatformSchoolControl />} />
           <Route path="grades" element={<PlatformGrades />} />
           <Route path="monitors" element={<PlatformMonitors />} />
+          <Route path="federation" element={<PlatformFederation />} />
+          <Route path="ai" element={<PlatformAI />} />
           <Route path="hik-accounts" element={<PlatformHikAccounts />} />
           <Route path="hik-cameras" element={<PlatformHikCameras />} />
           <Route path="hik-facecontrol" element={<PlatformHikFaceControl />} />
@@ -167,6 +173,8 @@ const App = () => {
             <Route path="facecontrol" element={<AdminFaceControl />} />
             <Route path="classrooms" element={<AdminClassrooms />} />
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
+<Route path="faces" element={<AdminFaces />} />
+<Route path="faces/live" element={<AdminFaceLive />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
 <Route path="nazorat" element={<AdminClassControl />} />
@@ -255,6 +263,8 @@ const App = () => {
           <Route path="facecontrol" element={<AdminFaceControl />} />
           <Route path="classrooms" element={<AdminClassrooms />} />
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
+<Route path="faces" element={<AdminFaces />} />
+<Route path="faces/live" element={<AdminFaceLive />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
 <Route path="nazorat" element={<AdminClassControl />} />
@@ -298,6 +308,8 @@ const App = () => {
           <Route path="facecontrol" element={<AdminFaceControl />} />
           <Route path="classrooms" element={<AdminClassrooms />} />
 <Route path="kuzatuv" element={<AdminAIEvidence />} />
+<Route path="faces" element={<AdminFaces />} />
+<Route path="faces/live" element={<AdminFaceLive />} />
 <Route path="parents" element={<AdminParents />} />
 <Route path="live" element={<AdminLiveView />} />
 <Route path="nazorat" element={<AdminClassControl />} />

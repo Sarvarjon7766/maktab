@@ -51,6 +51,9 @@ const hikCameraSchema = new Schema({
 	sinfId: { type: mongoose.Schema.Types.ObjectId, ref: 'Sinf', default: null },
 	// Yoqilsa, shu kamerada aniqlangan shaxs avtomatik davomatga yoziladi (standart: o'chiq)
 	autoAttendance: { type: Boolean, default: false },
+	// Yuz tanish natijasi davomatga qanday yoziladi (faqat sinfxona kamerasida va yuz orqali davomat yoqilganda): 'in' — tanilgan o'quvchi/xodim «kirdi»
+	// (chiqqan bo'lsa qayta «kirdi»), 'out' — «chiqdi», 'off' — davomatga yozilmaydi (faqat «ko'rindi» dalili). Standart: 'in'
+	faceDirection: { type: String, enum: ['in', 'out', 'off'], default: 'in' },
 	// Yoqilsa, kameradan olingan kadrda odamlar soni sanaladi (yuz tanilmaydi, faqat son). Standart: o'chiq
 	visionEnabled: { type: Boolean, default: false },
 	lastEventAt: { type: Date, default: null },

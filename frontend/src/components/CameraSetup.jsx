@@ -100,6 +100,18 @@ const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview
 					<AnalysisLine c={c} vis={vis} />
 				</div>
 
+				{/* 3b. Yuz tanish yo'nalishi: sinfxona kamerasi = maktab hududida (kirdi); chiqishni faqat darvoza (sinfsiz) kamerasi aniqlaydi */}
+				{(kind === 'class' || isHall) && (
+					<div className="space-y-1 lg:col-span-4">
+						<p className="text-[11px] text-gray-500">{isHall ? tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa). Chiqishni faqat darvoza kamerasi aniqlaydi") : tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa)")}:</p>
+						<div className="inline-flex overflow-hidden rounded-lg border border-gray-200 text-xs font-medium" role="group" aria-label={tx("Yuz tanish yo'nalishi")}>
+							{(isHall ? [['out', 'Chiqish (darvoza)'], ['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']] : [['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']]).map(([v, label]) => (
+								<button key={v} type="button" onClick={() => (c.faceDirection || 'in') !== v && onPatch(c._id, { faceDirection: v }, tx("Yuz tanish yo'nalishi saqlandi"))} className={`px-3 py-1.5 ${(c.faceDirection || 'in') === v ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{tx(label)}</button>
+							))}
+						</div>
+					</div>
+				)}
+
 				{/* 4. Ko'rish */}
 				<div className="flex lg:justify-end">
 					<button type="button" onClick={() => onPreview(c)} disabled={c.online !== true || c.inCloud === false} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"><FiEye size={14} /> {tx("Ko'rish")}</button>

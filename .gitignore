@@ -14,3 +14,14 @@ Thumbs.db
 # desktop mijoz (Electron) build natijasi va federatsiya sinov jurnallari
 frontend/desktop/dist/
 backend/tools/federation-test/.pids.json
+
+# Alohida Python dastur (shaxsiy yuz rasmlari, kamera parollari bor) — repoga kirmasin
+Hikvision_Face_Attendance_v4.0/
+
+# Python face_server (kamera paroli, shaxsiy yuz izlari) va katta ArcFace modeli — repoga kirmasin
+face_server/
+backend/ai/models/face_recognition_arcface_r100.onnx
+*.rar
+
+# federatsiya sinovi chiqish jurnallari
+backend/tools/federation-test/*.out

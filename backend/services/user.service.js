@@ -823,6 +823,8 @@ class UserService {
 				}
 			}
 
+			// Xodim o'chirildi: biometrik yuz izlari ham o'chiriladi
+			require("./face.service").removeStudent(user._id, schoolId).catch(() => {})
 			if (user.hodimID) {
 				await deleteUserModel.deleteMany({ hodimID: user.hodimID, schoolId })
 				await adduserModel.deleteMany({ hodimID: user.hodimID, schoolId })

@@ -2,7 +2,8 @@ import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FaChalkboardTeacher, FaDatabase, FaRobot, FaSchool, FaServer, FaTelegramPlane, FaUserGraduate, FaVideo } from 'react-icons/fa'
 import { FiAlertTriangle, FiArrowRight, FiCheckCircle, FiCloud, FiHardDrive, FiRefreshCw, FiUsers } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useOrg } from '../../context/OrgContext'
 import { tx } from '../../i18n'
 import { setVisibleInterval } from '../../utils/poll'
 
@@ -77,12 +78,14 @@ const Bar = ({ value, tone = 'blue' }) => <div className="h-2 overflow-hidden ro
 const levelTone = (p) => (p === null || p === undefined ? 'slate' : p >= 85 ? 'green' : p >= 60 ? 'amber' : 'red')
 
 const PlatformHome = () => {
+	const { mode } = useOrg()
 	const [data, setData] = useState(null)
 	const [health, setHealth] = useState(null)
 	const [error, setError] = useState(false)
 	const [loading, setLoading] = useState(false)
 
 	const load = useCallback(async () => {
+		if (mode === 'region') return
 		setLoading(true)
 		try {
 			const [o, h] = await Promise.all([
@@ -92,7 +95,7 @@ const PlatformHome = () => {
 			if (o.data.success) { setData(o.data); setError(false) } else setError(true)
 			setHealth(h?.data || null)
 		} catch { setError(true) } finally { setLoading(false) }
-	}, [])
+	}, [mode])
 	useEffect(() => { load(); const t = setVisibleInterval(load, 30000); return () => clearInterval(t) }, [load])
 
 	// "Diqqat talab qiladi": har bir band — jiddiylik, matn va tegishli sahifaga havola
@@ -122,6 +125,7 @@ const PlatformHome = () => {
 		return out.sort((a, b) => ({ high: 0, medium: 1, low: 2 }[a.sev] - { high: 0, medium: 1, low: 2 }[b.sev]))
 	}, [data, health])
 
+	if (mode === 'region') return <Navigate to="/platform/federation" replace />
 	if (error && !data) return <div className="p-6"><div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Ma'lumotni yuklab bo'lmadi")} <button onClick={load} className="ml-2 underline">{tx("Qayta urinish")}</button></div></div>
 	if (!data) return <div className="p-6"><div className="grid gap-4 md:grid-cols-4">{[0, 1, 2, 3].map(i => <div key={i} className="h-24 animate-pulse rounded-2xl bg-white" />)}</div></div>
 

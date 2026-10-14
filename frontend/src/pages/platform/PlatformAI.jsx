@@ -15,6 +15,11 @@ const GROUPS = () => [
 		fields: [
 			['enabled', 'bool', tx("AI tahlilni yoqish"), tx("O'chirilsa, sinfxona kameralaridan kadr olinmaydi va hodisa saqlanmaydi")],
 			['intervalSec', 'num', tx("Tahlil oralig'i (soniya)"), tx("Har kamera shuncha soniyada bir tahlil qilinadi. Kamera ko'p bo'lsa, haqiqiy oraliq uzayadi"), { min: 15, max: 3600, step: 5 }],
+			['classIntervalSec', 'num', tx("Sinfxona kamerasi oralig'i (s)"), tx("0 = umumiy oraliq. Katta tizimda sinfxonalar uchun 180–300 s tavsiya etiladi"), { min: 0, max: 3600, step: 5 }],
+			['gateIntervalSec', 'num', tx("Darvoza kamerasi oralig'i (s)"), tx("0 = umumiy oraliq. Chiqishni aniqlash uchun 15–30 s tavsiya etiladi (Hik kadri ~10 s keladi)"), { min: 0, max: 3600, step: 5 }],
+			['hallIntervalSec', 'num', tx("Zal/koridor kamerasi oralig'i (s)"), tx("0 = umumiy oraliq"), { min: 0, max: 3600, step: 5 }],
+			['poseEveryN', 'num', tx("Skeletni har N-tahlilda hisoblash"), tx("Skelet qimmat (~1 s). 3–5 qilinsa CPU ancha tejaladi, holatlar (tik turgan, qo'l) sekin o'zgargani uchun zarari kam"), { min: 1, max: 20, step: 1 }],
+			['shedLagMs', 'num', tx("Yuklama himoyasi (ms)"), tx("Backend kechikishi (event loop) shundan oshsa, darvozadan boshqa kameralar tahlili vaqtincha to'xtaydi. 0 = o'chiq"), { min: 0, max: 5000, step: 50 }],
 			['sampleEveryMin', 'num', tx("Avtomatik namuna oralig'i (daqiqa)"), tx("Hodisa bo'lmasa ham shuncha daqiqada bir tahlil namunasi saqlanadi"), { min: 5, max: 720, step: 5 }],
 			['deviceParallel', 'num', tx("Bir vaqtda so'raladigan qurilmalar"), tx("Hik-Connect'ga bir paytda nechta qurilma (NVR) bo'yicha so'rov yuboriladi"), { min: 1, max: 64, step: 1 }],
 			['deviceGapSec', 'num', tx("Qurilmadagi so'rovlar orasi (soniya)"), tx("Bir qurilmadagi kameralar orasidagi pauza: bulutga yuklamani kamaytiradi"), { min: 2, max: 120, step: 1 }],
@@ -44,6 +49,28 @@ const GROUPS = () => [
 			['hallCrowd', 'num', tx("Zal «zich» (odam soni)"), tx("Zal kamerasida alohida son berilmagan bo'lsa shu chegara ishlatiladi"), { min: 5, max: 5000, step: 1 }],
 			['restlessAct', 'num', tx("«Notinch» harakat darajasi"), tx("0..1: odamlar o'z joyidan siljish ulushi. Shundan yuqori bo'lsa «Sinf notinch» / «Zalda tartibsizlik»"), { min: 0.2, max: 1, step: 0.05 }],
 			['restlessMinPeople', 'num', tx("Notinchlik uchun eng kam odam"), tx("Kadrda shuncha odam bo'lmasa harakat hisobga olinmaydi"), { min: 2, max: 200, step: 1 }]
+		]
+	},
+	{
+		title: tx('Yuz tanish'), hint: tx("Sinfxona kameralarida o'quvchilar yuzini tanish (YuNet + SFace). Biometrik ma'lumot: yoqishdan oldin ota-ona roziligi va saqlash qoidalari hal qilingan bo'lishi kerak"),
+		fields: [
+			['faceEnabled', 'bool', tx("Yuz tanishni yoqish"), tx("Dars soatlarida sinfga biriktirilgan kameralarda. Davomat emas, faqat «ko'rindi» dalili saqlanadi")],
+			['faceModel', 'face-model', tx("Yuz izi modeli"), tx("Modelni almashtirgandan keyin «Yuz tanish» sahifasida «Qaytadan olish» ni bosing: suratlar yangi modelda qayta olinadi (kameradan o'rganilgan izlar qaytadan yig'iladi). ArcFace CPU'da ~20 marta sekin")],
+			['faceAttendance', 'bool', tx("Yuz tanilganda «kirdi» yozish"), tx("Yuz orqali tanilgan o'quvchiga kuniga bir marta kirish yoziladi (chiqish va «kelmagan» yozilmaydi). Xato tanish noto'g'ri davomatga olib kelishi mumkin: avval kichik sinfda sinab ko'ring. Biometrik ma'lumot va ota-ona roziligi hal qilingan bo'lishi kerak")],
+			['faceAttendanceScore', 'num', tx("Davomat uchun o'xshashlik"), tx("Davomatga yozish uchun oddiy chegaradan qattiqroq o'xshashlik"), { min: 0.3, max: 0.95, step: 0.01 }],
+			['faceGateScore', 'num', tx("Darvoza kamerasi: o'xshashlik"), tx("Sinfsiz (darvoza, koridor) kamerada davomatga yozish uchun o'xshashlik: sinf taxmini yo'q, shuning uchun qattiqroq"), { min: 0.3, max: 0.95, step: 0.01 }],
+			['faceGateHits', 'num', tx("Darvoza kamerasi: kadrlar"), tx("Darvoza kamerasida shuncha kadrda tanilsa yoziladi (odam tez o'tadi, 1 kadr ham yetadi)"), { min: 1, max: 10, step: 1 }],
+			['faceAttendanceCooldownMin', 'num', tx("Kirdi/chiqdi orasidagi kutish (daqiqa)"), tx("Bir odamning yuz orqali «kirdi» va «chiqdi» holati orasidagi eng kam vaqt: tebranib ketmasligi uchun"), { min: 0, max: 120, step: 1 }],
+			['faceAttendanceMinCoverage', 'num', tx("Sinf bazasi qamrovi"), tx("Sinfda yuz izi bor o'quvchilar ulushi shundan past bo'lsa, avtomatik davomat yozilmaydi (izi yo'q o'quvchining o'xshash sinfdoshi unga adashmasligi uchun)"), { min: 0, max: 1, step: 0.05 }],
+			['faceAttendanceHits', 'num', tx("Davomat uchun kadrlar"), tx("Shuncha kadrda tanilgandan keyingina «kirdi» yoziladi"), { min: 1, max: 10, step: 1 }],
+			['faceNotifyParents', 'bool', tx("Ota-onaga xabar yuborish"), tx("Yuz orqali yozilgan kirishda ota-onaga Telegram xabari boradi (standart o'chiq: xato tanishda noto'g'ri xabar ketmasligi uchun)")],
+			['faceAutoLearn', 'bool', tx("Kameradan avto-o'rganish"), tx("Ishonchli tanilgan yuzlar izi o'quvchiga qo'shiladi (rasm saqlanmaydi)")],
+			['faceThreshold', 'num', tx("O'xshashlik chegarasi"), tx("Past qiymat ko'proq taniydi (xato ham ko'payadi). Maktabda real sinovdan keyin sozlang"), { min: 0.2, max: 0.8, step: 0.01 }],
+			['faceVoteThreshold', 'num', tx("Sinfni aniqlash chegarasi"), tx("Xona qaysi sinfda ekanini aniqlashda ovoz beradigan yuz uchun (qattiqroq)"), { min: 0.25, max: 0.9, step: 0.01 }],
+			['faceMargin', 'num', tx("1- va 2-o'quvchi farqi"), tx("O'xshash o'quvchilarni adashtirmaslik uchun eng kam farq"), { min: 0, max: 0.5, step: 0.01 }],
+			['faceMinSize', 'num', tx("Eng kichik yuz (px)"), tx("Shundan kichik yuzlar tanishda hisobga olinmaydi"), { min: 8, max: 200, step: 1 }],
+			['faceMinHits', 'num', tx("Tasdiqlash uchun kadrlar"), tx("«Ko'rindi» deb tasdiqlash uchun o'quvchi shuncha kadrda tanilishi kerak"), { min: 1, max: 20, step: 1 }],
+			['faceUpscale', 'num', tx("Kadrni kattalashtirish"), tx("Kichik yuzlarni topish uchun (1 = asl, 2 = ikki baravar; sekinroq)"), { min: 1, max: 3, step: 0.5 }]
 		]
 	},
 	{
@@ -110,6 +137,12 @@ const PlatformAI = () => {
 		let control
 		if (type === 'bool') control = <Switch on={!!value} onChange={v => set(key, v)} />
 		else if (type === 'num') control = <input type="number" min={range?.min} max={range?.max} step={range?.step} value={value} onChange={e => set(key, e.target.value === '' ? '' : Number(e.target.value))} className={`${inputCls} w-28 text-center`} />
+		else if (type === 'face-model') control = (
+			<select value={value || 'sface'} onChange={e => set(key, e.target.value)} className={`${inputCls} w-72`}>
+				<option value="sface">{tx("SFace (yengil, 128 o'lcham)")}</option>
+				<option value="arcface">{tx("ArcFace R100 (kuchli, GPU kerak)")}</option>
+			</select>
+		)
 		else if (type === 'text') control = <input value={value || ''} onChange={e => set(key, e.target.value)} className={`${inputCls} w-72`} />
 		else {
 			const list = type === 'model-detector' ? models.detectors : type === 'model-pose' ? models.poses : models.vlm

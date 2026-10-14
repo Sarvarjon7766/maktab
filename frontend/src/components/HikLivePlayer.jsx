@@ -15,8 +15,8 @@ const STALL_MS = 20000
 // chiqib ketganda to'xtatiladi (bir sahifada ko'p kamera bo'lganda tarmoq/CPU tejaydi).
 // `tokenKey` — localStorage'dagi qaysi token bilan so'rov yuborilishi.
 // Holatlar: loading -> waiting (pleyer yaratildi, birinchi kadr kutilmoqda) -> live | stalled | error
-const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus }) => {
-	const containerId = useRef(`hik-live-${Math.random().toString(36).slice(2)}`).current
+const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, domId, playerRef }) => {
+	const containerId = useRef(domId || `hik-live-${Math.random().toString(36).slice(2)}`).current
 	const boxRef = useRef(null)
 	const [layoutKey, setLayoutKey] = useState(0) // panel o'lchami o'zgarganda pleyer yangi o'lcham bilan qayta yaratiladi
 	const [visible, setVisible] = useState(!lazy)
@@ -104,6 +104,7 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 					language: 'en',
 					handleError: (e) => { if (!cancelled) report({ status: 'error', message: `Pleyer xatosi: ${e?.msg || e?.message || JSON.stringify(e)}` }) }
 				})
+				if (playerRef) playerRef.current = player // tashqaridan kadr olish (yuz tanish) uchun
 				if (player.eventEmitter?.on) {
 					// Pleyer xato bermasdan jim qolishi mumkin: birinchi kadrni kutamiz, kelmasa aniq xabar beramiz
 					report({ status: 'waiting', message: '' })
@@ -127,6 +128,7 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus })
 			cancelled = true
 			activeStreams.delete(containerId)
 			clearTimeout(stallTimer)
+			if (playerRef) playerRef.current = null
 			try { player?.destroy?.() } catch { /* pleyer allaqachon yopilgan */ }
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps

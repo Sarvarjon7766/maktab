@@ -103,7 +103,8 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, d
 				if (!token) throw new Error("Sessiya topilmadi — qayta kiring")
 				const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/hik/cameras/${cameraId}/live`, {
 					headers: { Authorization: `Bearer ${token}` },
-					params: attempt > 0 ? { fresh: 1 } : undefined // "Qayta urinish": serverdagi xato keshi va eski token tashlanadi
+					// Panel (lazy) ko'rinishida yengil SD oqim: brauzer dasturiy dekodlaydi, ko'p HD oqim kompyuterni bo'g'adi. Yirik ko'rish va yuz tanish — HD
+					params: { ...(attempt > 0 ? { fresh: 1 } : {}), quality: lazy ? 'sd' : 'hd' } // "Qayta urinish": serverdagi xato keshi va eski token tashlanadi
 				})
 				if (cancelled) return
 				const { streamToken, url, domain } = res.data
@@ -122,7 +123,17 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, d
 					env: { domain },
 					scaleMode: 1,
 					language: 'en',
-					handleError: (e) => { if (!cancelled) { report({ status: 'error', message: `Pleyer xatosi: ${e?.msg || e?.message || JSON.stringify(e)}` }); scheduleRetry() } }
+					handleError: (e) => {
+						if (cancelled) return
+						// Dekoder xatosi 5 = oqim shifrlangan (DEVICE_ENCRYPTED): tekshiruv kodi (verification code) yo'q yoki noto'g'ri. Qayta urinish foydasiz
+						if (e?.type === 'handleRunTimeInfoError' && e?.data?.nErrorCode === 5) {
+							report({ status: 'error', message: "Video oqimi shifrlangan: Hik-Connect akkauntidagi tekshiruv kodi (verification code) noto'g'ri yoki bu qurilma uchun boshqa. Platforma → Hik-Connect akkauntlar bo'limida kodni tekshiring yoki qurilmada «Video shifrlash»ni o'chiring" })
+							return
+						}
+						const code = e?.data?.nErrorCode
+						report({ status: 'error', message: `Pleyer xatosi${code !== undefined ? ` (kod ${code})` : ''}: ${e?.msg || e?.message || e?.type || 'video dekod qilinmadi'}` })
+						scheduleRetry()
+					}
 				})
 				if (playerRef) playerRef.current = player // tashqaridan kadr olish (yuz tanish) uchun
 				if (player.eventEmitter?.on) {

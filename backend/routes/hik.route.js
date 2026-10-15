@@ -256,6 +256,6 @@ router.get('/events/:id/snapshot', ...scoped(EVT), requireRole('superadmin', 'mo
 })
 
 // Jonli ko'rish — tizim egasi va monitor istalgan kamerani, maktab admini faqat o'zinikini
-router.get('/cameras/:id/live', ...scoped(CAM), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user, { fresh: req.query.fresh === '1' })))
+router.get('/cameras/:id/live', ...scoped(CAM), requireRole('superadmin', 'monitor', 'user', 'admin'), handle(req => HikService.live(req.params.id, req.user, { fresh: req.query.fresh === '1', quality: req.query.quality === 'sd' ? 'sd' : 'hd' })))
 
 module.exports = router

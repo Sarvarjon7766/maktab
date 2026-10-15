@@ -965,7 +965,8 @@ class HikConnectService {
 	// Jonli ko'rish: stream token + ezopen manzil. Maktab adminlari faqat o'z maktabiga
 	// biriktirilgan kamerani ko'ra oladi
 	// fresh=true (foydalanuvchi "Qayta urinish" bosdi): xato keshi va eski stream token tashlab yuboriladi
-	async live(id, user, { fresh = false } = {}) {
+	// quality: 'hd' — asosiy oqim (yirik ko'rish, yuz tanish), 'sd' — qo'shimcha yengil oqim (ko'p kamerali panel: brauzer dasturiy dekodlaydi, 6+ ta HD oqim juda og'ir)
+	async live(id, user, { fresh = false, quality = 'hd' } = {}) {
 		if (!validId(id)) return { success: false, message: "Kamera id noto'g'ri" }
 		const camera = await hikCameraModel.findById(id).lean()
 		if (!camera || camera.inCloud === false) return { success: false, message: 'Kamera topilmadi' }
@@ -981,6 +982,7 @@ class HikConnectService {
 			const stream = await getStreamToken(camera.accountId, creds, fresh)
 			if (!stream.appToken || !stream.streamAreaDomain) return { success: false, message: 'Stream token olinmadi' }
 			const body = { resourceId: camera.cameraId, deviceSerial: camera.serial, type: '1', protocol: '1' }
+			if (quality === 'sd') body.quality = 2 // Hik: 1 = asosiy (.hd.live), 2 = qo'shimcha (.live)
 			if (creds.code) body.code = creds.code
 			const live = await hik(camera.accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
 			if (!live.url) return { success: false, message: 'Jonli oqim manzili qaytmadi' }

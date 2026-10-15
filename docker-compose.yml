@@ -36,7 +36,6 @@ services:
       AI_WORKERS: ${AI_WORKERS:-1}
       AI_THREADS: ${AI_THREADS:-}
       UV_THREADPOOL_SIZE: ${UV_THREADPOOL_SIZE:-8}
-      AI_LIVE_QUEUE_MAX: ${AI_LIVE_QUEUE_MAX:-6}
     volumes:
       - uploads:/app/uploads
       - private:/app/private

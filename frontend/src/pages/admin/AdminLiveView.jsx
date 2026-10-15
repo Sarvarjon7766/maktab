@@ -9,12 +9,51 @@ import { authHeaders } from '../../components/HikCameraList'
 import { useOrg } from '../../context/OrgContext'
 import { setVisibleInterval } from '../../utils/poll'
 import { tx } from '../../i18n'
+import { defaultMax, getMax, getQuality, getSliceMs, setMax, setQuality, setSliceSec, stats as streamStats, subscribe } from '../../utils/hikStreams'
 
 const COLS = { 2: 'md:grid-cols-2', 3: 'md:grid-cols-2 xl:grid-cols-3', 4: 'md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' }
 const GENERAL = '_general'
 const ALL = '_all'
 const stat = (list) => ({ total: list.length, online: list.filter(c => c.online === true).length })
 const dot = (st) => (st.online ? 'bg-green-500' : st.total ? 'bg-red-400' : 'bg-gray-300')
+
+// Jonli oqimlar sozlamasi: sifat (yengil SD / yuqori HD), bir vaqtda nechta oqim va almashinish tezligi. Brauzer video'ni dasturiy dekodlaydi,
+// shuning uchun ko'p kamerada yengil sifat va navbat-almashinish ishlatiladi. Holat qatori: jonli/limit va navbatdagilar soni
+const StreamControls = () => {
+	const [, force] = useState(0)
+	useEffect(() => subscribe(() => force(n => n + 1)), [])
+	const st = streamStats()
+	const q = getQuality(true)
+	const qSaved = (() => { try { return localStorage.getItem('hikQuality') || 'auto' } catch { return 'auto' } })()
+	const maxSaved = (() => { try { return localStorage.getItem('hikMaxStreams') || 'auto' } catch { return 'auto' } })()
+	const sliceSaved = (() => { try { return localStorage.getItem('hikSliceSec') || 'auto' } catch { return 'auto' } })()
+	const sel = 'rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 outline-none'
+	return (
+		<div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs text-gray-600">
+			<span title={tx("Hozir jonli ochiq oqimlar / bir vaqtda ruxsat etilgan; navbatda kutayotganlar")}><b className="text-gray-900">{st.active}/{st.max}</b> {tx("jonli")}{st.waiting > 0 && <> · <b className="text-amber-600">{st.waiting}</b> {tx("navbatda")}</>}</span>
+			<label className="inline-flex items-center gap-1.5">{tx("Sifat")}
+				<select className={sel} value={qSaved} onChange={e => { setQuality(e.target.value); window.location.reload() }}>
+					<option value="auto">{tx("Avto (panelda SD)")}</option>
+					<option value="sd">{tx("Yengil (SD)")}</option>
+					<option value="hd">{tx("Yuqori (HD)")}</option>
+				</select>
+			</label>
+			<label className="inline-flex items-center gap-1.5">{tx("Bir vaqtda")}
+				<select className={sel} value={maxSaved} onChange={e => setMax(e.target.value)}>
+					<option value="auto">{tx("Avto")} ({defaultMax(q)})</option>
+					{[2, 4, 6, 8, 12, 16, 24, 32].map(n => <option key={n} value={n}>{n}</option>)}
+				</select>
+			</label>
+			<label className="inline-flex items-center gap-1.5" title={tx("Navbatda kutayotgan kamera bo'lsa, jonli kamera shuncha soniyadan keyin joyini beradi")}>{tx("Almashish")}
+				<select className={sel} value={sliceSaved} onChange={e => setSliceSec(e.target.value)}>
+					<option value="auto">{tx("Avto")} ({Math.round(getSliceMs() / 1000)} s)</option>
+					{[15, 25, 45, 90, 180].map(n => <option key={n} value={n}>{n} s</option>)}
+				</select>
+			</label>
+			{getMax() > defaultMax(q) && <span className="text-amber-600">{tx("Limit tavsiyadan yuqori: kompyuter sekinlashishi mumkin")}</span>}
+		</div>
+	)
+}
 
 // Jonli kuzatuv: faqat ko'rish uchun. Papkalar — sinfxonalar (va umumiy kameralar). Papkani ochsangiz,
 // undagi kameralar avtomatik jonli oqim bilan ko'rinadi. Sozlash alohida «Kamera sozlamalari» sahifasida
@@ -130,6 +169,7 @@ const AdminLiveView = () => {
 						</div>
 					</div>
 
+					{current && <div className="mb-4"><StreamControls /></div>}
 					{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 mb-4">{tx("Kameralarni yuklab bo'lmadi")}</div>}
 
 					{!current ? (

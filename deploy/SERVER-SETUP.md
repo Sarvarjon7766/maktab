@@ -116,7 +116,6 @@ U tekshiradi: model fayllari va yuklanishi (tezlik), baza va indekslar, uploads'
 AI hisob-kitoblari alohida ish oqimlarida (worker thread) ishlaydi, shuning uchun backend so'rovlarini **bloklamaydi**, lekin **bir xil CPU'ni bo'lishadi** (4 yadroli sinovda og'ir AI yukida login 319→423 ms, fayl o'qish p99 1.7→62 ms). Tavsiyalar:
 - `AI_THREADS` — bitta AI sessiyasi uchun yadrolar (standart: yadrolarning yarmi). Backend sekinlashsa kamaytiring.
 - `UV_THREADPOOL_SIZE=8` (yoki 16) — Node ichki oqimlar puli (sharp, bcrypt, fayl). Standart 4, bu AI bilan band bo'lib login'ni sekinlashtirishi mumkin.
-- `AI_LIVE_QUEUE_MAX=6` — «Jonli sinov» navbati shundan oshsa yangi kadr 429 bilan rad etiladi (ko'p foydalanuvchi bir vaqtda ochsa).
 - `AI_TIMEOUT_MS` — AI so'rovi shuncha kutilgach (standart 90 s) bekor qilinadi, ketma-ket 2 marta bo'lsa AI oqimi qayta ishga tushadi.
 - Docker: backend konteyneriga `cpus` va `mem_limit` bering (docker-compose.yml), eng yaxshisi AI bor serverni alohida konteyner/serverda ishlating.
 - Tahlil tezligi: `intervalSec` va `deviceParallel` (AI sozlamalari). Tahlil sikli ketma-ket ishlaydi, shuning uchun navbat to'planib ketmaydi, faqat sikl uzayadi.

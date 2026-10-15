@@ -8,17 +8,11 @@ import { tx } from '../../i18n'
 
 const BASE = import.meta.env.VITE_BASE_URL
 const auth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-const iou = (a, b) => {
-	const x1 = Math.max(a[0], b[0]), y1 = Math.max(a[1], b[1]), x2 = Math.min(a[2], b[2]), y2 = Math.min(a[3], b[3])
-	const i = Math.max(0, x2 - x1) * Math.max(0, y2 - y1)
-	return i / ((a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - i || 1)
-}
-const KEEP_MS = 2500 // tanilgan ism yuz tutib turilgan vaqt: yuz bir kadrda tanilmay qolsa ham yorliq yo'qolmasin (miltillamasin)
 const hhmmss = (d) => d.toLocaleTimeString('uz-UZ', { hour12: false })
 
-// Bitta kamerani uzluksiz kuzatish: chapda kameraning jonli videosi (real vaqt), o'ngda yuz tanish natijasi.
-// Hik-Connect kadri ~10–15 soniyada olinadi, shuning uchun tanish natijasi videodan shuncha ortda qoladi — bu bulut API'ning cheklovi.
-// Hech narsa saqlanmaydi (davomat yoki "ko'rindi" yozuvi yo'q), faqat ko'rish uchun.
+// Bitta kamerani uzluksiz kuzatish: chapda kameraning jonli videosi (faqat ko'rsatish), o'ngda yuz tanish natijasi.
+// Tahlil TO'LIQ serverda: kadrni server Hik-Connect bulutidan o'zi oladi (~10–15 s) va o'zi qayta ishlaydi; foydalanuvchi kompyuteri
+// kadr olmaydi, rasm yubormaydi va yuz topmaydi. Hech narsa saqlanmaydi (davomat yoki "ko'rindi" yozuvi yo'q), faqat ko'rish uchun.
 const AdminFaceLive = () => {
 	const [cameras, setCameras] = useState([])
 	const [camera, setCamera] = useState('')
@@ -29,16 +23,9 @@ const AdminFaceLive = () => {
 	const [busy, setBusy] = useState(false)
 	const [res, setRes] = useState(null)
 	const [log, setLog] = useState([])
-	const [rtOn, setRtOn] = useState(true)
-	const [snapOn, setSnapOn] = useState(true)
-	const [rt, setRt] = useState(null) // real vaqt natijasi: { faces, at, ms }
-	const [now, setNow] = useState(Date.now())
 	const [stats, setStats] = useState({ cycles: 0, ms: 0, seen: {} })
 	const runningRef = useRef(false)
 	const cycleRef = useRef(0)
-	const playerRef = useRef(null)
-	const tracksRef = useRef([]) // [{ box, who, at }]
-	const seqRef = useRef({ sent: 0, shown: 0 })
 
 	useEffect(() => {
 		axios.get(`${BASE}/api/hik/faces/status`, auth()).then(r => { setCameras(r.data.cameras || []); if (r.data.cameras?.length) setCamera(c => c || r.data.cameras[0]._id) }).catch(() => {})
@@ -74,7 +61,7 @@ const AdminFaceLive = () => {
 
 	// Navbatma-navbat: oldingi sinov tugagach keyingisi boshlanadi (Hik so'rovlari to'planib qolmasin)
 	useEffect(() => {
-		if (!running || !snapOn) return
+		if (!running) return
 		runningRef.current = true
 		let stop = false
 		;(async () => {
@@ -84,61 +71,10 @@ const AdminFaceLive = () => {
 			}
 		})()
 		return () => { stop = true; runningRef.current = false }
-	}, [running, snapOn, camera, student, cycle])
+	}, [running, camera, student, cycle])
 
-	// Real vaqt: jonli video kadri (pleyerning o'zidan) serverga yuboriladi, ramkalar videoning ustiga chiziladi. Hik bulutidan kadr olinmaydi
-	useEffect(() => {
-		if (!running || !rtOn) return
-		let stop = false
-		const grab = () => new Promise((resolve, reject) => {
-			const p = playerRef.current
-			if (!p?.capturePicture) return reject(new Error('pleyer tayyor emas'))
-			let done = false
-			const to = setTimeout(() => { if (!done) reject(new Error('kadr kelmadi')) }, 4000)
-			try { p.capturePicture('frame', d => { done = true; clearTimeout(to); const b = d?.base64 || d?.data || d; resolve(typeof b === 'string' ? b : null) }) } catch (e) { clearTimeout(to); reject(e) }
-		})
-		// Ikkita parallel navbat: bir kadr serverda tahlil qilinayotganda keyingisi allaqachon yuborilgan (kechikish ~yarmiga tushadi).
-		// Eskirib kelgan javob yangisini bosib ketmasligi uchun kadrlar raqamlanadi
-		const lane = async (offset) => {
-			let fails = 0
-			await new Promise(r => setTimeout(r, offset))
-			while (!stop) {
-				const t0 = Date.now(), n = ++seqRef.current.sent
-				try {
-					const data = await grab()
-					if (!data) throw new Error("bo'sh kadr")
-					const blob = await (await fetch(data.startsWith('data:') ? data : `data:image/jpeg;base64,${data}`)).blob()
-					const fd = new FormData()
-					fd.append('image', blob, 'frame.jpg'); fd.append('cameraId', camera); if (student) fd.append('studentId', student._id)
-					const r = await axios.post(`${BASE}/api/hik/faces/frame`, fd, { ...auth(), timeout: 20000 })
-					if (stop) break
-					if (r.data.success) {
-						fails = 0
-						if (n < seqRef.current.shown) continue // eskirgan javob
-						seqRef.current.shown = n
-						const at = Date.now()
-						// Izdosh: yuz tanilgan bo'lsa saqlanadi; tanilmagan yuz oldingi tanilgan yuz ustiga tushsa, ism davom etadi
-						tracksRef.current = tracksRef.current.filter(t => at - t.at < KEEP_MS)
-						const faces = r.data.faces.map(f => {
-							if (f.who) { tracksRef.current.push({ box: f.box, who: f.who, at }); return f }
-							const t = tracksRef.current.find(t => iou(t.box, f.box) > 0.3)
-							return t ? { ...f, who: t.who, held: true } : f
-						})
-						setRt({ people: r.data.people, faces, verdict: r.data.verdict, at, ms: at - t0, frame: r.data.frame, server: r.data.timings })
-					} else { setRt({ error: r.data.message || r.data.verdict?.text, at: Date.now() }); fails++ }
-				} catch (e) { fails++; setRt({ error: e.response?.data?.message || e.message, at: Date.now() }) }
-				await new Promise(r => setTimeout(r, fails ? Math.min(5000, 800 * fails) : 250))
-			}
-		}
-		lane(0); lane(250)
-		return () => { stop = true }
-	}, [running, rtOn, camera, student])
-
-	useEffect(() => { if (!running) return; const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t) }, [running])
-
-	const reset = () => { setRt(null); setRes(null); setLog([]); setStats({ cycles: 0, ms: 0, seen: {} }) }
+	const reset = () => { setRes(null); setLog([]); setStats({ cycles: 0, ms: 0, seen: {} }) }
 	const cam = cameras.find(c => c._id === camera)
-	const rtFresh = rt && !rt.error && now - rt.at < 3000
 	const v = res?.verdict
 	const verdictCls = v?.status === 'found' ? 'border-green-300 bg-green-50 text-green-800' : v?.status === 'not_found' || v?.status === 'no_faces' ? 'border-red-300 bg-red-50 text-red-800' : 'border-amber-300 bg-amber-50 text-amber-800'
 	const seenList = Object.entries(stats.seen).sort((a, b) => b[1] - a[1])
@@ -148,10 +84,10 @@ const AdminFaceLive = () => {
 			<div>
 				<Link to=".." relative="path" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"><FiArrowLeft /> {tx("Yuz tanish")}</Link>
 				<h1 className="text-xl font-bold text-gray-900">{tx("Jonli yuz tanish sinovi")}</h1>
-				<p className="max-w-4xl text-sm text-gray-500">{tx("Chapda kameraning jonli videosi, o'ngda yuz tanish natijasi. Kadr Hik-Connect bulutidan ~10–15 soniyada olinadi, shuning uchun natija videodan shuncha orqada. Hech narsa saqlanmaydi.")}</p>
+				<p className="max-w-4xl text-sm text-gray-500">{tx("Chapda kameraning jonli videosi, o'ngda yuz tanish natijasi. Kadrni server Hik-Connect bulutidan o'zi oladi (~10–15 soniya) va o'zi tahlil qiladi, kompyuteringiz tahlilda qatnashmaydi, shuning uchun natija videodan shuncha orqada. Hech narsa saqlanmaydi.")}</p>
 			</div>
 
-			<div className="grid gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto_auto]">
+			<div className="grid gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto]">
 				<label className="text-sm">
 					<span className="mb-1 block text-gray-600">{tx("Kamera")}</span>
 					<select value={camera} onChange={e => { setCamera(e.target.value); reset() }} className="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -176,10 +112,6 @@ const AdminFaceLive = () => {
 						</>
 					)}
 				</div>
-				<div className="flex flex-col items-start justify-end gap-1 text-xs text-gray-700">
-					<label className="inline-flex items-center gap-1.5"><input type="checkbox" checked={rtOn} onChange={e => setRtOn(e.target.checked)} /> {tx("Real vaqt (videodan, tez, kichik yuzlar tanilmasligi mumkin)")}</label>
-					<label className="inline-flex items-center gap-1.5"><input type="checkbox" checked={snapOn} onChange={e => setSnapOn(e.target.checked)} /> {tx("Aniq tahlil (Hik kadri, ~10 s)")}</label>
-				</div>
 				<div className="flex items-end">
 					<button type="button" disabled={!camera} onClick={() => setRunning(r => !r)} className={`inline-flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium text-white disabled:opacity-50 ${running ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
 						{running ? <><FiPause /> {tx("To'xtatish")}</> : <><FiPlay /> {tx("Boshlash")}</>}
@@ -191,35 +123,8 @@ const AdminFaceLive = () => {
 				<div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
 					<p className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"><span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> {tx("Jonli video")}{cam ? ` · ${cam.name}` : ''}</p>
 					<div className="relative aspect-video overflow-hidden rounded-xl bg-black">
-						{camera ? <HikLivePlayer key={camera} cameraId={camera} domId="face-live-player" playerRef={playerRef} /> : null}
-						<div className="pointer-events-none absolute inset-0">
-							{rtFresh && rt.people?.boxes.map((b, i) => (
-								<div key={`p${i}`} className="absolute rounded-sm border border-dashed border-sky-300/80" style={{ left: `${b[0] * 100}%`, top: `${b[1] * 100}%`, width: `${(b[2] - b[0]) * 100}%`, height: `${(b[3] - b[1]) * 100}%` }} />
-							))}
-							{rtFresh && rt.faces.map(f => {
-								const c = f.who || f.decision === 'target' ? '#22c55e' : f.decision === 'weak' ? '#f59e0b' : '#ef4444'
-								const label = f.who ? `${f.who.name} ${f.who.score.toFixed(2)}${f.held ? ' ~' : ''}` : f.decision === 'target' ? `${student?.fullName || ''} ${f.own.toFixed(2)}` : `? ${f.bestClass ? f.bestClass.score.toFixed(2) : ''}`
-								return (
-									<div key={f.n} className="absolute" style={{ left: `${f.box[0] * 100}%`, top: `${f.box[1] * 100}%`, width: `${(f.box[2] - f.box[0]) * 100}%`, height: `${(f.box[3] - f.box[1]) * 100}%`, border: `2px solid ${c}` }}>
-										<span className="absolute -top-5 left-0 whitespace-nowrap rounded px-1 text-[11px] font-semibold text-white" style={{ background: c }}>{label}</span>
-									</div>
-								)
-							})}
-						</div>
+						{camera ? <HikLivePlayer key={camera} cameraId={camera} /> : null}
 					</div>
-					{rtOn && running && rtFresh && (
-						<div className="mt-2 grid grid-cols-3 gap-2 text-center">
-							<div className="rounded-lg bg-sky-50 p-2"><p className="text-xl font-bold text-sky-800">{rt.people ? rt.people.count : '—'}</p><p className="text-[11px] text-sky-700">{tx("Odamlar (kadrda)")}</p></div>
-							<div className="rounded-lg bg-gray-50 p-2"><p className="text-xl font-bold text-gray-800">{rt.faces.length}</p><p className="text-[11px] text-gray-600">{tx("Topilgan yuzlar")}</p></div>
-							<div className="rounded-lg bg-green-50 p-2"><p className="text-xl font-bold text-green-800">{rt.faces.filter(f => f.who || f.decision === 'target').length}</p><p className="text-[11px] text-green-700">{tx("Tanilgan o'quvchilar")}</p></div>
-						</div>
-					)}
-					{rtOn && running && (
-						<p className="mt-1 text-xs text-gray-500">
-							{rt?.error ? <span className="text-red-600">{tx("Real vaqt xatosi")}: {tx(rt.error)}</span>
-								: rt ? <>{tx("Real vaqt")}: {rt.faces.length} {tx("yuz")} · {rt.ms} ms · {tx("kadr")} {rt.frame?.width}×{rt.frame?.height} · {rt.verdict?.text}</> : tx("Real vaqt: birinchi kadr kutilmoqda...")}
-						</p>
-					)}
 				</div>
 
 				<div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">

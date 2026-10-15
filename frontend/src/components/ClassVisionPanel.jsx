@@ -103,7 +103,7 @@ const ClassVisionPanel = ({ items, intervalSec, students, came, hourly, onClick 
 				<div>
 					<p className="text-xs font-semibold text-gray-500 mb-2">{tx("Bugun soatlar bo'yicha: o'rtacha va eng ko'p odam")}</p>
 					<div style={{ height: 120 }}>
-						{bars.every(b => !b["Eng ko'p"]) ? <p className="text-xs text-gray-400 pt-10 text-center">{tx("Bugun hali o'lchov yo'q")}</p> : (
+						{bars.every(b => !b["Eng ko'p"]) ? <p className="text-xs text-gray-400 pt-10 text-center">{tx("Bugun odam aniqlangan o'lchov yo'q")}</p> : (
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart data={bars} margin={{ left: -24, right: 4, top: 4 }}>
 									<CartesianGrid strokeDasharray="3 3" vertical={false} />

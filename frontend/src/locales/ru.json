@@ -3012,5 +3012,12 @@
  "Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering": "Параллели не найдены: обновите страницу или сообщите владельцу системы",
  "Parolni yashirish": "Скрыть пароль",
  "Parolni ko'rsatish": "Показать пароль",
- "Yo'riqnoma": "Инструкция"
+ "Yo'riqnoma": "Инструкция",
+ "Shu sinf kameralarini ko'rsatish": "Показать камеры этого класса",
+ "yashil: kamera bor (soni yonida), kulrang: kamera yo'q. Sinfni bosing: faqat uning kameralari ko'rinadi": "зелёный: есть камеры (число рядом), серый: камер нет. Нажмите класс: покажутся только его камеры",
+ "{{n}} ta kamera, {{m}} tasida odam sanash yoqilgan": "камер: {{n}}, подсчёт людей включён на {{m}}",
+ "Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).": "Если в классе несколько камер, число людей берётся по камере с наибольшим значением (не суммируется).",
+ "Hammasini sinfdan ajratish": "Открепить все от класса",
+ "Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.": "На одном устройстве (NVR) подсчёт включён на {{n}} камерах. Кадры берутся с устройства по очереди, поэтому каждая камера обновляется медленнее. Включайте подсчёт только на нужных камерах.",
+ "Bugun odam aniqlangan o'lchov yo'q": "Сегодня нет измерений с обнаруженными людьми"
 }

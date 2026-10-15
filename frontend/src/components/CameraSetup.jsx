@@ -85,6 +85,7 @@ const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview
 					) : (
 						<div>
 							<SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value={c.sinfId || ''} onChange={v => onPatch(c._id, { sinfId: v || null }, v ? tx('Kamera sinfga biriktirildi') : tx('Sinfdan ajratildi'))} options={options} />
+							{kind === 'class' && <button type="button" onClick={() => onPatch(c._id, { sinfId: null }, tx('Sinfdan ajratildi'))} className="mt-1.5 text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-red-600 hover:underline">{tx('Sinfdan ajratish')}</button>}
 							{kind === 'unassigned' && <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-700"><FiAlertCircle size={12} /> {tx("Sinf tanlang: shunda AI tahlil o'zi yoqiladi")}</p>}
 							{targetSinf && String(c.sinfId || '') !== String(targetSinf._id) && !isHall && <button type="button" onClick={() => onPatch(c._id, { sinfId: targetSinf._id }, tx('Kamera sinfga biriktirildi'))} className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">{tx('{{name}} ga biriktirish', { name: targetSinf.name })}</button>}
 						</div>
@@ -206,6 +207,7 @@ const CameraSetup = () => {
 	const [params] = useSearchParams()
 	const targetId = params.get('sinf') // sinfxonalar sahifasidan "Kamera biriktirish" bosilganda
 	const [filter, setFilter] = useState(targetId ? 'unassigned' : 'all')
+	const [classFilter, setClassFilter] = useState('') // faqat shu sinfga biriktirilgan kameralar
 	const [selected, setSelected] = useState(() => new Set())
 	const [busy, setBusy] = useState(() => new Set())
 	const [bulkSinf, setBulkSinf] = useState(targetId || '')
@@ -250,7 +252,10 @@ const CameraSetup = () => {
 			unassigned: kinds.filter(k => k === 'unassigned').length, hall: kinds.filter(k => k === 'hall').length, cls: kinds.filter(k => k === 'class').length,
 			counting: mine.filter(c => c.visionEnabled).length,
 			working: mine.filter(c => c.visionEnabled && vision[String(c._id)] && !vision[String(c._id)].stale).length,
-			withCam, noCamClasses: sinfs.filter(s => !withCam.has(String(s._id)))
+			withCam, noCamClasses: sinfs.filter(s => !withCam.has(String(s._id))),
+			byClass: mine.reduce((m, c) => (c.sinfId ? m.set(String(c.sinfId), (m.get(String(c.sinfId)) || 0) + 1) : m), new Map()),
+			// Bitta qurilmadan (NVR) kadrlar navbat bilan olinadi: ko'p kamerada har birining yangilanishi sekinlashadi
+			busyDevices: Object.entries(mine.filter(c => c.visionEnabled && c.serial).reduce((m, c) => { m[c.serial] = (m[c.serial] || 0) + 1; return m }, {})).filter(([, n]) => n >= 4)
 		}
 	}, [mine, sinfs, vision])
 
@@ -258,6 +263,7 @@ const CameraSetup = () => {
 		const needle = q.trim().toLowerCase()
 		return mine.filter(c => {
 			const k = kindOf(c)
+			if (classFilter && String(c.sinfId || '') !== classFilter) return false
 			if (filter === 'unassigned' && k !== 'unassigned') return false
 			if (filter === 'class' && k !== 'class') return false
 			if (filter === 'hall' && k !== 'hall') return false
@@ -266,7 +272,7 @@ const CameraSetup = () => {
 			const sinfName = sinfs.find(s => String(s._id) === String(c.sinfId))?.name || ''
 			return [c.name, c.serial, c.areaName, sinfName].some(v => String(v || '').toLowerCase().includes(needle))
 		}).sort((a, b) => ((kindOf(a) === 'unassigned') ? 0 : 1) - ((kindOf(b) === 'unassigned') ? 0 : 1) || String(a.name || '').localeCompare(String(b.name || ''), 'uz', { numeric: true }))
-	}, [mine, filter, q, sinfs])
+	}, [mine, filter, q, sinfs, classFilter])
 
 	const mark = (ids, on) => setBusy(prev => { const n = new Set(prev); ids.forEach(i => (on ? n.add(i) : n.delete(i))); return n })
 	const patch = async (id, body, okMsg) => {
@@ -341,11 +347,13 @@ const CameraSetup = () => {
 
 					{sinfs.length > 0 && (
 						<div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-							<p className="mb-2 text-sm font-semibold text-gray-800">{tx('Sinflar qamrovi')} <span className="font-normal text-gray-400">· {tx("yashil: kamera bor, kulrang: kamera yo'q")}</span></p>
+							<p className="mb-2 text-sm font-semibold text-gray-800">{tx('Sinflar qamrovi')} <span className="font-normal text-gray-400">· {tx("yashil: kamera bor (soni yonida), kulrang: kamera yo'q. Sinfni bosing: faqat uning kameralari ko'rinadi")}</span></p>
 							<div className="flex flex-wrap gap-1.5">
 								{sinfs.map(s => {
-									const has = stats.withCam.has(String(s._id))
-									return <span key={s._id} className={`rounded-full px-2.5 py-1 text-xs font-medium ${has ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.name}</span>
+									const n = stats.byClass.get(String(s._id)) || 0
+									const on = classFilter === String(s._id)
+									return <button key={s._id} type="button" disabled={!n} onClick={() => { setClassFilter(on ? '' : String(s._id)); setFilter('all') }} title={n ? tx("Shu sinf kameralarini ko'rsatish") : undefined}
+										className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${on ? 'bg-slate-900 text-white' : n ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-500'}`}>{s.name}{n ? ` · ${n}` : ''}</button>
 								})}
 							</div>
 						</div>
@@ -356,6 +364,25 @@ const CameraSetup = () => {
 							<span className="flex items-center gap-2"><FiAlertCircle /> {tx("{{n}} ta kamera hali sinfga biriktirilmagan: ular uchun tahlil ishlamaydi", { n: stats.unassigned })}</span>
 							<button onClick={() => setFilter('unassigned')} className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-amber-900 shadow-sm hover:bg-amber-100">{tx("Ko'rsatish")}</button>
 						</div>
+					)}
+
+					{classFilter && (() => {
+						const sc = sinfs.find(x => String(x._id) === classFilter)
+						const list = mine.filter(c => String(c.sinfId || '') === classFilter)
+						return (
+							<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800">
+								<span><b>{sc?.name}</b>: {tx('{{n}} ta kamera, {{m}} tasida odam sanash yoqilgan', { n: list.length, m: list.filter(c => c.visionEnabled).length })}.
+									{list.length > 1 && <span className="text-slate-500"> {tx("Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).")}</span>}</span>
+								<span className="flex gap-2">
+									<button onClick={async () => { await axios.put(`${BASE()}/api/hik/my-cameras-bulk`, { ids: list.map(c => c._id), sinfId: null }, authHeaders()).then(() => { toast.success(tx('Sinfdan ajratildi')); setClassFilter(''); load() }).catch(e => toast.error(tx(e.response?.data?.message || 'Saqlashda xatolik'))) }} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-100">{tx('Hammasini sinfdan ajratish')}</button>
+									<button onClick={() => setClassFilter('')} className="rounded-lg bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm hover:bg-slate-100">{tx("Hamma kameralarni ko'rsatish")}</button>
+								</span>
+							</div>
+						)
+					})()}
+
+					{stats.busyDevices.length > 0 && (
+						<div className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900"><FiAlertCircle className="mt-0.5 shrink-0" /><span>{tx("Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.", { n: Math.max(...stats.busyDevices.map(([, n]) => n)) })}</span></div>
 					)}
 
 					<div className="flex flex-wrap items-center gap-2">

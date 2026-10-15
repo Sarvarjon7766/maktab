@@ -22,11 +22,23 @@ const ci = (t) => new RegExp('^\\s*' + esc(String(t || '').trim()) + '\\s*$', 'i
 const slugOf = (region, name) => `${region}-${name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `d-${Date.now()}`
 const validId = (id) => mongoose.isValidObjectId(id)
 
+// Qaytaradi { geometry, bbox, center, info } yoki { error }. info — nechta nuqta/qism va soddalashtirilganmi
 function prepare(geometry) {
-	const g = geo.normalizeGeometry(geometry)
-	if (!g) return null
-	return { geometry: g, bbox: geo.bboxOf(g), center: geo.centerOf(g) }
+	const r = geo.parseGeometry(geometry)
+	if (r.error) return { error: r.error }
+	const g = r.geometry
+	return { geometry: g, bbox: geo.bboxOf(g), center: geo.centerOf(g), info: { points: r.points, parts: r.parts, simplified: r.simplified } }
 }
+// slug noyob bo'lishi shart: bir xil slug chiqib qolsa (masalan, turli yozilgan nomlar) oxiriga raqam qo'shiladi
+async function uniqueSlug(base, exceptId = null) {
+	let slug = base
+	for (let n = 2; n < 50; n++) {
+		if (!(await districtModel.exists({ slug, ...(exceptId ? { _id: { $ne: exceptId } } : {}) }))) return slug
+		slug = `${base}-${n}`
+	}
+	return `${base}-${Date.now()}`
+}
+const friendly = (e) => e && e.code === 11000 ? 'Bu tuman allaqachon mavjud' : e && /too large|exceeds|BSONObj size/i.test(String(e.message)) ? "Chegara juda katta: soddaroq (kam nuqtali) fayl yuklang" : null
 
 class DistrictService {
 	// Ro'yxat (chegarasiz): har bir tumanda nechta maktab bor va nechtasining joylashuvi belgilangan
@@ -51,15 +63,15 @@ class DistrictService {
 			const file = path.join(DATA_DIR, `${key}.json`)
 			if (!fs.existsSync(file)) { skipped++; continue }
 			const prepared = prepare(JSON.parse(fs.readFileSync(file, 'utf8')))
-			if (!prepared) { skipped++; continue }
+			if (prepared.error) { skipped++; continue }
 			const isRegion = key === 'samarqand'
 			const slug = slugOf(REGION, name)
 			const existing = await districtModel.findOne({ $or: [{ slug }, { region: ci(REGION), name: ci(name) }] })
 			if (existing) {
-				if (!existing.geometry) { Object.assign(existing, prepared); await existing.save(); updated++ } else skipped++
+				if (!existing.geometry) { Object.assign(existing, { geometry: prepared.geometry, bbox: prepared.bbox, center: prepared.center }); await existing.save(); updated++ } else skipped++
 				continue
 			}
-			await districtModel.create({ name, region: REGION, slug, isRegion, source: 'bundled', ...prepared })
+			await districtModel.create({ name, region: REGION, slug, isRegion, source: 'bundled', geometry: prepared.geometry, bbox: prepared.bbox, center: prepared.center })
 			created++
 		}
 		return { success: true, created, updated, skipped, message: `${created} ta qo'shildi, ${updated} ta chegarasi to'ldirildi, ${skipped} ta o'tkazib yuborildi` }
@@ -72,10 +84,17 @@ class DistrictService {
 		let prepared = {}
 		if (geometry) {
 			prepared = prepare(geometry)
-			if (!prepared) return { success: false, message: "Chegara noto'g'ri: GeoJSON Polygon yoki MultiPolygon bo'lishi kerak" }
+			if (prepared.error) return { success: false, message: `Chegara noto'g'ri: ${prepared.error}` }
 		}
-		const d = await districtModel.create({ name: n, region: r, slug: slugOf(r, n), source: 'custom', ...prepared })
-		return { success: true, district: { ...d.toObject(), geometry: undefined } }
+		const { info, ...fields } = prepared
+		try {
+			const d = await districtModel.create({ name: n, region: r, slug: await uniqueSlug(slugOf(r, n)), source: 'custom', ...fields })
+			return { success: true, district: { ...d.toObject(), geometry: undefined }, geometry: info || null, message: info ? `Qo'shildi (${info.points} nuqta${info.parts > 1 ? `, ${info.parts} qism` : ''}${info.simplified ? ', fayl katta bo\'lgani uchun soddalashtirildi' : ''})` : undefined }
+		} catch (e) {
+			const m = friendly(e)
+			if (m) return { success: false, message: m }
+			throw e
+		}
 	}
 
 	// Nom o'zgarsa, shu tumandagi maktablar va monitorlardagi yozuvlar ham yangilanadi
@@ -91,14 +110,14 @@ class DistrictService {
 		if (region !== undefined) d.region = String(region).trim()
 		if (geometry) {
 			const p = prepare(geometry)
-			if (!p) return { success: false, message: "Chegara noto'g'ri" }
-			Object.assign(d, p)
+			if (p.error) return { success: false, message: `Chegara noto'g'ri: ${p.error}` }
+			Object.assign(d, { geometry: p.geometry, bbox: p.bbox, center: p.center })
 		}
 		if (isActive !== undefined) d.isActive = !!isActive
 		const renamed = d.name !== oldName || d.region !== oldRegion
 		if (renamed && await districtModel.exists({ _id: { $ne: d._id }, region: ci(d.region), name: ci(d.name) })) return { success: false, message: 'Bu nomli tuman allaqachon mavjud' }
-		d.slug = slugOf(d.region, d.name)
-		await d.save()
+		d.slug = await uniqueSlug(slugOf(d.region, d.name), d._id)
+		try { await d.save() } catch (e) { const m = friendly(e); if (m) return { success: false, message: m }; throw e }
 		if (!d.isRegion && renamed) {
 			await schoolModel.updateMany({ region: ci(oldRegion), district: ci(oldName) }, { $set: { region: d.region, district: d.name } })
 			await userModel.updateMany({ role: 'monitor', 'monitorScope.region': ci(oldRegion), 'monitorScope.district': ci(oldName) }, { $set: { 'monitorScope.region': d.region, 'monitorScope.district': d.name } })

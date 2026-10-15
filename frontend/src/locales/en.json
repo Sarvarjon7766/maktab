@@ -2964,5 +2964,17 @@
  "Skeletni har N-tahlilda hisoblash": "Compute skeleton every N analyses",
  "Skelet qimmat (~1 s). 3–5 qilinsa CPU ancha tejaladi, holatlar (tik turgan, qo'l) sekin o'zgargani uchun zarari kam": "The skeleton is expensive (~1 s). Setting 3–5 saves a lot of CPU, with little harm since postures (standing, hand) change slowly",
  "Yuklama himoyasi (ms)": "Load protection (ms)",
- "Backend kechikishi (event loop) shundan oshsa, darvozadan boshqa kameralar tahlili vaqtincha to'xtaydi. 0 = o'chiq": "If backend delay (event loop) exceeds this, analysis of cameras other than the gate is paused temporarily. 0 = off"
+ "Backend kechikishi (event loop) shundan oshsa, darvozadan boshqa kameralar tahlili vaqtincha to'xtaydi. 0 = o'chiq": "If backend delay (event loop) exceeds this, analysis of cameras other than the gate is paused temporarily. 0 = off",
+ "Viloyat* (masalan: Surxondaryo)": "Region* (e.g. Surkhandarya)",
+ "Fayl juda katta (30 MB dan oshmasin). Soddaroq chegara yuklang": "The file is too large (max 30 MB). Upload a simpler boundary",
+ "«Yangi tuman» tugmasi orqali tuman nomi va GeoJSON chegarasi (.geojson / .json) bilan qo'shing": "Use the «New district» button to add a district with its name and a GeoJSON boundary (.geojson / .json)",
+ "Ko'p fayldan tumanlar yuklash": "Upload districts from many files",
+ "Ko'p fayl yuklash": "Upload many files",
+ "Viloyat nomini kiriting": "Enter the region name",
+ "{{n}} ta fayl tanlandi": "{{n}} files selected",
+ "GeoJSON fayllarni tanlang (bir nechta)": "Select GeoJSON files (several)",
+ "Har bir fayl bitta tuman bo'ladi, tuman nomi fayl nomidan olinadi (masalan Muzrabot.json → Muzrabot). Mavjud tumanlar o'tkazib yuboriladi.": "Each file becomes one district and its name is taken from the file name (e.g. Muzrabot.json → Muzrabot). Existing districts are skipped.",
+ "Fayl buzilgan: GeoJSON (.json / .geojson) emas. Qayta eksport qiling": "The file is corrupted: not valid GeoJSON (.json / .geojson). Export it again",
+ "Tayyor: {{a}} ta qo'shildi, {{b}} ta xato": "Done: {{a}} added, {{b}} errors",
+ "Hammasini yuklash": "Upload all"
 }

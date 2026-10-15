@@ -2964,5 +2964,17 @@
  "Skeletni har N-tahlilda hisoblash": "Считать скелет каждые N анализов",
  "Skelet qimmat (~1 s). 3–5 qilinsa CPU ancha tejaladi, holatlar (tik turgan, qo'l) sekin o'zgargani uchun zarari kam": "Скелет дорогой (~1 с). Значение 3–5 заметно экономит CPU, вред небольшой, так как позы (стоит, рука) меняются медленно",
  "Yuklama himoyasi (ms)": "Защита от перегрузки (мс)",
- "Backend kechikishi (event loop) shundan oshsa, darvozadan boshqa kameralar tahlili vaqtincha to'xtaydi. 0 = o'chiq": "Если задержка бэкенда (event loop) превышает это значение, анализ камер, кроме ворот, временно приостанавливается. 0 = выкл."
+ "Backend kechikishi (event loop) shundan oshsa, darvozadan boshqa kameralar tahlili vaqtincha to'xtaydi. 0 = o'chiq": "Если задержка бэкенда (event loop) превышает это значение, анализ камер, кроме ворот, временно приостанавливается. 0 = выкл.",
+ "Viloyat* (masalan: Surxondaryo)": "Область* (например: Сурхандарья)",
+ "Fayl juda katta (30 MB dan oshmasin). Soddaroq chegara yuklang": "Файл слишком большой (не более 30 МБ). Загрузите более простую границу",
+ "«Yangi tuman» tugmasi orqali tuman nomi va GeoJSON chegarasi (.geojson / .json) bilan qo'shing": "С помощью кнопки «Новый район» добавьте район с названием и границей GeoJSON (.geojson / .json)",
+ "Ko'p fayldan tumanlar yuklash": "Загрузка районов из нескольких файлов",
+ "Ko'p fayl yuklash": "Загрузить много файлов",
+ "Viloyat nomini kiriting": "Введите название области",
+ "{{n}} ta fayl tanlandi": "Выбрано файлов: {{n}}",
+ "GeoJSON fayllarni tanlang (bir nechta)": "Выберите файлы GeoJSON (несколько)",
+ "Har bir fayl bitta tuman bo'ladi, tuman nomi fayl nomidan olinadi (masalan Muzrabot.json → Muzrabot). Mavjud tumanlar o'tkazib yuboriladi.": "Каждый файл — один район, название берётся из имени файла (например, Muzrabot.json → Muzrabot). Существующие районы пропускаются.",
+ "Fayl buzilgan: GeoJSON (.json / .geojson) emas. Qayta eksport qiling": "Файл повреждён: это не GeoJSON (.json / .geojson). Экспортируйте заново",
+ "Tayyor: {{a}} ta qo'shildi, {{b}} ta xato": "Готово: добавлено {{a}}, ошибок {{b}}",
+ "Hammasini yuklash": "Загрузить все"
 }

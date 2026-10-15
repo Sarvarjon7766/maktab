@@ -5,6 +5,7 @@ import {
 	FaChartLine,
 	FaClipboardCheck,
 	FaClock,
+	FaBookOpen,
 	FaCogs,
 	FaComments,
 	FaDesktop,
@@ -82,5 +83,5 @@ export const schoolMenuGroups = (base) => [
 			{ path: `${base}/comments`, icon: FaComments, label: tx('Kommentlar') },
 		],
 	},
-	...(base === '/user' ? [{ label: tx('Tizim'), items: [{ path: `${base}/settings`, icon: FaCogs, label: tx('Sozlamalar') }] }] : []),
+	...(base === '/user' ? [{ label: tx('Tizim'), items: [{ path: `${base}/guide`, icon: FaBookOpen, label: tx("Yo'riqnoma") }, { path: `${base}/settings`, icon: FaCogs, label: tx('Sozlamalar') }] }] : []),
 ]

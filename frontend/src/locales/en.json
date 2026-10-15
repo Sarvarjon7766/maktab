@@ -3011,5 +3011,6 @@
  "Sinf darajalarini yuklab bo'lmadi": "Could not load class grades",
  "Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering": "No grades found: reload the page or contact the platform owner",
  "Parolni yashirish": "Hide password",
- "Parolni ko'rsatish": "Show password"
+ "Parolni ko'rsatish": "Show password",
+ "Yo'riqnoma": "Guide"
 }

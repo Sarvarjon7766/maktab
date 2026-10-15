@@ -129,6 +129,7 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, d
 					accessToken: streamToken,
 					url,
 					template: 'pcLive',
+					audio: false, // kamera ovozi standart holatda o'chiq (pleyer panelidagi tugma bilan yoqiladi)
 					width: box.clientWidth,
 					height: box.clientHeight,
 					...(talk ? { plugin: ['talk'] } : {}),

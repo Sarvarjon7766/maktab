@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FiAlertCircle, FiCheckCircle, FiEye, FiHelpCircle, FiRefreshCw, FiSearch, FiUsers, FiVideo, FiX } from 'react-icons/fi'
+import { FiAlertCircle, FiChevronDown, FiEye, FiHelpCircle, FiRefreshCw, FiSearch, FiSettings, FiUsers, FiX } from 'react-icons/fi'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { tx } from '../i18n'
@@ -30,13 +30,6 @@ const Switch = ({ on, onChange, disabled, label }) => (
 	</button>
 )
 
-const Stat = ({ icon, tone, label, value, sub }) => (
-	<div className="flex min-w-0 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-		<div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>{icon}</div>
-		<div className="min-w-0"><p className="truncate text-xs font-medium text-gray-500">{label}</p><p className="text-2xl font-bold leading-tight text-gray-900">{value}</p>{sub && <p className="truncate text-xs text-gray-400">{sub}</p>}</div>
-	</div>
-)
-
 // Tahlil holati satri: o'chiq / natija kutilmoqda / hozirgi son yoki xato sababi
 const AnalysisLine = ({ c, vis }) => {
 	if (!c.visionEnabled) return <p className="text-[11px] text-gray-400">{tx("Odam sanash o'chiq")}</p>
@@ -48,79 +41,96 @@ const AnalysisLine = ({ c, vis }) => {
 	return <p className="text-[11px] text-gray-500">{tx('Natija kutilmoqda (1–2 daqiqa)')}</p>
 }
 
+const SEG = (on) => `px-3 py-1.5 ${on ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`
+
+// Bitta kamera = bitta ixcham qator: nomi · sinf · odam sanash · ko'rish. Kam ishlatiladigan sozlamalar «Sozlamalar» tugmasi ostida
 const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview, targetSinf }) => {
 	const kind = kindOf(c)
 	const st = statusOf(c)
 	const isHall = kind === 'hall'
+	const [open, setOpen] = useState(false)
 	const [cap, setCap] = useState(c.capacity ?? '')
 	useEffect(() => { setCap(c.capacity ?? '') }, [c.capacity])
 	const canCount = isHall || kind === 'class'
 	const options = useMemo(() => [{ value: '', label: tx('— Sinfni tanlang —') }, ...sinfs.map(s => ({ value: s._id, label: s.name }))], [sinfs])
+	const sinfName = sinfs.find(x => String(x._id) === String(c.sinfId))?.name || c.sinf?.name || tx('Sinf')
 	// Holat rangi: biriktirilmagan — sariq, sinfga biriktirilgan — yashil, zal/koridor — ko'k
-	const ring = kind === 'unassigned' ? 'border-amber-300 bg-amber-50/40' : kind === 'class' ? 'border-green-300 border-l-4 border-l-green-500 bg-green-50/50' : 'border-sky-300 border-l-4 border-l-sky-500 bg-sky-50/40'
+	const ring = kind === 'unassigned' ? 'border-amber-300 border-l-4 border-l-amber-400 bg-amber-50/40' : kind === 'class' ? 'border-green-200 border-l-4 border-l-green-500 bg-green-50/40' : 'border-sky-200 border-l-4 border-l-sky-500 bg-sky-50/40'
 	return (
-		<div className={`rounded-2xl border ${ring} p-4 shadow-sm transition ${busy ? 'pointer-events-none opacity-60' : ''}`}>
-			<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(220px,1.1fr)_minmax(260px,1.4fr)_minmax(220px,1fr)_auto]">
+		<div className={`rounded-xl border ${ring} shadow-sm transition ${busy ? 'pointer-events-none opacity-60' : ''}`}>
+			<div className="grid grid-cols-1 items-center gap-3 px-3 py-2.5 lg:grid-cols-[minmax(180px,1fr)_minmax(230px,1.2fr)_minmax(200px,1fr)_auto]">
 				{/* 1. Kamera */}
-				<div className="flex min-w-0 items-start gap-3">
-					<input type="checkbox" className="mt-1.5 h-4 w-4 shrink-0 cursor-pointer" checked={selected} onChange={e => onSelect(c._id, e.target.checked)} aria-label={tx('Tanlash')} />
+				<div className="flex min-w-0 items-center gap-3">
+					<input type="checkbox" className="h-4 w-4 shrink-0 cursor-pointer" checked={selected} onChange={e => onSelect(c._id, e.target.checked)} aria-label={tx('Tanlash')} />
 					<div className="min-w-0">
-						<div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} /><p className="truncate font-semibold text-gray-900">{c.name || c.cameraId}</p>{kind === 'class' && <span className="shrink-0 rounded-md bg-green-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{sinfs.find(x => String(x._id) === String(c.sinfId))?.name || c.sinf?.name || tx('Sinf')}</span>}{isHall && <span className="shrink-0 rounded-md bg-sky-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{tx('Zal / koridor')}</span>}</div>
-						<p className="truncate text-xs text-gray-500">{[c.areaName, c.serial].filter(Boolean).join(' · ') || '—'}</p>
-						<span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${st.chip}`}>{tx(st.text)}</span>
+						<div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} title={tx(st.text)} /><p className="truncate font-semibold text-gray-900">{c.name || c.cameraId}</p></div>
+						<p className="truncate text-[11px] text-gray-500">{[c.areaName, c.serial].filter(Boolean).join(' · ') || '—'} · <span className={st.chip.split(' ').find(x => x.startsWith('text-'))}>{tx(st.text)}</span></p>
 					</div>
 				</div>
 
-				{/* 2. Vazifa va sinf */}
-				<div className="space-y-2">
-					<div className="inline-flex overflow-hidden rounded-lg border border-gray-200 text-xs font-medium" role="group" aria-label={tx('Kamera vazifasi')}>
-						<button type="button" onClick={() => isHall && onPatch(c._id, { role: 'monitor' }, tx('Kamera sinfxona kamerasi qilindi'))} className={`px-3 py-1.5 ${!isHall ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{tx('Sinfxona')}</button>
-						<button type="button" onClick={() => !isHall && onPatch(c._id, { role: 'hall' }, tx('Kamera zal kamerasi qilindi'))} className={`px-3 py-1.5 ${isHall ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{tx('Zal / koridor')}</button>
-					</div>
-					{isHall ? (
-						<label className="block text-[11px] text-gray-500">{tx('Zich hisoblanadigan odam soni')}
-							<input type="number" min={5} max={5000} value={cap} placeholder={tx('standart')} onChange={e => setCap(e.target.value)}
-								onBlur={() => { if (String(cap) !== String(c.capacity ?? '')) onPatch(c._id, { capacity: cap === '' ? null : Number(cap) }, tx('Zichlik chegarasi saqlandi')) }}
-								className="mt-1 block w-32 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-black outline-none focus:border-blue-400" />
-						</label>
-					) : (
-						<div>
-							{kind === 'class'
-								? <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800"><span className="font-medium">{sinfs.find(x => String(x._id) === String(c.sinfId))?.name || c.sinf?.name || tx('Sinf')}</span><span className="text-[11px] text-gray-400">{tx("Boshqa sinfga o'tkazish uchun avval ajrating")}</span></div>
-								: <SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value="" onChange={v => v && onPatch(c._id, { sinfId: v }, tx('Kamera sinfga biriktirildi'))} options={options} />}
-							{kind === 'class' && <button type="button" onClick={() => onPatch(c._id, { sinfId: null }, tx('Sinfdan ajratildi'))} className="mt-1.5 text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-red-600 hover:underline">{tx('Sinfdan ajratish')}</button>}
-							{kind === 'unassigned' && <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-700"><FiAlertCircle size={12} /> {tx("Sinf tanlang: shunda AI tahlil o'zi yoqiladi")}</p>}
-							{targetSinf && kind === 'unassigned' && <button type="button" onClick={() => onPatch(c._id, { sinfId: targetSinf._id }, tx('Kamera sinfga biriktirildi'))} className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">{tx('{{name}} ga biriktirish', { name: targetSinf.name })}</button>}
+				{/* 2. Sinf */}
+				<div className="min-w-0">
+					{kind === 'class' && (
+						<div className="flex items-center gap-2">
+							<span className="rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white">{sinfName}</span>
+							<button type="button" onClick={() => onPatch(c._id, { sinfId: null }, tx('Sinfdan ajratildi'))} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-red-200 hover:text-red-600"><FiX size={12} /> {tx('Ajratish')}</button>
+						</div>
+					)}
+					{kind === 'hall' && <span className="rounded-lg bg-sky-600 px-2.5 py-1 text-sm font-semibold text-white">{tx('Zal / koridor')}</span>}
+					{kind === 'unassigned' && (
+						<div className="flex items-center gap-2">
+							<div className="min-w-0 flex-1"><SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value="" onChange={v => v && onPatch(c._id, { sinfId: v }, tx('Kamera sinfga biriktirildi'))} options={options} /></div>
+							{targetSinf && <button type="button" onClick={() => onPatch(c._id, { sinfId: targetSinf._id }, tx('Kamera sinfga biriktirildi'))} className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">{tx('{{name}} ga biriktirish', { name: targetSinf.name })}</button>}
 						</div>
 					)}
 				</div>
 
 				{/* 3. Odam sanash */}
-				<div className="space-y-1">
+				<div className="min-w-0">
 					<label className="flex items-center gap-2 text-sm text-gray-800">
 						<Switch on={!!c.visionEnabled} disabled={!canCount} label={tx('Odam sanash va tahlil')} onChange={v => onPatch(c._id, { visionEnabled: v }, v ? tx('Odam sanash yoqildi. Birinchi natija 1–2 daqiqada chiqadi') : tx("Odam sanash o'chirildi"))} />
-						{tx('Odam sanash va tahlil')}
+						{tx('Odam sanash')}
 					</label>
-					<AnalysisLine c={c} vis={vis} />
+					{canCount ? <AnalysisLine c={c} vis={vis} /> : <p className="text-[11px] text-amber-700">{tx("Avval sinfni biriktiring")}</p>}
 				</div>
 
-				{/* 3b. Yuz tanish yo'nalishi: sinfxona kamerasi = maktab hududida (kirdi); chiqishni faqat darvoza (sinfsiz) kamerasi aniqlaydi */}
-				{(kind === 'class' || isHall) && (
-					<div className="space-y-1 lg:col-span-4">
-						<p className="text-[11px] text-gray-500">{isHall ? tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa). Chiqishni faqat darvoza kamerasi aniqlaydi") : tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa)")}:</p>
-						<div className="inline-flex overflow-hidden rounded-lg border border-gray-200 text-xs font-medium" role="group" aria-label={tx("Yuz tanish yo'nalishi")}>
-							{(isHall ? [['out', 'Chiqish (darvoza)'], ['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']] : [['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']]).map(([v, label]) => (
-								<button key={v} type="button" onClick={() => (c.faceDirection || 'in') !== v && onPatch(c._id, { faceDirection: v }, tx("Yuz tanish yo'nalishi saqlandi"))} className={`px-3 py-1.5 ${(c.faceDirection || 'in') === v ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{tx(label)}</button>
-							))}
-						</div>
-					</div>
-				)}
-
-				{/* 4. Ko'rish */}
-				<div className="flex lg:justify-end">
-					<button type="button" onClick={() => onPreview(c)} disabled={c.online !== true || c.inCloud === false} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"><FiEye size={14} /> {tx("Ko'rish")}</button>
+				{/* 4. Amallar */}
+				<div className="flex items-center gap-2 lg:justify-end">
+					<button type="button" onClick={() => onPreview(c)} disabled={c.online !== true || c.inCloud === false} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"><FiEye size={14} /> {tx("Ko'rish")}</button>
+					<button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"><FiSettings size={14} /> {tx('Sozlamalar')} <FiChevronDown size={12} className={`transition ${open ? 'rotate-180' : ''}`} /></button>
 				</div>
 			</div>
+
+			{open && (
+				<div className="space-y-3 border-t border-black/5 px-4 py-3">
+					<div>
+						<p className="mb-1 text-[11px] font-medium text-gray-500">{tx('Kamera vazifasi')}</p>
+						<div className="inline-flex overflow-hidden rounded-lg border border-gray-200 text-xs font-medium" role="group" aria-label={tx('Kamera vazifasi')}>
+							<button type="button" onClick={() => isHall && onPatch(c._id, { role: 'monitor' }, tx('Kamera sinfxona kamerasi qilindi'))} className={SEG(!isHall)}>{tx('Sinfxona')}</button>
+							<button type="button" onClick={() => !isHall && onPatch(c._id, { role: 'hall' }, tx('Kamera zal kamerasi qilindi'))} className={SEG(isHall)}>{tx('Zal / koridor')}</button>
+						</div>
+					</div>
+					{isHall && (
+						<label className="block text-[11px] text-gray-500">{tx('Zich hisoblanadigan odam soni')}
+							<input type="number" min={5} max={5000} value={cap} placeholder={tx('standart')} onChange={e => setCap(e.target.value)}
+								onBlur={() => { if (String(cap) !== String(c.capacity ?? '')) onPatch(c._id, { capacity: cap === '' ? null : Number(cap) }, tx('Zichlik chegarasi saqlandi')) }}
+								className="mt-1 block w-32 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-black outline-none focus:border-blue-400" />
+						</label>
+					)}
+					{/* Yuz tanish yo'nalishi: sinfxona kamerasi = maktab hududida (kirdi); chiqishni faqat darvoza (sinfsiz) kamerasi aniqlaydi */}
+					{(kind === 'class' || isHall) && (
+						<div>
+							<p className="mb-1 text-[11px] text-gray-500">{isHall ? tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa). Chiqishni faqat darvoza kamerasi aniqlaydi") : tx("Yuz tanilganda davomatga (platforma sozlamasida yoqilgan bo'lsa)")}:</p>
+							<div className="inline-flex overflow-hidden rounded-lg border border-gray-200 text-xs font-medium" role="group" aria-label={tx("Yuz tanish yo'nalishi")}>
+								{(isHall ? [['out', 'Chiqish (darvoza)'], ['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']] : [['in', 'Maktab hududida (kirdi)'], ['off', 'Yozmaydi']]).map(([v, label]) => (
+									<button key={v} type="button" onClick={() => (c.faceDirection || 'in') !== v && onPatch(c._id, { faceDirection: v }, tx("Yuz tanish yo'nalishi saqlandi"))} className={SEG((c.faceDirection || 'in') === v)}>{tx(label)}</button>
+								))}
+							</div>
+						</div>
+					)}
+					{kind === 'class' && <p className="text-[11px] text-gray-400">{tx("Boshqa sinfga o'tkazish uchun avval «Ajratish» ni bosing")}</p>}
+				</div>
+			)}
 		</div>
 	)
 }
@@ -311,11 +321,24 @@ const CameraSetup = () => {
 	const allSelected = rows.length > 0 && rows.every(c => selected.has(c._id))
 	const closeHelp = () => { setHelpOpen(false); try { localStorage.setItem(HELP_KEY, '1') } catch { /* ixtiyoriy */ } }
 
-	const FILTERS = [['all', tx('Hammasi'), stats.total], ['unassigned', tx('Biriktirilmagan'), stats.unassigned], ['class', tx('Sinfxona'), stats.cls], ['hall', tx('Zal / koridor'), stats.hall], ['offline', tx('Offline'), stats.offline]]
+	// Chap ro'yxat: holat bo'yicha va sinflar bo'yicha filtr
+	const pickStatus = (k) => { setFilter(k); setClassFilter('') }
+	const pickClass = (id) => { setClassFilter(prev => (prev === id ? '' : id)); setFilter('all') }
+	const STATUS = [['all', tx('Hammasi'), stats.total], ['unassigned', tx('Biriktirilmagan'), stats.unassigned], ['class', tx('Sinfga biriktirilgan'), stats.cls], ['hall', tx('Zal / koridor'), stats.hall], ['offline', tx('Offline'), stats.offline]]
+	const sideBtn = (on) => `flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${on ? 'bg-slate-900 font-semibold text-white' : 'text-gray-700 hover:bg-gray-100'}`
+	const Count = ({ n, on, tone }) => <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${on ? 'bg-white/20 text-white' : tone === 'amber' && n ? 'bg-amber-100 text-amber-800' : tone === 'red' && n ? 'bg-red-100 text-red-700' : n ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>{n}</span>
+	const [syncOpen, setSyncOpen] = useState(false)
 
 	return (
-		<div className="space-y-5">
-			<div className="flex flex-wrap items-start justify-end gap-3">
+		<div className="space-y-4">
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center gap-2 text-sm">
+					<span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700"><b>{stats.total}</b> {tx('kamera')} · {tx('{{a}}/{{b}} online', { a: stats.online, b: stats.total })}</span>
+					<span className="rounded-full bg-green-50 px-3 py-1 text-green-800"><b>{stats.cls}</b> {tx('sinfga biriktirilgan')}</span>
+					<span className={`rounded-full px-3 py-1 ${stats.unassigned ? 'bg-amber-50 text-amber-800' : 'bg-green-50 text-green-800'}`}><b>{stats.unassigned}</b> {tx('biriktirilmagan')}</span>
+					<span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-800" title={tx('odam sanash yoqilgan kameralar')}>{tx('Tahlil ishlayapti')}: <b>{stats.working}/{stats.counting}</b></span>
+					{stats.noCamClasses.length > 0 && <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">{tx('Kamerasiz sinflar')}: <b>{stats.noCamClasses.length}/{sinfs.length}</b></span>}
+				</div>
 				<div className="flex items-center gap-2">
 					{!helpOpen && <button onClick={() => setHelpOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"><FiHelpCircle size={14} /> {tx("Yordam")}</button>}
 					<button onClick={load} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"><FiRefreshCw className={loading ? 'animate-spin' : ''} size={14} /> {tx('Yangilash')}</button>
@@ -331,7 +354,10 @@ const CameraSetup = () => {
 
 			{helpOpen && <HelpPanel onClose={closeHelp} />}
 
-			<PersonSyncCard />
+			<div>
+				<button onClick={() => setSyncOpen(o => !o)} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"><FiUsers size={14} /> {tx('Hik-Connect: xodim va o\'quvchilar')} <FiChevronDown size={13} className={`transition ${syncOpen ? 'rotate-180' : ''}`} /></button>
+				{syncOpen && <div className="mt-2"><PersonSyncCard /></div>}
+			</div>
 
 			{error && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{tx("Hik-Connect kameralarini yuklab bo'lmadi")}</div>}
 
@@ -340,83 +366,68 @@ const CameraSetup = () => {
 			)}
 
 			{stats.total > 0 && (
-				<>
-					<div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-						<Stat icon={<FiVideo />} tone="bg-blue-50 text-blue-600" label={tx('Kameralar')} value={stats.total} sub={tx('{{a}}/{{b}} online', { a: stats.online, b: stats.total })} />
-						<Stat icon={<FiCheckCircle />} tone="bg-green-50 text-green-600" label={tx('Sinfga biriktirilgan')} value={`${stats.cls}/${stats.cls + stats.unassigned}`} sub={stats.unassigned ? tx('{{n}} ta biriktirilmagan', { n: stats.unassigned }) : tx('hammasi biriktirilgan')} />
-						<Stat icon={<FiEye />} tone="bg-indigo-50 text-indigo-600" label={tx('Tahlil ishlayapti')} value={`${stats.working}/${stats.counting}`} sub={tx('odam sanash yoqilgan kameralar')} />
-						<Stat icon={<FiAlertCircle />} tone={stats.noCamClasses.length ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'} label={tx('Kamerasiz sinflar')} value={`${stats.noCamClasses.length}/${sinfs.length}`} sub={stats.noCamClasses.length ? tx('kamera biriktirilmagan sinflar bor') : tx('hamma sinfda kamera bor')} />
-					</div>
-
-					{sinfs.length > 0 && (
-						<div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-							<p className="mb-2 text-sm font-semibold text-gray-800">{tx('Sinflar qamrovi')} <span className="font-normal text-gray-400">· {tx("yashil: kamera bor (soni yonida), kulrang: kamera yo'q. Sinfni bosing: faqat uning kameralari ko'rinadi")}</span></p>
-							<div className="flex flex-wrap gap-1.5">
-								{sinfs.map(s => {
-									const n = stats.byClass.get(String(s._id)) || 0
-									const on = classFilter === String(s._id)
-									return <button key={s._id} type="button" disabled={!n} onClick={() => { setClassFilter(on ? '' : String(s._id)); setFilter('all') }} title={n ? tx("Shu sinf kameralarini ko'rsatish") : undefined}
-										className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${on ? 'bg-slate-900 text-white' : n ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-500'}`}>{s.name}{n ? ` · ${n}` : ''}</button>
-								})}
-							</div>
-						</div>
-					)}
-
-					{stats.unassigned > 0 && filter !== 'unassigned' && (
-						<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-							<span className="flex items-center gap-2"><FiAlertCircle /> {tx("{{n}} ta kamera hali sinfga biriktirilmagan: ular uchun tahlil ishlamaydi", { n: stats.unassigned })}</span>
-							<button onClick={() => setFilter('unassigned')} className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-amber-900 shadow-sm hover:bg-amber-100">{tx("Ko'rsatish")}</button>
-						</div>
-					)}
-
-					{classFilter && (() => {
-						const sc = sinfs.find(x => String(x._id) === classFilter)
-						const list = mine.filter(c => String(c.sinfId || '') === classFilter)
-						return (
-							<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800">
-								<span><b>{sc?.name}</b>: {tx('{{n}} ta kamera, {{m}} tasida odam sanash yoqilgan', { n: list.length, m: list.filter(c => c.visionEnabled).length })}.
-									{list.length > 1 && <span className="text-slate-500"> {tx("Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).")}</span>}</span>
-								<span className="flex gap-2">
-									<button onClick={async () => { await axios.put(`${BASE()}/api/hik/my-cameras-bulk`, { ids: list.map(c => c._id), sinfId: null }, authHeaders()).then(() => { toast.success(tx('Sinfdan ajratildi')); setClassFilter(''); load() }).catch(e => toast.error(tx(e.response?.data?.message || 'Saqlashda xatolik'))) }} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-100">{tx('Hammasini sinfdan ajratish')}</button>
-									<button onClick={() => setClassFilter('')} className="rounded-lg bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm hover:bg-slate-100">{tx("Hamma kameralarni ko'rsatish")}</button>
-								</span>
-							</div>
-						)
-					})()}
-
-					{stats.busyDevices.length > 0 && (
-						<div className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900"><FiAlertCircle className="mt-0.5 shrink-0" /><span>{tx("Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.", { n: Math.max(...stats.busyDevices.map(([, n]) => n)) })}</span></div>
-					)}
-
-					<div className="flex flex-wrap items-center gap-2">
-						<label className="relative min-w-[220px] flex-1 sm:max-w-xs"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-							<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx('Kamera, joy yoki sinf bo\'yicha qidirish')} className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" /></label>
-						{FILTERS.map(([k, label, n]) => (
-							<button key={k} onClick={() => setFilter(k)} className={`rounded-xl border px-3 py-2 text-sm transition ${filter === k ? 'border-slate-900 bg-slate-900 text-white' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}>{label} <span className="opacity-70">· {n}</span></button>
+				<div className="grid items-start gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
+					{/* Chap: filtr */}
+					<aside className="max-h-72 space-y-1 overflow-y-auto rounded-2xl border border-gray-100 bg-white p-2 shadow-sm lg:sticky lg:top-3 lg:max-h-[calc(100vh-6rem)]">
+						<p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{tx('Holat')}</p>
+						{STATUS.map(([k, label, n]) => (
+							<button key={k} onClick={() => pickStatus(k)} className={sideBtn(!classFilter && filter === k)}><span>{label}</span><Count n={n} on={!classFilter && filter === k} tone={k === 'unassigned' ? 'amber' : k === 'offline' ? 'red' : undefined} /></button>
 						))}
-						<label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-gray-600"><input type="checkbox" className="h-4 w-4" checked={allSelected} onChange={e => setSelected(e.target.checked ? new Set(rows.map(c => c._id)) : new Set())} /> {tx('Hammasini tanlash')}</label>
-					</div>
+						<p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{tx('Sinflar bo\'yicha')}</p>
+						{sinfs.length === 0 && <p className="px-3 py-2 text-xs text-gray-400">{tx('Sinflar yo\'q')}</p>}
+						{sinfs.map(sn => {
+							const n = stats.byClass.get(String(sn._id)) || 0
+							const on = classFilter === String(sn._id)
+							return <button key={sn._id} onClick={() => pickClass(String(sn._id))} className={sideBtn(on)}><span>{sn.name}</span><Count n={n} on={on} /></button>
+						})}
+					</aside>
 
-					{selected.size > 0 && (
-						<div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 p-3 shadow-md">
-							<span className="text-sm font-semibold text-blue-900">{tx('Tanlangan: {{n}}', { n: selected.size })}</span>
-							<div className="min-w-[180px]"><SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value={bulkSinf} onChange={setBulkSinf} options={[{ value: '', label: tx('— Sinfni tanlang —') }, ...sinfs.map(s => ({ value: s._id, label: s.name }))]} /></div>
-							<button disabled={!bulkSinf} onClick={() => bulk({ sinfId: bulkSinf }, tx('Tanlangan kameralar sinfga biriktirildi'))} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{tx('Sinfga biriktirish')}</button>
-							<button onClick={() => bulk({ visionEnabled: true }, tx('Odam sanash yoqildi'))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx('Sanashni yoqish')}</button>
-							<button onClick={() => bulk({ visionEnabled: false }, tx("Odam sanash o'chirildi"))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx("Sanashni o'chirish")}</button>
-							<button onClick={() => bulk({ sinfId: null }, tx('Sinfdan ajratildi'))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx('Sinfdan ajratish')}</button>
-							<button onClick={() => setSelected(new Set())} className="ml-auto text-sm text-blue-700 hover:underline">{tx('Bekor qilish')}</button>
+					{/* O'ng: kameralar */}
+					<div className="min-w-0 space-y-3">
+						{classFilter && (() => {
+							const sc = sinfs.find(x => String(x._id) === classFilter)
+							const list = mine.filter(c => String(c.sinfId || '') === classFilter)
+							return (
+								<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+									<span><b>{sc?.name}</b>: {tx('{{n}} ta kamera, {{m}} tasida odam sanash yoqilgan', { n: list.length, m: list.filter(c => c.visionEnabled).length })}.
+										{list.length > 1 && <span className="text-green-800/70"> {tx("Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).")}</span>}</span>
+									{list.length > 0 && <button onClick={async () => { await axios.put(`${BASE()}/api/hik/my-cameras-bulk`, { ids: list.map(c => c._id), sinfId: null }, authHeaders()).then(() => { toast.success(tx('Sinfdan ajratildi')); setClassFilter(''); load() }).catch(e => toast.error(tx(e.response?.data?.message || 'Saqlashda xatolik'))) }} className="rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-900 hover:bg-green-100">{tx('Hammasini sinfdan ajratish')}</button>}
+								</div>
+							)
+						})()}
+
+						{stats.busyDevices.length > 0 && (
+							<div className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900"><FiAlertCircle className="mt-0.5 shrink-0" /><span>{tx("Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.", { n: Math.max(...stats.busyDevices.map(([, n]) => n)) })}</span></div>
+						)}
+
+						<div className="flex flex-wrap items-center gap-3">
+							<label className="relative min-w-[220px] flex-1 sm:max-w-sm"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
+								<input value={q} onChange={e => setQ(e.target.value)} placeholder={tx('Kamera, joy yoki sinf bo\'yicha qidirish')} className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-black outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" /></label>
+							<span className="text-sm text-gray-500">{tx('Ko\'rsatilgan')}: <b className="text-gray-800">{rows.length}</b></span>
+							<label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-gray-600"><input type="checkbox" className="h-4 w-4" checked={allSelected} onChange={e => setSelected(e.target.checked ? new Set(rows.map(c => c._id)) : new Set())} /> {tx('Hammasini tanlash')}</label>
 						</div>
-					)}
 
-					{loading && !cameras.length ? <p className="py-10 text-center text-sm text-gray-400">{tx('Yuklanmoqda...')}</p>
-						: rows.length === 0 ? <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">{tx('Kamera topilmadi')}</p>
-							: <div className="space-y-3">{rows.map(c => (
-								<CameraRow key={c._id} c={c} sinfs={sinfs} vis={vision[String(c._id)]} selected={selected.has(c._id)} busy={busy.has(c._id)} onSelect={onSelect} onPatch={patch} onPreview={setPreview} targetSinf={targetSinf} />
-							))}</div>}
+						{selected.size > 0 && (
+							<div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 p-3 shadow-md">
+								<span className="text-sm font-semibold text-blue-900">{tx('Tanlangan: {{n}}', { n: selected.size })}</span>
+								<div className="min-w-[180px]"><SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value={bulkSinf} onChange={setBulkSinf} options={[{ value: '', label: tx('— Sinfni tanlang —') }, ...sinfs.map(s => ({ value: s._id, label: s.name }))]} /></div>
+								<button disabled={!bulkSinf} onClick={() => bulk({ sinfId: bulkSinf }, tx('Tanlangan kameralar sinfga biriktirildi'))} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{tx('Sinfga biriktirish')}</button>
+								<button onClick={() => bulk({ visionEnabled: true }, tx('Odam sanash yoqildi'))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx('Sanashni yoqish')}</button>
+								<button onClick={() => bulk({ visionEnabled: false }, tx("Odam sanash o'chirildi"))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx("Sanashni o'chirish")}</button>
+								<button onClick={() => bulk({ sinfId: null }, tx('Sinfdan ajratildi'))} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-800 hover:bg-blue-100">{tx('Sinfdan ajratish')}</button>
+								<button onClick={() => setSelected(new Set())} className="ml-auto text-sm text-blue-700 hover:underline">{tx('Bekor qilish')}</button>
+							</div>
+						)}
 
-					{faceControl > 0 && <p className="text-xs text-gray-500">{tx("{{n}} ta FaceControl kamerasi alohida sahifada", { n: faceControl })}</p>}
-				</>
+						{loading && !cameras.length ? <p className="py-10 text-center text-sm text-gray-400">{tx('Yuklanmoqda...')}</p>
+							: rows.length === 0 ? <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">{tx('Kamera topilmadi')}</p>
+								: <div className="space-y-2">{rows.map(c => (
+									<CameraRow key={c._id} c={c} sinfs={sinfs} vis={vision[String(c._id)]} selected={selected.has(c._id)} busy={busy.has(c._id)} onSelect={onSelect} onPatch={patch} onPreview={setPreview} targetSinf={targetSinf} />
+								))}</div>}
+
+						{faceControl > 0 && <p className="text-xs text-gray-500">{tx("{{n}} ta FaceControl kamerasi alohida sahifada", { n: faceControl })}</p>}
+					</div>
+				</div>
 			)}
 
 			{preview && <HikLiveModal camera={{ id: preview._id, name: preview.name || preview.cameraId, areaName: preview.areaName }} onClose={() => setPreview(null)} />}

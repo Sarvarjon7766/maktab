@@ -3009,5 +3009,7 @@
  "video dekod qilinmadi": "видео не удалось декодировать",
  "Video oqimi shifrlangan: Hik-Connect akkauntidagi tekshiruv kodi (verification code) noto'g'ri yoki bu qurilma uchun boshqa. Platforma → Hik-Connect akkauntlar bo'limida kodni tekshiring yoki qurilmada «Video shifrlash»ni o'chiring": "Видеопоток зашифрован: код подтверждения в аккаунте Hik-Connect неверный или другой для этого устройства. Проверьте код в разделе Платформа → Аккаунты Hik-Connect или отключите «Шифрование видео» на устройстве",
  "Sinf darajalarini yuklab bo'lmadi": "Не удалось загрузить параллели",
- "Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering": "Параллели не найдены: обновите страницу или сообщите владельцу системы"
+ "Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering": "Параллели не найдены: обновите страницу или сообщите владельцу системы",
+ "Parolni yashirish": "Скрыть пароль",
+ "Parolni ko'rsatish": "Показать пароль"
 }

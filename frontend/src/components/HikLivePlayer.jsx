@@ -24,6 +24,16 @@ const STALL_MS = 20000
 // chiqib ketganda to'xtatiladi (bir sahifada ko'p kamera bo'lganda tarmoq/CPU tejaydi).
 // `tokenKey` — localStorage'dagi qaysi token bilan so'rov yuborilishi.
 // Holatlar: loading -> waiting (pleyer yaratildi, birinchi kadr kutilmoqda) -> live | stalled | error
+// Pleyerdan joriy kadrni base64 qilib oladi, FAYLGA YUKLAMAYDI. EZUIKit'da capturePicture(nom, ?, yuklash): 3-argument berilmasa standart
+// holatda kadr foydalanuvchi kompyuteriga "nom.jpeg" bo'lib saqlanadi (callback shakli ham shunday) — shuning uchun Promise shaklida, yuklash=false
+const grabFrame = (player) => new Promise((resolve) => {
+	try {
+		const r = player.capturePicture(`f${Date.now()}`, false, false)
+		if (r && typeof r.then === 'function') r.then((c) => { const b = c?.data?.base64 || c?.base64; resolve(typeof b === 'string' ? b : null) }, () => resolve(null))
+		else resolve(null)
+	} catch { resolve(null) }
+})
+
 // `talk` — ikki tomonlama aloqa: brauzer mikrofonidan ovoz kamera dinamigiga yuboriladi (faqat HTTPS yoki localhost sahifada)
 const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, domId, playerRef, talk = false }) => {
 	const containerId = useRef(domId || `hik-live-${Math.random().toString(36).slice(2)}`).current
@@ -175,7 +185,7 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, d
 								let done = false
 								const go = () => { if (done) return; done = true; skipOnce.current = true; setSlot(n => n + 1) }
 								const to = setTimeout(go, 1500)
-								try { player.capturePicture('rot', (d) => { if (done) return; clearTimeout(to); const b = d && (d.base64 || d.data || d); if (typeof b === 'string') setRestImg(b.startsWith('data:') ? b : `data:image/jpeg;base64,${b}`); go() }) } catch { go() }
+								grabFrame(player).then((b) => { if (done) return; clearTimeout(to); if (b) setRestImg(b.startsWith('data:') ? b : `data:image/jpeg;base64,${b}`); go() })
 							}
 							sliceTimer = setInterval(() => { if (!cancelled && waitingCount() > 0 && Date.now() - liveAt >= getSliceMs()) { clearInterval(sliceTimer); sliceTimer = null; rotate() } }, 3000)
 						}
@@ -188,26 +198,23 @@ const HikLivePlayer = ({ cameraId, tokenKey = 'token', lazy = false, onStatus, d
 							waiting = true
 							let answered = false
 							const noAnswer = setTimeout(() => { if (!answered) { waiting = false } }, 5000) // pleyer javob bermasa keyingi tekshiruvda yana uriniladi
-							try {
-								player.capturePicture('watch', (d) => {
-									answered = true; clearTimeout(noAnswer); waiting = false
-									if (cancelled) return
-									const b = d && (d.base64 || d.data || d)
-									const h = typeof b === 'string' ? sampleHash(b) : null
-									if (!h) return
-									same = h === lastHash ? same + 1 : 0
-									lastHash = h
-									if (same === 0 && Date.now() - autoRetry.current.lastOkAt > AUTO_RETRY_RESET_MS) autoRetry.current.n = 0
-									if (same >= WATCH_SAME) {
-										clearInterval(watchTimer); watchTimer = null
-										if (autoRetry.current.n < AUTO_RETRY_MAX) {
-											autoRetry.current.n += 1
-											report({ status: 'waiting', message: '' }) // «Oqim kutilmoqda...» ko'rsatiladi
-											setAttempt(a => a + 1) // yangi oqim manzili bilan qayta ulanadi
-										} else report({ status: 'stalled', message: "Jonli oqim to'xtab qoldi va qayta ulanmadi. Qurilma Hik-Connect bulutidan uzilgan bo'lishi mumkin" })
-									}
-								})
-							} catch { answered = true; clearTimeout(noAnswer); waiting = false }
+							grabFrame(player).then((b) => {
+								answered = true; clearTimeout(noAnswer); waiting = false
+								if (cancelled) return
+								const h = typeof b === 'string' ? sampleHash(b) : null
+								if (!h) return
+								same = h === lastHash ? same + 1 : 0
+								lastHash = h
+								if (same === 0 && Date.now() - autoRetry.current.lastOkAt > AUTO_RETRY_RESET_MS) autoRetry.current.n = 0
+								if (same >= WATCH_SAME) {
+									clearInterval(watchTimer); watchTimer = null
+									if (autoRetry.current.n < AUTO_RETRY_MAX) {
+										autoRetry.current.n += 1
+										report({ status: 'waiting', message: '' }) // «Oqim kutilmoqda...» ko'rsatiladi
+										setAttempt(a => a + 1) // yangi oqim manzili bilan qayta ulanadi
+									} else report({ status: 'stalled', message: "Jonli oqim to'xtab qoldi va qayta ulanmadi. Qurilma Hik-Connect bulutidan uzilgan bo'lishi mumkin" })
+								}
+							})
 						}, WATCH_MS)
 					})
 					stallTimer = setTimeout(() => {

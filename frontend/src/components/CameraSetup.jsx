@@ -56,7 +56,8 @@ const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview
 	useEffect(() => { setCap(c.capacity ?? '') }, [c.capacity])
 	const canCount = isHall || kind === 'class'
 	const options = useMemo(() => [{ value: '', label: tx('— Sinfni tanlang —') }, ...sinfs.map(s => ({ value: s._id, label: s.name }))], [sinfs])
-	const ring = kind === 'unassigned' ? 'border-amber-300 bg-amber-50/40' : 'border-gray-100 bg-white'
+	// Holat rangi: biriktirilmagan — sariq, sinfga biriktirilgan — yashil, zal/koridor — ko'k
+	const ring = kind === 'unassigned' ? 'border-amber-300 bg-amber-50/40' : kind === 'class' ? 'border-green-300 border-l-4 border-l-green-500 bg-green-50/50' : 'border-sky-300 border-l-4 border-l-sky-500 bg-sky-50/40'
 	return (
 		<div className={`rounded-2xl border ${ring} p-4 shadow-sm transition ${busy ? 'pointer-events-none opacity-60' : ''}`}>
 			<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(220px,1.1fr)_minmax(260px,1.4fr)_minmax(220px,1fr)_auto]">
@@ -64,7 +65,7 @@ const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview
 				<div className="flex min-w-0 items-start gap-3">
 					<input type="checkbox" className="mt-1.5 h-4 w-4 shrink-0 cursor-pointer" checked={selected} onChange={e => onSelect(c._id, e.target.checked)} aria-label={tx('Tanlash')} />
 					<div className="min-w-0">
-						<div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} /><p className="truncate font-semibold text-gray-900">{c.name || c.cameraId}</p></div>
+						<div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} /><p className="truncate font-semibold text-gray-900">{c.name || c.cameraId}</p>{kind === 'class' && <span className="shrink-0 rounded-md bg-green-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{sinfs.find(x => String(x._id) === String(c.sinfId))?.name || c.sinf?.name || tx('Sinf')}</span>}{isHall && <span className="shrink-0 rounded-md bg-sky-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{tx('Zal / koridor')}</span>}</div>
 						<p className="truncate text-xs text-gray-500">{[c.areaName, c.serial].filter(Boolean).join(' · ') || '—'}</p>
 						<span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${st.chip}`}>{tx(st.text)}</span>
 					</div>
@@ -273,7 +274,7 @@ const CameraSetup = () => {
 			if (!needle) return true
 			const sinfName = sinfs.find(s => String(s._id) === String(c.sinfId))?.name || ''
 			return [c.name, c.serial, c.areaName, sinfName].some(v => String(v || '').toLowerCase().includes(needle))
-		}).sort((a, b) => ((kindOf(a) === 'unassigned') ? 0 : 1) - ((kindOf(b) === 'unassigned') ? 0 : 1) || String(a.name || '').localeCompare(String(b.name || ''), 'uz', { numeric: true }))
+		}).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'uz', { numeric: true })) // tartib qat'iy (nom bo'yicha): biriktirilganda kamera joyidan siljimaydi
 	}, [mine, filter, q, sinfs, classFilter])
 
 	const mark = (ids, on) => setBusy(prev => { const n = new Set(prev); ids.forEach(i => (on ? n.add(i) : n.delete(i))); return n })

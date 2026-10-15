@@ -39,7 +39,7 @@ const Sinf = () => {
 				axios.get(`${base}/api/sinf/getAll`, { headers }),
 				axios.get(`${base}/api/user/getAll`, { headers }).catch(() => ({ data: {} })),
 				axios.get(`${base}/api/student/getAll`, { headers }).catch(() => ({ data: {} })),
-				axios.get(`${base}/api/grades`, { headers }).catch(() => ({ data: {} })),
+				axios.get(`${base}/api/grades`, { headers }).catch((e) => { toast.error(`${tx("Sinf darajalarini yuklab bo'lmadi")}: ${e.response?.status || ''} ${e.response?.data?.message || e.message}`); return { data: {} } }),
 			])
 			if (a.data.success) setSinfs(a.data.sinfs)
 			setUsers(b.data.users || [])

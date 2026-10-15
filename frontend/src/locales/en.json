@@ -3007,5 +3007,7 @@
  "Kadr shifrlangan: uni bu yerda ko'rsatib bo'lmaydi": "The frame is encrypted: it cannot be shown here",
  "Sessiya topilmadi — qayta kiring": "Session not found: please sign in again",
  "video dekod qilinmadi": "video could not be decoded",
- "Video oqimi shifrlangan: Hik-Connect akkauntidagi tekshiruv kodi (verification code) noto'g'ri yoki bu qurilma uchun boshqa. Platforma → Hik-Connect akkauntlar bo'limida kodni tekshiring yoki qurilmada «Video shifrlash»ni o'chiring": "The video stream is encrypted: the verification code on the Hik-Connect account is wrong or different for this device. Check the code under Platform → Hik-Connect accounts, or turn off \"Video encryption\" on the device"
+ "Video oqimi shifrlangan: Hik-Connect akkauntidagi tekshiruv kodi (verification code) noto'g'ri yoki bu qurilma uchun boshqa. Platforma → Hik-Connect akkauntlar bo'limida kodni tekshiring yoki qurilmada «Video shifrlash»ni o'chiring": "The video stream is encrypted: the verification code on the Hik-Connect account is wrong or different for this device. Check the code under Platform → Hik-Connect accounts, or turn off \"Video encryption\" on the device",
+ "Sinf darajalarini yuklab bo'lmadi": "Could not load class grades",
+ "Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering": "No grades found: reload the page or contact the platform owner"
 }

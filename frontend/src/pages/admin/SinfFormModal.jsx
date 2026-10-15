@@ -57,7 +57,7 @@ const SinfFormModal = ({ sinf = null, grades, users, onClose, onSaved }) => {
 						<label className="mb-1.5 block text-sm font-medium text-slate-700">{tx("Sinf")} <span className="text-red-500">*</span></label>
 						<div className="grid grid-cols-[1fr_120px] gap-3">
 							<select value={grade} onChange={e => setGrade(e.target.value)} required className={input}>
-								<option value="">{tx("Darajani tanlang")}</option>
+								<option value="">{grades.length ? tx("Darajani tanlang") : tx("Darajalar topilmadi: sahifani yangilang yoki tizim egasiga xabar bering")}</option>
 								{grades.filter(g => g.isActive || g.number === Number(grade)).map(g => <option key={g._id} value={g.number}>{g.name}</option>)}
 							</select>
 							<input value={letter} onChange={e => setLetter(e.target.value.toUpperCase().slice(0, 3))} placeholder={tx("Harf")} required className={`${input} text-center font-semibold`} />

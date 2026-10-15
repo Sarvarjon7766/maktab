@@ -84,10 +84,12 @@ const CameraRow = ({ c, sinfs, vis, selected, busy, onSelect, onPatch, onPreview
 						</label>
 					) : (
 						<div>
-							<SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value={c.sinfId || ''} onChange={v => onPatch(c._id, { sinfId: v || null }, v ? tx('Kamera sinfga biriktirildi') : tx('Sinfdan ajratildi'))} options={options} />
+							{kind === 'class'
+								? <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800"><span className="font-medium">{sinfs.find(x => String(x._id) === String(c.sinfId))?.name || c.sinf?.name || tx('Sinf')}</span><span className="text-[11px] text-gray-400">{tx("Boshqa sinfga o'tkazish uchun avval ajrating")}</span></div>
+								: <SearchableSelect variant="outline" icon={false} className="w-full" searchPlaceholder={tx('Sinf qidirish...')} value="" onChange={v => v && onPatch(c._id, { sinfId: v }, tx('Kamera sinfga biriktirildi'))} options={options} />}
 							{kind === 'class' && <button type="button" onClick={() => onPatch(c._id, { sinfId: null }, tx('Sinfdan ajratildi'))} className="mt-1.5 text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-red-600 hover:underline">{tx('Sinfdan ajratish')}</button>}
 							{kind === 'unassigned' && <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-700"><FiAlertCircle size={12} /> {tx("Sinf tanlang: shunda AI tahlil o'zi yoqiladi")}</p>}
-							{targetSinf && String(c.sinfId || '') !== String(targetSinf._id) && !isHall && <button type="button" onClick={() => onPatch(c._id, { sinfId: targetSinf._id }, tx('Kamera sinfga biriktirildi'))} className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">{tx('{{name}} ga biriktirish', { name: targetSinf.name })}</button>}
+							{targetSinf && kind === 'unassigned' && <button type="button" onClick={() => onPatch(c._id, { sinfId: targetSinf._id }, tx('Kamera sinfga biriktirildi'))} className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">{tx('{{name}} ga biriktirish', { name: targetSinf.name })}</button>}
 						</div>
 					)}
 				</div>
@@ -293,7 +295,7 @@ const CameraSetup = () => {
 		mark(ids, true)
 		try {
 			const res = await axios.put(`${BASE()}/api/hik/my-cameras-bulk`, { ids, ...body }, authHeaders())
-			if (res.data.failed?.length) toast.warn(tx('{{a}} ta kamera saqlandi, {{b}} tasida xatolik', { a: res.data.done, b: res.data.failed.length }))
+			if (res.data.failed?.length) toast.warn(`${tx('{{a}} ta kamera saqlandi, {{b}} tasida xatolik', { a: res.data.done, b: res.data.failed.length })}: ${res.data.failed[0].message || ''}`)
 			else toast.success(okMsg)
 			setSelected(new Set())
 			await load()

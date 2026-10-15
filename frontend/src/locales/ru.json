@@ -3019,5 +3019,6 @@
  "Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).": "Если в классе несколько камер, число людей берётся по камере с наибольшим значением (не суммируется).",
  "Hammasini sinfdan ajratish": "Открепить все от класса",
  "Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.": "На одном устройстве (NVR) подсчёт включён на {{n}} камерах. Кадры берутся с устройства по очереди, поэтому каждая камера обновляется медленнее. Включайте подсчёт только на нужных камерах.",
- "Bugun odam aniqlangan o'lchov yo'q": "Сегодня нет измерений с обнаруженными людьми"
+ "Bugun odam aniqlangan o'lchov yo'q": "Сегодня нет измерений с обнаруженными людьми",
+ "Boshqa sinfga o'tkazish uchun avval ajrating": "Чтобы перенести в другой класс, сначала открепите"
 }

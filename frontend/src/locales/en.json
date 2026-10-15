@@ -3019,5 +3019,6 @@
  "Bir sinfda bir nechta kamera bo'lsa, sinfdagi odam soni ularning eng ko'pini ko'rsatganidan olinadi (takror sanalmaydi).": "If a class has several cameras, the people count is the highest one reported by any of them (not summed).",
  "Hammasini sinfdan ajratish": "Detach all from class",
  "Bitta qurilmada (NVR) {{n}} ta kamerada odam sanash yoqilgan. Kadrlar qurilmadan navbat bilan olinadi, shuning uchun har bir kamerada natija sekinroq yangilanadi. Faqat kerakli kameralarda sanashni yoqing.": "People counting is on for {{n}} cameras on a single device (NVR). Frames are taken from the device one after another, so each camera updates more slowly. Enable counting only on the cameras you need.",
- "Bugun odam aniqlangan o'lchov yo'q": "No measurement with people detected today"
+ "Bugun odam aniqlangan o'lchov yo'q": "No measurement with people detected today",
+ "Boshqa sinfga o'tkazish uchun avval ajrating": "To move it to another class, detach it first"
 }

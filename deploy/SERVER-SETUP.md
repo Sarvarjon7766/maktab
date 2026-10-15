@@ -93,7 +93,15 @@ Yuz tanish sukut bo'yicha **o'chiq**. Biometrik ma'lumot: yoqishdan oldin ota-on
 
 **Nima ko'chirilishi kerak** (aks holda server bo'sh yuz bazasi bilan ishga tushadi):
 - `backend/ai/models/` ichidagi **YuNet** (`face_detection_yunet_2023mar.onnx`) va **SFace** (`face_recognition_sface_2021dec.onnx`). Git'ga qo'shilganini tekshiring (`git ls-files backend/ai/models`).
-- Ixtiyoriy kuchli model (faqat GPU serverda): `face_recognition_arcface_r100.onnx` (~250 MB, git'ga kirmaydi, qo'lda nusxalanadi; `AI sozlamalari → Yuz izi modeli`).
+- Ixtiyoriy kuchli model (faqat GPU serverda): `face_recognition_arcface_r100.onnx` (~250 MB, git'ga kirmaydi). «ArcFace model fayli topilmadi» xatosi shu fayl serverda yo'qligini bildiradi. Fayl loyiha papkasidagi `models/` ga qo'yiladi (docker-compose uni konteynerga `/app/models-extra` sifatida ulaydi, `--build` uni o'chirmaydi):
+  ```bash
+  # kompyuteringizdan (Windows PowerShell yoki Git Bash):
+  scp E:/Maktab/backend/ai/models/face_recognition_arcface_r100.onnx USER@SERVER:~/maktab/models/
+  # serverda: papka bo'lmasa avval yarating, so'ng qayta ishga tushiring
+  mkdir -p ~/maktab/models && cd ~/maktab && git pull && docker compose up -d
+  sha256sum models/face_recognition_arcface_r100.onnx   # ec639a0429b4819130d1405a2d3b38beaa4cc4a6c5bd9cf48b94fdf65461de83 bo'lishi kerak
+  ```
+  So'ng `AI sozlamalari → Yuz izi modeli → ArcFace`. **Modelni almashtirsangiz, mavjud yuz izlari (SFace) mos kelmaydi: hamma o'quvchi/xodim izlarini «Qaytadan olish» bilan qayta qurish kerak.** Shuning uchun modelni haqiqiy ma'lumot kiritishdan OLDIN tanlang.
 - **Baza** (`dbExport.js`/`dbImport.js` hamma kolleksiyani, jumladan `facetemplates`, `classroompresences`, `staffpresences` ni ko'chiradi) **va `uploads/` papkasi** (yuz suratlari: o'quvchi/xodim asosiy va qo'shimcha suratlari, `face-*.jpg`). Bazani ko'chirib, uploads'ni ko'chirmasangiz izlar ishlaydi, lekin «Qaytadan olish» surat topolmaydi.
 
 **GPU:** `.env` da `AI_PROVIDER=cuda,cpu` (Linux) yoki `dml,cpu` (Windows). Ishlaganini `faceCheck` ko'rsatadi (tezlik).

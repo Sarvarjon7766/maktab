@@ -36,9 +36,12 @@ services:
       AI_WORKERS: ${AI_WORKERS:-1}
       AI_THREADS: ${AI_THREADS:-}
       UV_THREADPOOL_SIZE: ${UV_THREADPOOL_SIZE:-8}
+      # Ixtiyoriy ArcFace modeli (~250 MB, git'da yo'q): serverdagi ./models papkasidan o'qiladi (deploy/SERVER-SETUP.md, 8-bo'lim)
+      FACE_ARC_MODEL: /app/models-extra/face_recognition_arcface_r100.onnx
     volumes:
       - uploads:/app/uploads
       - private:/app/private
+      - ${FACE_MODELS_DIR:-./models}:/app/models-extra:ro
     # Xotira chegarasi: AI ishchilari va yuz galereyasi ko'p xotira oladi; chegarasiz xotira tugasa butun server o'ladi. Serverga mos qilib BACKEND_MEM_LIMIT bilan o'zgartiring
     mem_limit: ${BACKEND_MEM_LIMIT:-8g}
     # GPU: NVIDIA Container Toolkit o'rnatilgan bo'lishi kerak. GPU yo'q serverda shu `deploy` blokini o'chirib, AI_PROVIDER=cpu qiling

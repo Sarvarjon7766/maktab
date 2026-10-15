@@ -56,6 +56,8 @@ app.use('/api', (req, res, next) => {
   next()
 })
 app.use(require('compression')())
+// Tuman chegarasi (GeoJSON) katta bo'lishi mumkin: faqat tizim egasi uchun kattaroq limit (autentifikatsiyadan KEYIN o'qiladi, begona yuklay olmasin)
+app.use('/api/districts', require('./middlewares/verifyToken'), require('./middlewares/requireRole')('superadmin'), express.json({ limit: process.env.GEO_BODY_LIMIT || '30mb' }))
 app.use(express.json({ limit: '2mb' }))
 app.use(require('./utils/i18n').langMiddleware)
 

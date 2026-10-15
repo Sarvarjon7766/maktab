@@ -15,7 +15,7 @@ const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm t
 const FormModal = ({ district, onClose, onSaved }) => {
 	const editing = !!district
 	const [name, setName] = useState(district?.name || '')
-	const [region, setRegion] = useState(district?.region || 'Samarqand')
+	const [region, setRegion] = useState(district?.region || (() => { try { return localStorage.getItem('lastDistrictRegion') || '' } catch { return '' } })()) // oxirgi kiritilgan viloyat (hech qaysi viloyat oldindan yozib qo'yilmaydi)
 	const [geometry, setGeometry] = useState(null)
 	const [fileName, setFileName] = useState('')
 	const [busy, setBusy] = useState(false)
@@ -24,8 +24,10 @@ const FormModal = ({ district, onClose, onSaved }) => {
 		const file = e.target.files?.[0]
 		if (!file) return
 		try {
+			if (file.size > 30 * 1024 * 1024) return toast.error(tx("Fayl juda katta (30 MB dan oshmasin). Soddaroq chegara yuklang"))
 			const json = JSON.parse(await file.text())
-			setGeometry(json); setFileName(file.name)
+			setGeometry(json); setFileName(`${file.name} (${(file.size / 1024).toFixed(0)} KB)`)
+			if (!name.trim() && !editing) setName(file.name.replace(/\.(geo)?json$/i, '')) // tuman nomi fayl nomidan (fayl ichidagi nom ko'pincha noto'g'ri)
 		} catch { toast.error("Fayl noto'g'ri: GeoJSON (.json / .geojson) bo'lishi kerak") }
 	}
 	const submit = async (e) => {
@@ -36,7 +38,8 @@ const FormModal = ({ district, onClose, onSaved }) => {
 			const body = { name, region, ...(geometry ? { geometry } : {}) }
 			const res = editing ? await api.put(`/api/districts/${district._id}`, body, auth()) : await api.post('/api/districts', body, auth())
 			if (!res.data.success) throw new Error(res.data.message)
-			toast.success(editing ? 'Saqlandi' : "Tuman qo'shildi")
+			try { if (region.trim()) localStorage.setItem('lastDistrictRegion', region.trim()) } catch { /* brauzer saqlamasa ham ishlaydi */ }
+			toast.success(res.data.message ? tx(res.data.message) : (editing ? 'Saqlandi' : "Tuman qo'shildi"))
 			onSaved()
 		} catch (err) { toast.error(tx(err.response?.data?.message || err.message || 'Xatolik yuz berdi')) } finally { setBusy(false) }
 	}
@@ -48,7 +51,7 @@ const FormModal = ({ district, onClose, onSaved }) => {
 					<button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700"><FiX size={20} /></button>
 				</div>
 				<input className={inputCls} placeholder={tx("Tuman nomi* (masalan: Bulung'ur)")} value={name} onChange={e => setName(e.target.value)} autoFocus />
-				<input className={inputCls} placeholder={tx("Viloyat (masalan: Samarqand)")} value={region} onChange={e => setRegion(e.target.value)} />
+				<input className={inputCls} placeholder={tx("Viloyat* (masalan: Surxondaryo)")} value={region} onChange={e => setRegion(e.target.value)} />
 				<label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50">
 					<FiUpload className="shrink-0 text-gray-400" />
 					<span className="min-w-0 flex-1 truncate">{fileName || (editing && district.hasBoundary ? tx("Yangi chegara yuklash (ixtiyoriy)") : tx("Chegara fayli: GeoJSON (ixtiyoriy)"))}</span>
@@ -65,11 +68,73 @@ const FormModal = ({ district, onClose, onSaved }) => {
 	)
 }
 
+// Ko'p GeoJSON faylni bir yo'la yuklash: har fayl — bitta tuman, tuman nomi fayl nomidan olinadi (Muzrabot.json -> Muzrabot).
+// Fayllar ketma-ket yuboriladi, har biri uchun natija ko'rsatiladi (bittasi buzilgan bo'lsa qolganlari to'xtamaydi)
+const BulkModal = ({ onClose, onDone }) => {
+	const [region, setRegion] = useState(() => { try { return localStorage.getItem('lastDistrictRegion') || '' } catch { return '' } })
+	const [files, setFiles] = useState([])
+	const [rows, setRows] = useState([])
+	const [busy, setBusy] = useState(false)
+	const [done, setDone] = useState(false)
+	const nameOf = (f) => f.name.replace(/\.(geo)?json$/i, '').trim()
+	const onFiles = (e) => { setFiles([...(e.target.files || [])].sort((a, b) => a.name.localeCompare(b.name))); setRows([]); setDone(false) }
+	const run = async () => {
+		if (!region.trim()) return toast.error(tx('Viloyat nomini kiriting'))
+		setBusy(true)
+		const out = files.map(f => ({ name: nameOf(f), state: 'wait', msg: '' }))
+		setRows([...out])
+		for (let i = 0; i < files.length; i++) {
+			const f = files[i]
+			if (f.size > 30 * 1024 * 1024) { out[i] = { ...out[i], state: 'err', msg: tx('Fayl juda katta (30 MB dan oshmasin). Soddaroq chegara yuklang') }; setRows([...out]); continue }
+			let json
+			try { json = JSON.parse((await f.text()).replace(/^\uFEFF/, '')) } catch { out[i] = { ...out[i], state: 'err', msg: tx("Fayl buzilgan: GeoJSON (.json / .geojson) emas. Qayta eksport qiling") }; setRows([...out]); continue }
+			try {
+				const res = await api.post('/api/districts', { name: nameOf(f), region: region.trim(), geometry: json }, auth())
+				out[i] = res.data.success ? { ...out[i], state: 'ok', msg: res.data.message ? tx(res.data.message) : '' } : { ...out[i], state: 'err', msg: tx(res.data.message || 'Xatolik') }
+			} catch (err) { out[i] = { ...out[i], state: 'err', msg: tx(err.response?.data?.message || err.message || 'Xatolik') } }
+			setRows([...out])
+		}
+		try { localStorage.setItem('lastDistrictRegion', region.trim()) } catch { /* ixtiyoriy */ }
+		setBusy(false); setDone(true)
+		onDone()
+	}
+	const ok = rows.filter(r => r.state === 'ok').length, bad = rows.filter(r => r.state === 'err').length
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => !busy && onClose()}>
+			<div onClick={e => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+				<div className="flex items-center justify-between"><h2 className="text-lg font-bold text-gray-900">{tx("Ko'p fayldan tumanlar yuklash")}</h2><button type="button" disabled={busy} onClick={onClose} className="text-gray-400 hover:text-gray-700"><FiX size={20} /></button></div>
+				<input className={inputCls} placeholder={tx("Viloyat* (masalan: Surxondaryo)")} value={region} onChange={e => setRegion(e.target.value)} disabled={busy} />
+				<label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-sm text-gray-600 hover:bg-gray-50">
+					<FiUpload size={15} /><span>{files.length ? tx("{{n}} ta fayl tanlandi", { n: files.length }) : tx("GeoJSON fayllarni tanlang (bir nechta)")}</span>
+					<input type="file" multiple accept=".json,.geojson,application/json" className="hidden" onChange={onFiles} disabled={busy} />
+				</label>
+				<p className="text-[11px] text-gray-400">{tx("Har bir fayl bitta tuman bo'ladi, tuman nomi fayl nomidan olinadi (masalan Muzrabot.json → Muzrabot). Mavjud tumanlar o'tkazib yuboriladi.")}</p>
+				{(rows.length ? rows : files.map(f => ({ name: nameOf(f), state: 'idle', msg: '' }))).length > 0 && (
+					<ul className="max-h-64 space-y-1 overflow-y-auto text-sm">
+						{(rows.length ? rows : files.map(f => ({ name: nameOf(f), state: 'idle', msg: '' }))).map((r, i) => (
+							<li key={i} className={`flex items-start justify-between gap-3 rounded-lg px-3 py-1.5 ${r.state === 'ok' ? 'bg-green-50 text-green-800' : r.state === 'err' ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700'}`}>
+								<span className="font-medium">{r.state === 'ok' ? '✓ ' : r.state === 'err' ? '✗ ' : r.state === 'wait' ? '… ' : ''}{r.name}</span>
+								<span className="text-right text-xs">{r.msg}</span>
+							</li>
+						))}
+					</ul>
+				)}
+				{done && <p className="text-sm font-medium text-gray-800">{tx("Tayyor: {{a}} ta qo'shildi, {{b}} ta xato", { a: ok, b: bad })}</p>}
+				<div className="flex justify-end gap-2 pt-1">
+					<button type="button" disabled={busy} onClick={onClose} className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{done ? tx("Yopish") : tx("Bekor qilish")}</button>
+					{!done && <button type="button" disabled={busy || !files.length} onClick={run} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{busy ? tx("Yuklanmoqda...") : tx("Hammasini yuklash")}</button>}
+				</div>
+			</div>
+		</div>
+	)
+}
+
 // Tumanlar: tizim egasi tumanlarni qo'shadi (tayyor Samarqand viloyati chegaralari bir tugmada yuklanadi), maktab va monitorlar shularga biriktiriladi
 const PlatformDistricts = () => {
 	const [data, setData] = useState(null)
 	const [geo, setGeo] = useState(null)
 	const [form, setForm] = useState(null) // null | 'new' | district
+	const [bulk, setBulk] = useState(false)
 	const [busy, setBusy] = useState(false)
 	const [active, setActive] = useState('')
 	const [q, setQ] = useState('')
@@ -104,7 +169,8 @@ const PlatformDistricts = () => {
 	return (
 		<div className="space-y-5 p-4 md:p-6">
 			<div className="flex flex-wrap justify-end gap-2">
-					<button onClick={importBundled} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiDownload size={15} /> {busy ? tx("Yuklanmoqda...") : tx("Samarqand viloyati tumanlarini yuklash")}</button>
+					{data?.bundledAvailable > 0 && <button onClick={importBundled} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"><FiDownload size={15} /> {busy ? tx("Yuklanmoqda...") : tx("Samarqand viloyati tumanlarini yuklash")}</button>}
+					<button onClick={() => setBulk(true)} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"><FiUpload size={15} /> {tx("Ko'p fayl yuklash")}</button>
 					<button onClick={() => setForm('new')} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"><FiPlus size={15} /> {tx("Tuman qo'shish")}</button>
 			</div>
 
@@ -134,7 +200,7 @@ const PlatformDistricts = () => {
 									</tr>
 								))}
 								{data && districts.length > 0 && shown.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-500">{tx("Qidiruv bo'yicha tuman topilmadi")}</td></tr>}
-																{data && districts.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-500"><p>{tx("Hali tuman qo'shilmagan")}</p><button onClick={importBundled} disabled={busy} className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800 disabled:opacity-50">{tx("Samarqand viloyati tumanlarini yuklash")}</button></td></tr>}
+																{data && districts.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-500"><p>{tx("Hali tuman qo'shilmagan")}</p>{data?.bundledAvailable > 0 ? <button onClick={importBundled} disabled={busy} className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800 disabled:opacity-50">{tx("Samarqand viloyati tumanlarini yuklash")}</button> : <p className="mt-2 text-sm">{tx("«Yangi tuman» tugmasi orqali tuman nomi va GeoJSON chegarasi (.geojson / .json) bilan qo'shing")}</p>}</td></tr>}
 								{!data && <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-500">{tx("Yuklanmoqda...")}</td></tr>}
 							</tbody>
 						</table>
@@ -147,6 +213,7 @@ const PlatformDistricts = () => {
 				</section>
 			</div>
 
+			{bulk && <BulkModal onClose={() => setBulk(false)} onDone={load} />}
 			{form && <FormModal district={form === 'new' ? null : form} onClose={() => setForm(null)} onSaved={() => { setForm(null); load() }} />}
 		</div>
 	)

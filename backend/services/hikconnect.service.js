@@ -1001,6 +1001,16 @@ class HikConnectService {
 			return { success: false, message: error.response?.data ? failure(error) : friendly(error.message) }
 		}
 	}
+
+	// Serverdan o'qish uchun oqim manzili (HLS: protocol '2'). quality 1 = asosiy oqim (to'liq o'lcham). Brauzer tokeni kerak emas
+	async streamUrl(camera, { protocol = '2', quality = 1 } = {}) {
+		const creds = await loadCreds(camera.accountId)
+		const body = { resourceId: camera.cameraId, deviceSerial: camera.serial, type: '1', protocol, quality }
+		if (creds.code) body.code = creds.code
+		const live = await hik(camera.accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
+		if (!live.url) throw new Error('Jonli oqim manzili qaytmadi')
+		return live.url
+	}
 }
 
 module.exports = new HikConnectService()

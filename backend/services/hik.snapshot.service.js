@@ -143,7 +143,19 @@ async function captureLive(camera) {
 	try { return await grabFrame(url) } finally { grabDone() }
 }
 
-// Kameradan hozirgi kadrni oladi: asosiy oqimdan, bo'lmasa capturePic. Shifrlangan bo'lsa akkauntdagi kod bilan ochadi.
+// capturePic: kameradan hozirgi kadr (qurilma o'zi beradigan o'lcham va siqish). Shifrlangan bo'lsa akkauntdagi kod bilan ochadi
+async function captureSnapshot(camera) {
+	const data = await HikService.call(camera.accountId, 'post', '/api/hccgw/resource/v1/device/capturePic', { deviceSerial: camera.serial, channelNo: camera.channelNo || 1 })
+	if (!data.captureUrl) throw new PictureError('no_image', 'Kamera kadr qaytarmadi')
+	const raw = await download(data.captureUrl)
+	const buf = Number(data.isEncrypted) === 1 || raw.slice(0, 16).toString('latin1') === MAGIC
+		? decryptPicture(raw, await HikService.encryptionCode(camera.accountId))
+		: raw
+	if (!isImage(buf)) throw new PictureError('no_image', "Kamera rasm o'rniga boshqa ma'lumot qaytardi")
+	return buf
+}
+
+// Kameradan hozirgi kadrni oladi: asosiy oqimdan, bo'lmasa capturePic.
 // Muvaffaqiyatsiz bo'lsa PictureError (sabab: no_code | wrong_code | bad_data | no_image) tashlaydi
 async function captureBuffer(camera) {
 	if (!camera.serial) throw new PictureError('no_serial', 'Kamera serial raqami topilmadi')
@@ -154,14 +166,7 @@ async function captureBuffer(camera) {
 			console.log(`Kadr manbai: ${camera.name || key} asosiy oqimdan olinmadi (${e.message}), capturePic ishlatiladi`)
 		}
 	}
-	const data = await HikService.call(camera.accountId, 'post', '/api/hccgw/resource/v1/device/capturePic', { deviceSerial: camera.serial, channelNo: camera.channelNo || 1 })
-	if (!data.captureUrl) throw new PictureError('no_image', 'Kamera kadr qaytarmadi')
-	const raw = await download(data.captureUrl)
-	const buf = Number(data.isEncrypted) === 1 || raw.slice(0, 16).toString('latin1') === MAGIC
-		? decryptPicture(raw, await HikService.encryptionCode(camera.accountId))
-		: raw
-	if (!isImage(buf)) throw new PictureError('no_image', "Kamera rasm o'rniga boshqa ma'lumot qaytardi")
-	return buf
+	return captureSnapshot(camera)
 }
 
 class HikSnapshotService {
@@ -230,4 +235,7 @@ const service = new HikSnapshotService()
 service.decryptPicture = decryptPicture // sinov uchun
 service.PictureError = PictureError
 service.captureBuffer = captureBuffer // vision.service uchun
+service.captureSnapshot = captureSnapshot // tashxis skripti uchun (scripts/frameProbe.js)
+service.captureLive = captureLive
+service.hasFfmpeg = hasFfmpeg
 module.exports = service

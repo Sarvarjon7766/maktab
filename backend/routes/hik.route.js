@@ -172,17 +172,6 @@ router.post('/faces/students/:id/photos', verifyToken, faceAdmin, (req, res, nex
 })
 router.get('/faces/students', verifyToken, faceAdmin, handle(req => require('../services/face.diagnose').searchStudents(req.user.school, req.query.q)))
 // Real vaqt: brauzer jonli videodan olgan kadrni yuboradi (Hik'dan kadr olinmaydi), javobda ramkalar koordinatasi
-router.post('/faces/frame', verifyToken, faceAdmin, (req, res, next) => faceUpload.single('image')(req, res, (err) => err ? res.status(400).json({ success: false, message: 'Kadr hajmi 8 MB dan oshmasin' }) : next()), async (req, res) => {
-	try {
-		if (!req.file) return res.status(400).json({ success: false, message: 'Kadr yuborilmadi' })
-		// Yuklama chegarasi: jonli yo'lakda navbat to'lib qolsa yangi kadr qabul qilinmaydi (ko'p foydalanuvchi bir vaqtda ochsa server bosimga tushmasin)
-		if (require('../ai/aiPool').queueSize('live') >= (Number(process.env.AI_LIVE_QUEUE_MAX) || 6)) return res.status(429).json({ success: false, message: 'Server band, keyingi kadrda qayta uriniladi' })
-		return res.json(await require('../services/face.diagnose').diagnose(req.user.school, { cameraId: req.body?.cameraId, studentId: req.body?.studentId || null, buffer: req.file.buffer }))
-	} catch (error) {
-		console.log(error.message)
-		return res.status(500).json({ success: false, message: 'Server xatosi' })
-	}
-})
 router.post('/faces/diagnose', verifyToken, faceAdmin, handle(req => require('../services/face.diagnose').diagnose(req.user.school, { cameraId: req.body?.cameraId, studentId: req.body?.studentId || null, sinfId: req.body?.sinfId || null })))
 router.delete('/faces/templates/:id', verifyToken, faceAdmin, handle(req => Faces.removeTemplate(req.params.id, req.user.school)))
 router.put('/faces/presence/:id/verdict', verifyToken, faceAdmin, handle(req => Faces.setVerdict(req.user.school, req.params.id, req.body?.verdict ?? null)))

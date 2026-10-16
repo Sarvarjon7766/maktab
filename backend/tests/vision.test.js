@@ -36,3 +36,38 @@ test('ro\'yxatdan ortiq odam', () => {
 	const f = Vision.evaluate(30, [{ t: now, count: 30 }], { n: 20 }, {}, now, { cfg, hall: false })
 	assert.strictEqual(f.kind, 'vision_overcrowd')
 })
+
+// runDevice: bitta kanal "javob bermadi" (OPEN000555) bersa, shu qurilmadagi ishlaydigan kameralar tahlili to'xtamasligi kerak
+const BUSY = () => new Error('Hik xatosi: OPEN000555 Device response timeout')
+async function runWith(serial, cams, bad) {
+	const realSet = global.setTimeout
+	global.setTimeout = (fn) => realSet(fn, 0) // qurilma orasidagi pauzalar sinovda kutilmasin
+	const seen = []
+	const analyze = Vision.analyze
+	Vision.analyze = async (cam) => { seen.push(cam.name); if (bad.has(cam.name)) throw BUSY() }
+	try { return { stats: await Vision.runDevice(serial, cams), seen, dev: Vision.deviceFor(serial) } } finally { Vision.analyze = analyze; global.setTimeout = realSet }
+}
+
+test('nosoz kanallar ishlaydigan kameralarni to\'xtatmaydi', async () => {
+	const cams = ['b1', 'b2', 'g1', 'g2'].map((name) => ({ _id: `c-${name}`, name }))
+	const { stats, seen, dev } = await runWith('SER-MIXED', cams, new Set(['b1', 'b2']))
+	assert.deepStrictEqual(seen, ['b1', 'b2', 'g1', 'g2']) // hammasi urinildi
+	assert.strictEqual(stats.ok, 2)
+	assert.strictEqual(dev.until, 0, 'qurilma to\'xtatilmagan')
+	assert.ok(Vision.failures.get('c-b1') && Vision.failures.get('c-b2'), 'nosoz kameralarga alohida kutish')
+	assert.ok(!Vision.failures.get('c-g1'))
+})
+
+test('hamma kamera javob bermasa qurilma to\'xtatiladi', async () => {
+	const cams = ['a1', 'a2'].map((name) => ({ _id: `c-${name}`, name }))
+	const { stats, dev } = await runWith('SER-DOWN', cams, new Set(['a1', 'a2']))
+	assert.strictEqual(stats.ok, 0)
+	assert.ok(dev.until > Date.now() && dev.kind === 'busy', 'qurilma kutishga qo\'yildi')
+})
+
+test('ishlaydigan kameralar oldin tahlil qilinadi', async () => {
+	Vision.failures.set('c-x-bad', { n: 2, until: 0 })
+	const cams = [{ _id: 'c-x-bad', name: 'bad' }, { _id: 'c-x-good', name: 'good' }]
+	const { seen } = await runWith('SER-ORDER', cams, new Set())
+	assert.deepStrictEqual(seen, ['good', 'bad'])
+})

@@ -24,7 +24,7 @@ const HikLiveModal = ({ camera, onClose, tokenKey = 'token' }) => {
 						<button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10"><FiX size={20} /></button>
 					</div>
 				</div>
-				<HikLivePlayer cameraId={camera.id} tokenKey={tokenKey} onStatus={setStatus} />
+				<HikLivePlayer cameraId={camera.id} tokenKey={tokenKey} onStatus={setStatus} talk />
 			</div>
 		</div>
 	)

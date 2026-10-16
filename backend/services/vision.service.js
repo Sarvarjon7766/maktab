@@ -53,6 +53,9 @@ async function refreshCfg() {
 const OFFLINE_BASE_MS = 2 * 60 * 1000 // offline: 2, 4, 8, 15 daqiqa
 const BUSY_BASE_MS = 60 * 1000 // javob bermadi / bulut band: 1, 2, 4, 8, 15 daqiqa
 const DEVICE_MAX_MS = 15 * 60 * 1000
+// "Javob bermadi" xatosi bitta kanaldan ham kelishi mumkin (kamerasiz yoki o'chiq kanal): shu kameraga kutish beriladi, qolganlari tahlil qilinadi.
+// Butun qurilma faqat sikl oxirida, birorta kamera ham muvaffaqiyatli o'tmagan va oxirgi muvaffaqiyatdan BUSY_DEVICE_OK_MS o'tgan bo'lsa to'xtatiladi
+const BUSY_DEVICE_OK_MS = 10 * 60 * 1000
 const CAMERA_BACKOFF_MAX_MS = 10 * 60 * 1000 // kamera darajasidagi xato (shifrlash kodi va h.k.)
 // Qurilmada jonli ko'rish ochilgan bo'lsa (shuncha vaqt "ochiq" hisoblanadi), tahlil to'xtamaydi, lekin siyrakroq bo'ladi:
 // har LIVE_INTERVAL_MS da bir marta. Sinfxonalar sahifasi ochilishi bilan jonli oqim boshlanadi, to'liq to'xtatish esa
@@ -110,9 +113,10 @@ async function runPool(items, limit, fn) {
 
 // Bitta qurilmaning (NVR/kamera) sog'lig'i. fails oshgani sari kutish ham oshadi
 class DeviceState {
-	constructor(serial) { this.serial = serial; this.fails = 0; this.until = 0; this.kind = null; this.at = null; this.lastCapture = 0 }
+	constructor(serial) { this.serial = serial; this.fails = 0; this.until = 0; this.kind = null; this.at = null; this.lastCapture = 0; this.okAt = 0 }
 	get down() { return this.until > Date.now() && !!this.kind }
 	success() {
+		this.okAt = Date.now()
 		if (this.fails > 0) {
 			this.fails--
 			if (this.fails === 0) console.log(`Vision: qurilma ${this.serial} tiklandi`)
@@ -414,6 +418,7 @@ class VisionService {
 		if (dev.until > Date.now()) { stats.skipped = cameras.length; return stats }
 
 		let first = true
+		let busyFails = 0
 		// Jonli ko'rish ochiq bo'lsa tahlil davom etadi, lekin qurilmaga so'rov siyrakroq (LIVE_INTERVAL_MS) yuboriladi
 		const guard = () => !HikService.liveActive(serial, LIVE_PAUSE_MS) || Date.now() - dev.lastCapture >= LIVE_INTERVAL_MS
 		const handle = async (camera, fu) => {
@@ -431,13 +436,14 @@ class VisionService {
 				const kind = this.classify(error)
 				this.lastError.set(key, { at: new Date(), message: HikService.friendly(error.message) })
 				stats.failed++
-				if (kind === 'offline' || kind === 'busy') {
+				if (kind === 'offline') {
 					// Qurilma darajasidagi xato: qolgan kameralarga ham tegmaymiz, kutish vaqti oshadi
 					dev.failure(kind)
-					if (kind === 'offline') await HikService.markDeviceOffline(camera.accountId, serial)
+					await HikService.markDeviceOffline(camera.accountId, serial)
 					return false
 				}
-				// Kamera darajasidagi xato: faqat shu kamera uchun kutish (1, 2, 4 ... 10 daqiqa)
+				// Kamera darajasidagi xato ("javob bermadi" ham): faqat shu kamera uchun kutish (1, 2, 4 ... 10 daqiqa)
+				if (kind === 'busy') busyFails++
 				const prev = this.failures.get(key)
 				const n = (prev?.n || 0) + 1
 				this.failures.set(key, { n, until: Date.now() + Math.min(CAMERA_BACKOFF_MAX_MS, INTERVAL_MS * 2 ** (n - 1)) })
@@ -446,7 +452,9 @@ class VisionService {
 			}
 		}
 
-		for (const camera of cameras) {
+		// Oldin xato bergan kameralar oxirida: ishlaydiganlari avval tahlil qilinadi va qurilma tirik ekani ma'lum bo'ladi
+		const failCount = (c) => this.failures.get(String(c._id))?.n || 0
+		for (const camera of [...cameras].sort((a, b) => failCount(a) - failCount(b))) {
 			if (!guard()) { stats.skipped++; break }
 			const f = this.failures.get(String(camera._id))
 			if (f && f.until > Date.now()) { stats.skipped++; continue }
@@ -466,6 +474,7 @@ class VisionService {
 			first = false
 			if (!(await handle(fu.camera, fu))) break
 		}
+		if (busyFails && !stats.ok && Date.now() - dev.okAt > BUSY_DEVICE_OK_MS) dev.failure('busy')
 		return stats
 	}
 

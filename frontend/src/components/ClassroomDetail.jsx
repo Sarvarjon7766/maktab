@@ -247,7 +247,7 @@ const ClassroomDetail = ({ sinfId, schoolId, backTo, personBase, camerasLink }) 
 							</div>
 						)}
 						<div className="rounded-xl overflow-hidden bg-black">
-							{cam?.online === true && cam.serial ? <HikLivePlayer key={cam._id} cameraId={cam._id} /> : (
+							{cam?.online === true && cam.serial ? <HikLivePlayer key={cam._id} cameraId={cam._id} talk /> : (
 								<div className="flex items-center justify-center text-slate-400 text-sm bg-slate-900" style={{ aspectRatio: '16 / 9' }}>{tx("Kamera offline")}</div>
 							)}
 						</div>

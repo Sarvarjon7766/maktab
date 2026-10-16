@@ -38,6 +38,7 @@ const AdminClassControl = lazy(() => import("./pages/admin/AdminClassControl"))
 const AdminRegulation = lazy(() => import("./pages/admin/AdminRegulation"))
 const AdminReports = lazy(() => import("./pages/admin/AdminReports"))
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"))
+const AdminGuide = lazy(() => import("./pages/admin/AdminGuide"))
 const AdminStudents = lazy(() => import("./pages/admin/AdminStudents"))
 const AdminUserCameras = lazy(() => import("./pages/admin/AdminUserCameras"))
 const AdminUserEntryExit = lazy(() => import("./pages/admin/AdminUserEntryExit"))
@@ -282,6 +283,7 @@ const App = () => {
           </Route>
           <Route path="comments" element={<UserComments />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="guide" element={<AdminGuide />} />
         </Route>
         {/* ADMIN */}
         <Route

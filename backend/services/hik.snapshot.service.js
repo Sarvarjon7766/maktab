@@ -84,17 +84,83 @@ async function save(eventId, buf) {
 	return true
 }
 
-// Kameradan hozirgi kadrni oladi (capturePic). Shifrlangan bo'lsa akkauntdagi kod bilan ochadi.
+// Tahlil uchun tiniq kadr: capturePic ko'p qurilmada (NVR/DVR) past o'lchamli (taxminan 960x576) va qattiq siqilgan kadr beradi,
+// jonli oqimning asosiy kanali esa to'liq sifatli. Shuning uchun avval asosiy oqimdan (HLS) ffmpeg bilan bitta kadr kesamiz.
+// ffmpeg yo'q, oqim shifrlangan yoki ochilmasa — capturePic ga qaytamiz va shu kamerada LIVE_RETRY_MS davomida qayta urinmaymiz.
+// FRAME_SOURCE=snapshot — faqat capturePic; FFMPEG_PATH — ffmpeg joylashuvi
+const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg'
+const GRAB_TIMEOUT_MS = 25000
+const MAX_GRABS = 3
+const LIVE_RETRY_MS = 30 * 60 * 1000
+const liveFail = new Map() // camera -> qayta urinish vaqti (ms)
+let ffmpegOk = null
+let grabbing = 0
+const grabWaiting = []
+
+function hasFfmpeg() {
+	if (process.env.FRAME_SOURCE === 'snapshot') return false
+	if (ffmpegOk === null) {
+		const r = require('child_process').spawnSync(FFMPEG, ['-version'], { stdio: 'ignore' })
+		ffmpegOk = !r.error && r.status === 0
+		if (!ffmpegOk) console.log("Kadr manbai: ffmpeg topilmadi, capturePic ishlatiladi (past sifatli bo'lishi mumkin)")
+	}
+	return ffmpegOk
+}
+
+async function grabSlot() {
+	if (grabbing < MAX_GRABS) { grabbing++; return }
+	await new Promise((resolve) => grabWaiting.push(resolve))
+}
+function grabDone() {
+	const next = grabWaiting.shift()
+	if (next) next()
+	else grabbing--
+}
+
+// Oqimdan bitta JPEG kadr (to'liq o'lcham). ffmpeg kalit kadrni kutib, bitta kadrni olib chiqadi
+function grabFrame(url) {
+	return new Promise((resolve, reject) => {
+		const args = ['-nostdin', '-loglevel', 'error', '-rw_timeout', '15000000', '-i', url, '-frames:v', '1', '-q:v', '2', '-f', 'mjpeg', 'pipe:1']
+		const child = require('child_process').spawn(FFMPEG, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+		const chunks = []
+		let size = 0, err = ''
+		const timer = setTimeout(() => child.kill('SIGKILL'), GRAB_TIMEOUT_MS)
+		child.stdout.on('data', (d) => { size += d.length; if (size <= MAX_BYTES) chunks.push(d) })
+		child.stderr.on('data', (d) => { if (err.length < 400) err += d })
+		child.on('error', (e) => { clearTimeout(timer); reject(new PictureError('no_image', e.message)) })
+		child.on('close', () => {
+			clearTimeout(timer)
+			const buf = Buffer.concat(chunks)
+			if (size <= MAX_BYTES && buf.length > 2000 && isImage(buf)) resolve(buf)
+			else reject(new PictureError('no_image', `Oqimdan kadr olinmadi${err ? ': ' + err.trim().split(/\r?\n/)[0] : ''}`))
+		})
+	})
+}
+
+async function captureLive(camera) {
+	const url = await HikService.streamUrl(camera, { protocol: '2', quality: 1 })
+	await grabSlot()
+	try { return await grabFrame(url) } finally { grabDone() }
+}
+
+// Kameradan hozirgi kadrni oladi: asosiy oqimdan, bo'lmasa capturePic. Shifrlangan bo'lsa akkauntdagi kod bilan ochadi.
 // Muvaffaqiyatsiz bo'lsa PictureError (sabab: no_code | wrong_code | bad_data | no_image) tashlaydi
 async function captureBuffer(camera) {
 	if (!camera.serial) throw new PictureError('no_serial', 'Kamera serial raqami topilmadi')
+	const key = String(camera._id)
+	if (camera.cameraId && hasFfmpeg() && (liveFail.get(key) || 0) < Date.now()) {
+		try { return await captureLive(camera) } catch (e) {
+			liveFail.set(key, Date.now() + LIVE_RETRY_MS)
+			console.log(`Kadr manbai: ${camera.name || key} asosiy oqimdan olinmadi (${e.message}), capturePic ishlatiladi`)
+		}
+	}
 	const data = await HikService.call(camera.accountId, 'post', '/api/hccgw/resource/v1/device/capturePic', { deviceSerial: camera.serial, channelNo: camera.channelNo || 1 })
 	if (!data.captureUrl) throw new PictureError('no_image', 'Kamera kadr qaytarmadi')
 	const raw = await download(data.captureUrl)
 	const buf = Number(data.isEncrypted) === 1 || raw.slice(0, 16).toString('latin1') === MAGIC
 		? decryptPicture(raw, await HikService.encryptionCode(camera.accountId))
 		: raw
-	if (!isImage(buf)) throw new PictureError('no_image', 'Kamera rasm o\'rniga boshqa ma\'lumot qaytardi')
+	if (!isImage(buf)) throw new PictureError('no_image', "Kamera rasm o'rniga boshqa ma'lumot qaytardi")
 	return buf
 }
 

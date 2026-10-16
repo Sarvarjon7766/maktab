@@ -1,6 +1,7 @@
 import FaceIdMark from "./FaceIdMark"
 import axios from "axios"
 import { useEffect, useState } from "react"
+import { FiEye, FiEyeOff } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
@@ -16,6 +17,7 @@ const Login = () => {
 	const { refresh: refreshOrg } = org
 	const [formData, setFormData] = useState({ username: "", password: "" })
 	const [isLoading, setIsLoading] = useState(false)
+	const [showPassword, setShowPassword] = useState(false)
 	const [isCheckingToken, setIsCheckingToken] = useState(true)
 	const navigate = useNavigate()
 
@@ -230,15 +232,24 @@ const Login = () => {
 								</svg>
 							</span>
 							<input
-								type="password"
+								type={showPassword ? "text" : "password"}
 								name="password"
 								value={formData.password}
 								onChange={handleChange}
 								placeholder={tx("Parol")}
 								autoComplete="current-password"
-								className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-black placeholder-slate-400
+								className="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-300 text-black placeholder-slate-400
 								focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none transition"
 							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(v => !v)}
+								aria-label={showPassword ? tx("Parolni yashirish") : tx("Parolni ko'rsatish")}
+								title={showPassword ? tx("Parolni yashirish") : tx("Parolni ko'rsatish")}
+								className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+							>
+								{showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+							</button>
 						</div>
 
 						<button

@@ -634,11 +634,18 @@ class HikConnectService {
 			if (sinfId) {
 				if (!validId(sinfId) || !(await sinfModel.exists({ _id: sinfId, schoolId }))) return { success: false, message: 'Sinf topilmadi' }
 				if (!SCHOOL_ROLES.includes(camera.role)) return { success: false, message: "FaceControl kamerasi sinfga biriktirilmaydi" }
-				camera.sinfId = sinfId
-				camera.role = 'monitor' // sinfga biriktirilgan kamera — sinfxona kamerasi
-				if (camera.faceDirection === 'out') camera.faceDirection = 'in' // sinfxona kamerasi chiqishni aniqlamaydi
-				// Sinfga biriktirilgan oddiy kamerada AI odam sanash o'zi yoqiladi (xohlasa admin o'chira oladi)
-				if (visionEnabled === undefined) camera.visionEnabled = true
+				// Bir kamera faqat bitta sinfga tegishli: boshqa sinfga o'tkazish uchun avval ajratiladi. O'sha sinfning o'ziga qayta biriktirish hech narsani o'zgartirmaydi
+				if (camera.sinfId && String(camera.sinfId) !== String(sinfId)) {
+					const current = await sinfModel.findById(camera.sinfId).select('name').lean()
+					return { success: false, message: `Bu kamera allaqachon ${current?.name ? `${current.name} sinfiga` : 'boshqa sinfga'} biriktirilgan. Avval uni sinfdan ajrating` }
+				}
+				if (String(camera.sinfId || '') !== String(sinfId)) {
+					camera.sinfId = sinfId
+					camera.role = 'monitor' // sinfga biriktirilgan kamera — sinfxona kamerasi
+					if (camera.faceDirection === 'out') camera.faceDirection = 'in' // sinfxona kamerasi chiqishni aniqlamaydi
+					// Sinfga biriktirilgan oddiy kamerada AI odam sanash o'zi yoqiladi (xohlasa admin o'chira oladi)
+					if (visionEnabled === undefined) camera.visionEnabled = true
+				}
 			} else camera.sinfId = null
 		}
 		if (capacity !== undefined) {
@@ -993,6 +1000,16 @@ class HikConnectService {
 			if (OFFLINE_RE.test(error.message || '')) await this.markDeviceOffline(camera.accountId, camera.serial)
 			return { success: false, message: error.response?.data ? failure(error) : friendly(error.message) }
 		}
+	}
+
+	// Serverdan o'qish uchun oqim manzili (HLS: protocol '2'). quality 1 = asosiy oqim (to'liq o'lcham). Brauzer tokeni kerak emas
+	async streamUrl(camera, { protocol = '2', quality = 1 } = {}) {
+		const creds = await loadCreds(camera.accountId)
+		const body = { resourceId: camera.cameraId, deviceSerial: camera.serial, type: '1', protocol, quality }
+		if (creds.code) body.code = creds.code
+		const live = await hik(camera.accountId, creds, 'post', '/api/hccgw/video/v1/live/address/get', body)
+		if (!live.url) throw new Error('Jonli oqim manzili qaytmadi')
+		return live.url
 	}
 }
 

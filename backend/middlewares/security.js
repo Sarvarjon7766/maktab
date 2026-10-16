@@ -40,8 +40,6 @@ const LIMIT = Math.max(100, Number(process.env.API_RATE_PER_MIN) || 1500)
 setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (now > v.reset) hits.delete(k) }, 60000).unref()
 function apiLimiter(req, res, next) {
 	if (req.path.startsWith('/federation/')) return next()
-	// Jonli sinov kadrlari (soniyasiga bir necha so'rov) umumiy IP limitini yeb qo'ymasin: u autentifikatsiya va AI navbat chegarasi (AI_LIVE_QUEUE_MAX) bilan himoyalangan
-	if (req.path === '/hik/faces/frame') return next()
 	const ip = String(req.ip || req.socket?.remoteAddress || '')
 	const now = Date.now()
 	let h = hits.get(ip)

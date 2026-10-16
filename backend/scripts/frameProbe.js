@@ -11,12 +11,28 @@ const OUT = path.join(__dirname, '..', 'private', 'probe')
 const query = process.argv[2]
 const limit = Math.max(1, Number(process.argv[3]) || 2)
 
+// 8 pikselli JPEG bloklari chegarasidagi o'zgarish / blok ichidagi o'zgarish. ~1.0 = oddiy rasm, 1.3+ = "mosaika" (blok naqshi)
+async function blockiness(buf) {
+	const { data, info } = await sharp(buf).greyscale().raw().toBuffer({ resolveWithObject: true })
+	const { width: w, height: h } = info
+	let bSum = 0, bN = 0, iSum = 0, iN = 0
+	for (let y = 0; y < h; y += 2) {
+		const row = y * w
+		for (let x = 0; x < w - 1; x++) {
+			const d = Math.abs(data[row + x + 1] - data[row + x])
+			if (x % 8 === 7) { bSum += d; bN++ } else { iSum += d; iN++ }
+		}
+	}
+	return (bSum / bN) / Math.max(0.01, iSum / iN)
+}
+
 async function describe(label, buf, file) {
 	const m = await sharp(buf).metadata()
 	fs.writeFileSync(path.join(OUT, file), buf)
 	let people = '?'
 	try { people = (await require('../ai/personDetector').detectPeople(buf, { tiled: true })).count } catch (e) { people = `xato: ${e.message}` }
-	console.log(`  ${label.padEnd(10)} ${m.width}x${m.height}  ${(buf.length / 1024).toFixed(0)} KB  ${(buf.length / (m.width * m.height) * 8).toFixed(2)} bit/piksel  odam=${people}  -> ${file}`)
+	const blk = await blockiness(buf)
+	console.log(`  ${label.padEnd(10)} ${m.width}x${m.height}  ${(buf.length / 1024).toFixed(0)} KB  ${(buf.length / (m.width * m.height) * 8).toFixed(2)} bit/piksel  blok=${blk.toFixed(2)}  odam=${people}  -> ${file}`)
 }
 
 ;(async () => {
